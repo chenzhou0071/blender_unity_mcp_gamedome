@@ -443,12 +443,16 @@ def build_treasure():
 def build_brazier():
     base = add_cylinder("br_base", 0.13, 0.55, (0, 0, 0.275), verts=10)
     bowl = add_cone("br_bowl", 0.14, 0.36, 0.40, (0, 0, 0.75), verts=12)
-    fire = add_cylinder("br_fire", 0.30, 0.07, (0, 0, 0.92), verts=12)
+    # 挖空成开口碗：内锥略小且上移（口部敞开、底留 2cm 壁厚）
+    inner = add_cone("br_bowl_in", 0.10, 0.335, 0.42, (0, 0, 0.78), verts=12)
+    boolean_cut(bowl, inner)
+    fire = add_cylinder("br_fire", 0.28, 0.06, (0, 0, 0.91), verts=12)  # 嵌在碗口内的炭火
     o = join_objs([base, bowl, fire], "SM_Brazier")
     o.data.materials.append(get_material("M_Metal_Dark"))
     o.data.materials.append(get_material("M_Fire"))
     for p in o.data.polygons:
-        p.material_index = 1 if p.center.z > 0.88 else 0
+        r = math.hypot(p.center.x, p.center.y)
+        p.material_index = 1 if (p.center.z > 0.84 and r < 0.30) else 0
     jitter(o, 0.005, zmin=0.05, amp_z=0.005)
     return o
 
@@ -552,6 +556,16 @@ def render_overview(objs):
     size2 = os.path.getsize(out2) if os.path.exists(out2) else 0
     assert size2 > 20000, f"特写渲染图过小: {size2}B"
     print(f"RENDER ok closeup {size2}B")
+    # 特写2: 火盆（低角度验证开口碗与炭火）
+    cam.location = (-1.3, -10.4, 1.7)
+    direction = mathutils.Vector((-1.3, -9.0, 0.82)) - cam.location
+    cam.rotation_euler = direction.to_track_quat('-Z', 'Y').to_euler()
+    out3 = os.path.join(RENDER_DIR, "kit_brazier_closeup.png")
+    scene.render.filepath = out3
+    bpy.ops.render.render(write_still=True)
+    size3 = os.path.getsize(out3) if os.path.exists(out3) else 0
+    assert size3 > 20000, f"火盆特写渲染过小: {size3}B"
+    print(f"RENDER ok brazier {size3}B")
 
 
 def main():
