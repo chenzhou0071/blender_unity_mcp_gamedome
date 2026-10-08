@@ -1,15 +1,15 @@
 # ---- 导师参考资料（仅保留本地，不入库）----
 3D游戏开发流程指南_*.md
 
-# ---- Unity 工程生成物（game/ 为 Unity 工程目录）----
-game/[Ll]ibrary/
-game/[Tt]emp/
-game/[Oo]bj/
-game/[Ll]ogs/
-game/[Uu]serSettings/
-game/[Bb]uild*/
-game/[Mm]emoryCaptures/
-game/[Rr]ecordings/
+# ---- Unity 工程生成物（game/ 为 Unity 工程目录，支持任意层级嵌套）----
+game/**/[Ll]ibrary/
+game/**/[Tt]emp/
+game/**/[Oo]bj/
+game/**/[Ll]ogs/
+game/**/[Uu]serSettings/
+game/**/[Bb]uild*/
+game/**/[Mm]emoryCaptures/
+game/**/[Rr]ecordings/
 *.csproj
 *.sln
 *.user
