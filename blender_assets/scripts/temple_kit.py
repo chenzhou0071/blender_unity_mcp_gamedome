@@ -17,8 +17,8 @@ DO_RENDER = "--render" in sys.argv
 TRIS_MIN, TRIS_HI = 1000, 3000
 # 细分后的高频细抖动幅度（默认 0.008；宝石/火盆等精修件更收敛）
 FINE_AMP = {"SM_Treasure": 0.003, "SM_Brazier": 0.005}
-# 沿法线凹凸幅度（主细节：石面颗粒感）
-BUMP_AMP = {"SM_Treasure": 0.004, "SM_Brazier": 0.006, "SM_Debris_A": 0.028, "SM_Debris_B": 0.032}
+# 沿法线凹凸幅度（次要颗粒：收敛以免糊平缝槽）
+BUMP_AMP = {"SM_Treasure": 0.003, "SM_Brazier": 0.005, "SM_Debris_A": 0.022, "SM_Debris_B": 0.026}
 
 MATERIALS = {
     "M_Stone":          dict(color=(0.42, 0.40, 0.37, 1), rough=0.90),
@@ -159,7 +159,7 @@ def bump(obj, amp):
 
 
 def brickify(obj, face_filter, cuts=0, thick=0.035, depth=-0.024):
-    """对选定大面做砌块分割：可局部细分后逐面独立 inset，形成石板缝。"""
+    """对选定大面做砌块分割：板面保持原位，仅板间缝槽沿法线凹入（石板缝）。"""
     bm = bmesh.new(); bm.from_mesh(obj.data)
     sel = [f for f in bm.faces if f.calc_area() > 0.15 and face_filter(f)]
     if not sel:
@@ -169,7 +169,13 @@ def brickify(obj, face_filter, cuts=0, thick=0.035, depth=-0.024):
         bmesh.ops.subdivide_edges(bm, edges=edges, cuts=cuts, use_grid_fill=True)
         bm.normal_update()
         sel = [f for f in bm.faces if f.calc_area() > 0.15 and face_filter(f)]
-    bmesh.ops.inset_individual(bm, faces=sel, thickness=thick, depth=depth, use_even_offset=True)
+    bm.normal_update()
+    ret = bmesh.ops.inset_individual(bm, faces=sel, thickness=thick, depth=0.0, use_even_offset=True)
+    bm.normal_update()
+    groove = -depth  # 参数沿用负值语义：缝槽下沉深度
+    ring_verts = set(v for f in ret["faces"] for v in f.verts)
+    for v in ring_verts:
+        v.co -= v.normal * groove
     bm.to_mesh(obj.data); bm.free()
 
 
@@ -558,7 +564,7 @@ def main():
     total = 0
     for o in objs:
         refine(o)                                        # 细分至 1000-3000 面
-        bump(o, BUMP_AMP.get(o.name, 0.014))             # 沿法线凹凸（石面颗粒主细节）
+        bump(o, BUMP_AMP.get(o.name, 0.008))             # 沿法线凹凸（次要颗粒）
         jitter(o, FINE_AMP.get(o.name, 0.004))           # 细微全向扰动
         flat(o)
         tris = tris_of(o)
