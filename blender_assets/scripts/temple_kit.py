@@ -13,16 +13,10 @@ SCENES_DIR = os.path.join(ROOT, "scenes")
 RENDER_DIR = os.path.join(ROOT, "..", "docs", "milestones", "M3")
 DO_RENDER = "--render" in sys.argv
 
-# 各资产三角面上限（按计划表区间上限）
-TRIS_MAX = {
-    "SM_FloorTile_A": 300, "SM_FloorTile_B": 300,
-    "SM_Wall_A": 400, "SM_Wall_B": 400,
-    "SM_Pillar_Whole": 800, "SM_Pillar_Broken": 800,
-    "SM_Arch": 1000, "SM_Stairs": 400, "SM_DoorFrame": 600,
-    "SM_StoneDoor": 800, "SM_PressurePlate": 200, "SM_PushBlock": 400,
-    "SM_Altar": 600, "SM_Treasure": 400, "SM_Brazier": 600,
-    "SM_Debris_A": 200, "SM_Debris_B": 200,
-}
+# 细化目标：每件 1000-3000 tris（用户 M3-1 验收要求，取代原 50-1000 低模预算）
+TRIS_MIN, TRIS_HI = 1000, 3000
+# 细分后的高频细抖动幅度（默认 0.008；宝石/火盆等精修件更收敛）
+FINE_AMP = {"SM_Treasure": 0.003, "SM_Brazier": 0.005}
 
 MATERIALS = {
     "M_Stone":          dict(color=(0.42, 0.40, 0.37, 1), rough=0.90),
@@ -126,6 +120,31 @@ def subdiv(obj, cuts=1):
     bm = bmesh.new(); bm.from_mesh(obj.data)
     bmesh.ops.subdivide_edges(bm, edges=bm.edges[:], cuts=cuts, use_grid_fill=True)
     bm.to_mesh(obj.data); bm.free()
+
+
+def tris_of(obj):
+    return sum(len(p.vertices) - 2 for p in obj.data.polygons)
+
+
+def subdiv_partial(obj, ratio):
+    """对随机部分面细分（两级细节推进，避免面数跳档超上限）。"""
+    bm = bmesh.new(); bm.from_mesh(obj.data)
+    faces = [f for f in bm.faces if random.random() < ratio]
+    edges = list({e for f in faces for e in f.edges})
+    if edges:
+        bmesh.ops.subdivide_edges(bm, edges=edges, cuts=1, use_grid_fill=False)
+    bm.to_mesh(obj.data); bm.free()
+
+
+def refine(obj, lo=TRIS_MIN + 100, hi=TRIS_HI - 100):
+    """细分逼近目标区间 [1000,3000]：先全量×4，再部分细分。"""
+    guard = 0
+    while tris_of(obj) < lo and guard < 12:
+        if tris_of(obj) * 4 <= hi:
+            subdiv(obj, 1)
+        else:
+            subdiv_partial(obj, 0.5)
+        guard += 1
 
 
 def recess(obj, face_filter, thickness=0.1, depth=-0.05):
@@ -486,10 +505,11 @@ def main():
     assert len(objs) == 17, f"资产数量不符: {len(objs)}"
     total = 0
     for o in objs:
+        refine(o)                                        # 细分至 1000-3000 面
+        jitter(o, FINE_AMP.get(o.name, 0.008))           # 高频细抖动（风化颗粒）
         flat(o)
-        tris = sum(len(p.vertices) - 2 for p in o.data.polygons)
-        mx = TRIS_MAX.get(o.name, 1000)
-        assert 20 <= tris <= mx, f"{o.name} 面数超预算: {tris}/{mx}"
+        tris = tris_of(o)
+        assert TRIS_MIN <= tris <= TRIS_HI, f"{o.name} 面数超范围: {tris}"
         total += tris
         path = export_obj(o)
         size = os.path.getsize(path)
