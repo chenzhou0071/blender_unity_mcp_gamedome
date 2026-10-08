@@ -16,16 +16,16 @@ public static class GrayboxBuilder
         Box("FloorB", new Vector3(0, -0.25f, 15), new Vector3(16, 0.5f, 14));
         // Room A 外墙
         Box("WallA_S", new Vector3(0, WallH2(), -8), new Vector3(20, L2(), 0.5f));
-        Box("WallA_E", new Vector3(10, L2(), 0), new Vector3(0.5f, L2(), 16));
-        Box("WallA_W", new Vector3(-10, L2(), 0), new Vector3(0.5f, L2(), 16));
+        Box("WallA_E", new Vector3(10, WallH2(), 0), new Vector3(0.5f, L2(), 16));
+        Box("WallA_W", new Vector3(-10, WallH2(), 0), new Vector3(0.5f, L2(), 16));
         // 共用墙 + 门洞（左右两段 + 门楣）
-        Box("WallAB_L", new Vector3(-5.75f, L2(), 8), new Vector3(8.5f, L2(), 0.5f));
-        Box("WallAB_R", new Vector3(5.75f, L2(), 8), new Vector3(8.5f, L2(), 0.5f));
+        Box("WallAB_L", new Vector3(-5.75f, WallH2(), 8), new Vector3(8.5f, L2(), 0.5f));
+        Box("WallAB_R", new Vector3(5.75f, WallH2(), 8), new Vector3(8.5f, L2(), 0.5f));
         Box("WallAB_Top", new Vector3(0, 5f, 8), new Vector3(3f, 2f, 0.5f));
         // Room B 外墙
-        Box("WallB_E", new Vector3(8, L2(), 15), new Vector3(0.5f, L2(), 14));
-        Box("WallB_W", new Vector3(-8, L2(), 15), new Vector3(0.5f, L2(), 14));
-        Box("WallB_N", new Vector3(0, L2(), 22), new Vector3(16, L2(), 0.5f));
+        Box("WallB_E", new Vector3(8, WallH2(), 15), new Vector3(0.5f, L2(), 14));
+        Box("WallB_W", new Vector3(-8, WallH2(), 15), new Vector3(0.5f, L2(), 14));
+        Box("WallB_N", new Vector3(0, WallH2(), 22), new Vector3(16, L2(), 0.5f));
 
         // 石门
         var door = Box("StoneDoor", LevelSpec.DoorPos, new Vector3(3f, 4f, 0.4f));
@@ -54,10 +54,15 @@ public static class GrayboxBuilder
         treasure.AddComponent<GoalTrigger>();
 
         // 玩家（胶囊视觉 + CharacterController + 控制器/攀爬/推挤 + 相机）
-        var player = GameObject.CreatePrimitive(PrimitiveType.Capsule);
+        var player = new GameObject("Player");
         player.name = "Player"; player.tag = "Player";
         player.transform.position = LevelSpec.PlayerSpawn;
-        Object.DestroyImmediate(player.GetComponent<CapsuleCollider>());
+        var pv = GameObject.CreatePrimitive(PrimitiveType.Capsule);
+        pv.name = "Visual";
+        Object.DestroyImmediate(pv.GetComponent<CapsuleCollider>());
+        pv.transform.SetParent(player.transform, false);
+        pv.transform.localScale = new Vector3(0.6f, 0.9f, 0.6f);
+        pv.transform.localPosition = new Vector3(0, 0.9f, 0); // 胶囊视觉底部与 CC 脚(y=0)对齐，防止陷进地板
         var cc = player.AddComponent<CharacterController>();
         cc.height = 1.8f; cc.radius = 0.3f; cc.center = new Vector3(0, 0.9f, 0);
         player.AddComponent<ThirdPersonController>();
