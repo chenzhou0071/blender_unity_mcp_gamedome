@@ -1,0 +1,35 @@
+# ---- 导师参考资料（仅保留本地，不入库）----
+3D游戏开发流程指南_*.md
+
+# ---- Unity 工程生成物（game/ 为 Unity 工程目录）----
+game/[Ll]ibrary/
+game/[Tt]emp/
+game/[Oo]bj/
+game/[Ll]ogs/
+game/[Uu]serSettings/
+game/[Bb]uild*/
+game/[Mm]emoryCaptures/
+game/[Rr]ecordings/
+*.csproj
+*.sln
+*.user
+*.unityproj
+*.pidb
+*.booproj
+*.svd
+.vs/
+.idea/
+
+# ---- Blender 自动备份 ----
+*.blend1
+*.blend2
+*.blend3
+
+# ---- 大体积录屏（截图保留，视频不入库）----
+docs/milestones/**/*.mp4
+docs/milestones/**/*.mov
+
+# ---- 系统杂项 ----
+Thumbs.db
+desktop.ini
+.DS_Store
