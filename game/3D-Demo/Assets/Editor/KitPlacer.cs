@@ -87,12 +87,14 @@ public static class KitPlacer
         var fallen = Spawn("SM_Pillar_Broken", new Vector3(6.2f, 0.30f, 4.5f), 0f);
         if (fallen) fallen.transform.rotation = Quaternion.Euler(0, 20, 0)
             * Quaternion.Euler(0, 0, 90) * Quaternion.Euler(270, 0, 0);
-        foreach (var p in new[] {
+        var braziers = new[] {
             new Vector3(-3, 0, -6f), new Vector3(3, 0, -6f),
-            new Vector3(-3, 0, 12.5f), new Vector3(3, 0, 12.5f) })
+            new Vector3(-3, 0, 12.5f), new Vector3(3, 0, 12.5f) };
+        var torchNames = new[] { "TorchA_L", "TorchA_R", "TorchB_L", "TorchB_R" };
+        for (int i = 0; i < braziers.Length; i++)
         {
-            RetintFire(Spawn("SM_Brazier", p, 0f));
-            AlignTorchLight(p);   // 火盆点光对齐火焰光心（重跑不回退）
+            RetintFire(Spawn("SM_Brazier", braziers[i], 0f));
+            EnsureTorchLight(braziers[i], torchNames[i]);   // 火盆点光：确保存在并对齐火焰光心
         }
         Spawn("SM_Stairs", new Vector3(0, 0, 20.9f), 180f);
         var rubble = new[] {
@@ -105,6 +107,8 @@ public static class KitPlacer
                            Random.Range(0, 4) * 90f);
             if (go) go.transform.localScale = Vector3.one * Random.Range(0.8f, 1.25f);
         }
+
+        ApplyLightingMood();   // M3-4 光照氛围初调：雾/暗环境/相机背景（幂等施加）
 
         EditorSceneManager.MarkSceneDirty(scene);
         EditorSceneManager.SaveScene(scene);
@@ -293,22 +297,92 @@ public static class KitPlacer
         }
     }
 
-    // 火光对齐：把火盆附近（水平 2.5m 内）的 Torch* 点光移到火焰光心位置，
-    // 让照明从火焰本身发出，而不是悬在盆口上方
-    static void AlignTorchLight(Vector3 brazierPos)
+    // 火盆点光：确保火盆附近（水平 2.5m 内）存在 Torch* 点光并对齐火焰光心，
+    // 让照明从火焰本身发出（盆口 0.85 与焰尖 1.38 之间偏下）；缺失（如 B 厅火盆）则新建。
+    // 光照参数在此统一定义，重跑菜单幂等生效。
+    static void EnsureTorchLight(Vector3 brazierPos, string lightName)
     {
-        const float FireCoreY = 1.1f;   // 火焰光心：盆口 0.85 与焰尖 1.38 之间偏下
+        const float FireCoreY = 1.1f;   // 火焰光心高度
         const float MaxDist = 2.5f;     // 火盆与光的水平匹配半径
         var firePos = new Vector3(brazierPos.x, brazierPos.y + FireCoreY, brazierPos.z);
-        foreach (var l in Object.FindObjectsByType<Light>(
+        Light l = null;
+        foreach (var c in Object.FindObjectsByType<Light>(
                      FindObjectsInactive.Include, FindObjectsSortMode.None))
         {
-            if (l.type != LightType.Point || !l.name.StartsWith("Torch")) continue;
-            var p = l.transform.position;
-            if (new Vector2(p.x - brazierPos.x, p.z - brazierPos.z).magnitude > MaxDist) continue;
-            l.transform.position = firePos;
-            EditorUtility.SetDirty(l);
+            if (c.type != LightType.Point || !c.name.StartsWith("Torch")) continue;
+            var p = c.transform.position;
+            if (new Vector2(p.x - brazierPos.x, p.z - brazierPos.z).magnitude <= MaxDist)
+            { l = c; break; }
         }
+        if (l == null)
+        {
+            l = new GameObject(lightName).AddComponent<Light>();
+            l.type = LightType.Point;
+            Debug.Log($"[KitPlacer] 新建火盆点光 {lightName} @ {brazierPos}");
+        }
+        l.transform.position = firePos;
+        l.color = new Color(1f, 0.60f, 0.30f);      // 暖橙
+        l.intensity = 2.2f;
+        l.range = 8.5f;
+        l.shadows = LightShadows.Soft;              // 石柱/墙体的投影让火光有体积感
+        EditorUtility.SetDirty(l);
+    }
+
+    // ---------- M3-4 光照氛围初调 ----------
+    // 地下古墓感：深暖尘雾 + 冷暗环境光 + 弱冷天光 + 相机雾色背景（封闭空间不露天空盒）。
+    // 幂等：每次重建场景统一施加；后续微调数值只改这一处。
+    static void ApplyLightingMood()
+    {
+        // 雾：线性 8~42m（近景可玩性优先，远处渐隐入背景）
+        RenderSettings.fog = true;
+        RenderSettings.fogMode = FogMode.Linear;
+        RenderSettings.fogColor = new Color(0.075f, 0.065f, 0.058f);   // 深暖灰褐（尘雾）
+        RenderSettings.fogStartDistance = 8f;
+        RenderSettings.fogEndDistance = 42f;
+        // 环境光：暗蓝（地下感，衬托暖火光）
+        RenderSettings.ambientMode = UnityEngine.Rendering.AmbientMode.Flat;
+        RenderSettings.ambientLight = new Color(0.08f, 0.08f, 0.12f);
+        // 太阳 → 冷弱天光（墙顶开口漏下的光，不再是正午太阳）
+        var sun = RenderSettings.sun;
+        if (sun != null)
+        {
+            sun.intensity = 0.14f;
+            sun.color = new Color(0.55f, 0.65f, 0.95f);
+            sun.shadows = LightShadows.Soft;
+            EditorUtility.SetDirty(sun);
+        }
+        // 天空：程序化深色夜空——全局渲染设置，实机与任何相机一致变暗（不再亮蓝穿帮）
+        const string skyPath = "Assets/Art/Static/temple/M_NightSky.mat";
+        var sky = AssetDatabase.LoadAssetAtPath<Material>(skyPath);
+        if (sky == null)
+        {
+            var sh = Shader.Find("Skybox/Procedural");
+            if (sh != null)
+            {
+                sky = new Material(sh);
+                sky.name = "M_NightSky";
+                AssetDatabase.CreateAsset(sky, skyPath);
+            }
+            else Debug.LogWarning("[KitPlacer] 找不到 Skybox/Procedural shader");
+        }
+        if (sky != null)
+        {
+            sky.SetColor("_SkyTint", new Color(0.16f, 0.18f, 0.28f));      // 夜深蓝
+            sky.SetColor("_GroundColor", new Color(0.06f, 0.055f, 0.05f)); // 地平线下贴近雾色
+            sky.SetFloat("_Exposure", 0.06f);
+            sky.SetFloat("_AtmosphereThickness", 0.5f);
+            sky.SetFloat("_SunSize", 0.02f);
+            EditorUtility.SetDirty(sky);
+            RenderSettings.skybox = sky;
+        }
+        // 相机：保持 Skybox 清屏（配合深色夜空），不再另设纯色背景
+        var cam = Camera.main;
+        if (cam != null)
+        {
+            cam.clearFlags = CameraClearFlags.Skybox;
+            EditorUtility.SetDirty(cam);
+        }
+        Debug.Log("[KitPlacer] 光照氛围已施加：雾 8~42m / 天光 0.14 / 深色夜空");
     }
 
     static void CleanupOld()
@@ -316,7 +390,7 @@ public static class KitPlacer
         int n = 0;
         foreach (var t in Object.FindObjectsByType<Transform>(
                      FindObjectsInactive.Include, FindObjectsSortMode.None))
-            if (t.name.StartsWith("VIZ_")) { Object.DestroyImmediate(t.gameObject); n++; }
-        if (n > 0) Debug.Log($"[KitPlacer] 已清理旧视觉件 {n} 个");
+            if (t.name.StartsWith("VIZ_") || t.name.StartsWith("Torch")) { Object.DestroyImmediate(t.gameObject); n++; }
+        if (n > 0) Debug.Log($"[KitPlacer] 已清理旧视觉件/火光 {n} 个");
     }
 }
