@@ -32,6 +32,9 @@ def build_pillar():
         elif v.co.z > 0.5:                       # 上段: 径向抖动做风化
             v.co.x *= random.uniform(0.96, 1.04)
             v.co.y *= random.uniform(0.96, 1.04)
+    # 顶面为非平面 NGON，三角化消除渲染暗斑/空洞错觉（用户反馈"顶部看起来是空的"）
+    top_ngon = next(f for f in bm.faces if len(f.verts) == 8 and f.calc_center_median().z > 0)
+    bmesh.ops.triangulate(bm, faces=[top_ngon], quad_method='BEAUTY', ngon_method='BEAUTY')
     bm.to_mesh(obj.data); bm.free()
     for p in obj.data.polygons:
         p.use_smooth = False                     # 低模平直着色
