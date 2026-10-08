@@ -1,7 +1,8 @@
 """M3: 生成古墓环境套件并批量导出 FBX（风格化低模，平直着色）。
 headless 用法: blender.exe --background --factory-startup --python temple_kit.py [-- --render]
-资产清单（计划表 A/B 变体分计共 17 件）：
-  地砖×2 / 墙×2 / 柱×2 / 拱 / 台阶 / 门框 / 石门 / 压力板 / 推块 / 祭坛 / 宝物 / 火盆 / 碎石×2
+资产清单（变体分计共 19 件）：
+  地砖×2 / 墙×4（A/B/C/D 变体）/ 柱×2 / 拱 / 台阶 / 门框 / 石门 / 压力板 / 推块 / 祭坛 / 宝物 /
+  火盆（含火焰建模）/ 碎石×2
 """
 import bpy, bmesh, random, os, sys, math
 from mathutils import Vector, Euler, Matrix
@@ -15,16 +16,19 @@ DO_RENDER = "--render" in sys.argv
 
 # 细化目标：每件 1000-3000 tris（用户 M3-1 验收要求，取代原 50-1000 低模预算）
 TRIS_MIN, TRIS_HI = 1000, 3000
-# 细分后的高频细抖动幅度（默认 0.008；宝石/火盆等精修件更收敛）
-FINE_AMP = {"SM_Treasure": 0.003, "SM_Brazier": 0.005}
+# 细分后的高频细抖动幅度（默认 0.008；宝石/火盆等精修件更收敛；火盆需护火焰面片）
+FINE_AMP = {"SM_Treasure": 0.003, "SM_Brazier": 0.002}
 # 沿法线凹凸幅度（次要颗粒：收敛以免糊平缝槽）
-BUMP_AMP = {"SM_Treasure": 0.003, "SM_Brazier": 0.005, "SM_Debris_A": 0.022, "SM_Debris_B": 0.026}
+BUMP_AMP = {"SM_Treasure": 0.003, "SM_Brazier": 0.002, "SM_Debris_A": 0.022, "SM_Debris_B": 0.026}
 
 MATERIALS = {
     "M_Stone":          dict(color=(0.47, 0.39, 0.28, 1), rough=0.90),   # 暖砂岩
     "M_Stone_Dark":     dict(color=(0.30, 0.25, 0.18, 1), rough=0.92),   # 深棕灰石
     "M_Metal_Dark":     dict(color=(0.23, 0.16, 0.11, 1), rough=0.60, metal=0.75),  # 暗锈铁
-    "M_Fire":           dict(color=(1.0, 0.55, 0.15, 1), rough=1.0, emission=(1.0, 0.42, 0.06)),
+    "M_Fire":           dict(color=(1.0, 0.55, 0.15, 1), rough=1.0, emission=(1.0, 0.42, 0.06),
+                            em_strength=2.2, alpha=0.5),
+    "M_Fire_Core":      dict(color=(1.0, 0.82, 0.32, 1), rough=1.0, emission=(1.0, 0.72, 0.20),
+                            em_strength=3.0, alpha=0.8),
     "M_Treasure_Glow":  dict(color=(1.0, 0.85, 0.35, 1), rough=0.3, emission=(1.0, 0.78, 0.25)),
     "M_Grass":          dict(color=(0.20, 0.30, 0.11, 1), rough=0.90),   # 幽暗草绿
 }
@@ -174,10 +178,40 @@ def brickify(obj, face_filter, cuts=0, thick=0.035, depth=-0.024):
     ret = bmesh.ops.inset_individual(bm, faces=sel, thickness=thick, depth=0.0, use_even_offset=True)
     bm.normal_update()
     groove = -depth  # 参数沿用负值语义：缝槽下沉深度
-    ring_verts = set(v for f in ret["faces"] for v in f.verts)
-    for v in ring_verts:
-        v.co -= v.normal * groove
+    # 缝槽沿"环带面平均法线（=板面法线）"推入，而非逐顶点法线：inset_individual
+    # 会分裂相邻板的共享顶点，两个重合顶点若沿各自顶点法线（板角处是斜的）推入，
+    # 位移不一致会把板缝几何撕裂/扭出反向绕序面——Blender 双面渲染看不出，Unity
+    # 单面剔除下呈现为贯穿透光细缝（crack_line 同款坑）。
+    v_n = {}
+    for f in ret["faces"]:
+        for v in f.verts:
+            if v in v_n:
+                v_n[v] += f.normal
+            else:
+                v_n[v] = Vector(f.normal)
+    for v, n in v_n.items():
+        if n.length_squared > 1e-12:
+            v.co -= n.normalized() * groove
     bm.to_mesh(obj.data); bm.free()
+
+
+def sanitize_front(obj, y_front=-0.12, ny_min=0.15):
+    """清扫墙面翻折碎片：位于前侧区域（y < y_front）却法线朝内（n.y > ny_min）的面。
+    缝槽/裂缝/雕带的顶点位移操作局部可能把面"推过头"折叠（绕序未变、朝向已反），
+    Blender 双面渲染看不出，Unity 单面剔除下透出背景形成白带。直接翻转恢复朝外；
+    正常凹槽壁面/斜面朝外（n.y<0）及墙背面（y>0）不满足判据，不受影响。"""
+    bm = bmesh.new(); bm.from_mesh(obj.data)
+    bm.normal_update()
+    cnt = 0
+    for f in bm.faces:
+        if f.material_index != 0:  # 仅 M_Stone 墙主体（草藤为材质 1）
+            continue
+        if f.calc_center_median().y < y_front and f.normal.y > ny_min:
+            f.normal_flip()
+            cnt += 1
+    bm.normal_update()
+    bm.to_mesh(obj.data); bm.free()
+    return cnt
 
 
 def ring_bands(obj, zs, band_h=0.07, shrink=0.86, r_max=0.45):
@@ -255,10 +289,19 @@ def crack_line(obj, face_filter, start, angle_deg, length=2.0, width=0.09, depth
     bm.normal_update()
     sel = [f for f in bm.faces if face_filter(f) and in_box(f)]
     tgt = set(v for f in sel for v in f.verts)
-    for v in tgt:
-        d = min(_seg_dist2(v.co, a, b) for a, b in segs)
-        if d < width:
-            v.co -= v.normal * (depth * (1.0 - d / width))
+    if sel:
+        # 统一推入方向 = 缝带面平均法线（≈墙面法线）。沿顶点法线推入会让墙缘/雕带
+        # 等斜法线顶点产生横向拖动，把三角形扭成反向绕序——Blender 双面渲染看不出，
+        # Unity 单面剔除下会呈现为贯穿透光缝。
+        push_n = Vector((0.0, 0.0, 0.0))
+        for f in sel:
+            push_n += f.normal
+        if push_n.length_squared > 1e-12:
+            push_n.normalize()
+            for v in tgt:
+                d = min(_seg_dist2(v.co, a, b) for a, b in segs)
+                if d < width:
+                    v.co -= push_n * (depth * (1.0 - d / width))
     bm.to_mesh(obj.data); bm.free()
 
 
@@ -388,15 +431,17 @@ def recess(obj, face_filter, thickness=0.1, depth=-0.05):
 
 
 def chip_corner(obj, co, no, depth=0.15):
-    """斜切一角并封口、切面推入（崩口）。co/no: 切平面点与法线。"""
+    """斜切一角并封口（崩口）。co/no: 切平面点与法线。
+    切面内凹用 inset 内圈完成——旧版直推切面全部顶点会拖动墙面交线，
+    在低模上留下"封闭边界但实心度缺失"的穿视通道（Unity 单面剔除下透视）。"""
     bm = bmesh.new(); bm.from_mesh(obj.data)
     geom = bm.verts[:] + bm.edges[:] + bm.faces[:]
     bmesh.ops.bisect_plane(bm, geom=geom, plane_co=co, plane_no=no, clear_outer=True)
-    bmesh.ops.holes_fill(bm, edges=bm.edges[:])
-    for v in bm.verts:
-        if abs((v.co - Vector(co)).dot(Vector(no))) < 1e-5:
-            v.co -= Vector(no).normalized() * depth
-            v.co.z -= depth * 0.4
+    res = bmesh.ops.holes_fill(bm, edges=bm.edges[:])
+    fills = [f for f in res.get("faces", []) if f.is_valid]
+    if fills:
+        bmesh.ops.inset_region(bm, faces=fills, thickness=0.09,
+                               depth=-depth * 0.55, use_even_offset=True)
     bm.to_mesh(obj.data); bm.free()
 
 
@@ -423,26 +468,55 @@ def flat(obj):
         p.use_smooth = False
 
 
+def triangulate(obj):
+    """导出前全量三角化：非平面 quad 经顶点位移后可成"蝴蝶结"形，Unity 导入时
+    判定 self-intersecting 丢弃并刷警告（SM_Wall_D 曾丢 1 面）；三角化为最小几何
+    单元后无此问题，面积/绕序/tris 总数不变，平直着色下视觉无差异。"""
+    bm = bmesh.new(); bm.from_mesh(obj.data)
+    bmesh.ops.triangulate(bm, faces=bm.faces[:])
+    bm.to_mesh(obj.data); bm.free()
+
+
 # ---------- 材质 ----------
+def _node_input(node, *idents):
+    """按 socket identifier 取输入（identifier 不随界面语言本地化）。"""
+    for s in node.inputs:
+        if s.identifier in idents:
+            return s
+    return None
+
+
 def get_material(name):
-    m = bpy.data.materials.get(name)
-    if m:
-        return m
     spec = MATERIALS[name]
-    m = bpy.data.materials.new(name); m.use_nodes = True
-    b = m.node_tree.nodes["Principled BSDF"]
-    b.inputs["Base Color"].default_value = spec["color"]
-    b.inputs["Roughness"].default_value = spec["rough"]
-    b.inputs["Metallic"].default_value = spec.get("metal", 0.0)
+    m = bpy.data.materials.get(name)
+    b = None
+    if m and m.use_nodes and m.node_tree:
+        b = next((n for n in m.node_tree.nodes if n.type == 'BSDF_PRINCIPLED'), None)
+    if b is None:  # 不存在或残留脏材质（如缺节点的导入材质）→ 重建
+        if m:
+            bpy.data.materials.remove(m, do_unlink=True)
+        m = bpy.data.materials.new(name); m.use_nodes = True
+        b = next(n for n in m.node_tree.nodes if n.type == 'BSDF_PRINCIPLED')
+    _node_input(b, "Base Color").default_value = spec["color"]
+    _node_input(b, "Roughness").default_value = spec["rough"]
+    _node_input(b, "Metallic").default_value = spec.get("metal", 0.0)
     em = spec.get("emission")
     if em:
-        val = (em[0], em[1], em[2], 1.0)
-        for key in ("Emission Color", "Emission"):
-            if key in b.inputs:
-                b.inputs[key].default_value = val
-                break
-        if "Emission Strength" in b.inputs:
-            b.inputs["Emission Strength"].default_value = 2.0
+        s = _node_input(b, "Emission Color", "Emission")
+        if s:
+            s.default_value = (em[0], em[1], em[2], 1.0)
+        st = _node_input(b, "Emission Strength")
+        if st:
+            st.default_value = spec.get("em_strength", 2.0)
+    al = spec.get("alpha")
+    if al is not None:  # 半透明（火焰）：EEVEE 渲染模式跨版本兼容
+        s = _node_input(b, "Alpha")
+        if s:
+            s.default_value = al
+        if hasattr(m, "surface_render_method"):
+            m.surface_render_method = 'BLENDED'
+        elif hasattr(m, "blend_method"):
+            m.blend_method = 'BLEND'
     return m
 
 
@@ -465,39 +539,63 @@ def build_floor_tile(name, broken):
     return o
 
 
-def build_wall(name, cracked):
+def build_wall(name, variant):
+    """墙体变体：A 素面 / B 主斜裂+崩口（封实）/ C 无雕带老墙 / D 重风化双裂。"""
     o = add_box(name, (4, 0.5, 3), loc=(0, 0, 1.5), bevel=0.025, subdiv=1)
     brickify(o, lambda f: abs(f.normal.y) > 0.9, cuts=0, thick=0.05, depth=-0.032)  # 正反面大板缝
-    molding_band(o, z0=2.2, height=0.30)  # 上部水平装饰雕带（外凸线脚）
-    if cracked:
+    if variant != "C":
+        molding_band(o, z0=2.2, height=0.30)  # 上部水平装饰雕带（C 变体无）
+    if variant == "B":
         # 主斜裂（自上向右下贯通）+ 两条分叉 + 顶部崩口
         crack_line(o, lambda f: f.normal.y < -0.9, start=(-0.5, -0.25, 2.9), angle_deg=-62,
                    length=2.4, width=0.10, depth=0.07, seed=31, branches=2)
         chip_corner(o, Vector((1.6, -0.25, 2.88)), Vector((0.5, -0.3, 0.8)).normalized(), depth=0.16)
         jitter(o, 0.018, zmin=0.06)
+    elif variant == "C":
+        # 无雕带老墙：一条横缓裂 + 少量藤蔓
+        crack_line(o, lambda f: f.normal.y < -0.9, start=(0.7, -0.25, 1.45), angle_deg=-8,
+                   length=1.7, width=0.08, depth=0.05, seed=57, branches=2)
+        jitter(o, 0.015, zmin=0.06)
+    elif variant == "D":
+        # 重风化：纵横双裂 + 强抖动
+        crack_line(o, lambda f: f.normal.y < -0.9, start=(-1.6, -0.25, 0.35), angle_deg=82,
+                   length=2.1, width=0.07, depth=0.045, seed=71, branches=1)
+        crack_line(o, lambda f: f.normal.y < -0.9, start=(0.5, -0.25, 2.75), angle_deg=-48,
+                   length=1.4, width=0.06, depth=0.04, seed=77, branches=1)
+        jitter(o, 0.022, zmin=0.06)
     else:
-        # 两条浅细风化纹
+        # A 素面：两条浅细风化纹
         crack_line(o, lambda f: f.normal.y < -0.9, start=(-1.3, -0.25, 2.55), angle_deg=-78,
                    length=1.5, width=0.06, depth=0.03, seed=11, branches=1)
         crack_line(o, lambda f: f.normal.y < -0.9, start=(0.9, -0.25, 0.7), angle_deg=-35,
                    length=0.9, width=0.05, depth=0.022, seed=12, branches=0)
         jitter(o, 0.012, zmin=0.06)
+    # 统一重算法线朝外：雕带/板缝/裂缝等 bmesh 操作可能产生绕序反转的面，
+    # Blender 双面渲染看不出，Unity 单面剔除下会呈现贯穿透光缝——导出前统一修正。
+    # 必须在本步执行（草藤双面薄片尚未加入），只作用于封闭的墙主体。
+    bm = bmesh.new(); bm.from_mesh(o.data)
+    bmesh.ops.recalc_face_normals(bm, faces=bm.faces)
+    bm.to_mesh(o.data); bm.free()
+    flipped = sanitize_front(o)  # 清扫位移操作推过头形成的翻折碎片（Unity 透光白带根因）
+    print(f"  {name}: sanitized {flipped} folded faces")
     set_material(o, "M_Stone")
     o.data.materials.append(get_material("M_Grass"))
-    add_grass(o, [-2.1, -0.3, 1.4] if not cracked else [-1.4, 0.9])  # 墙脚草簇（错落）
-    if cracked:
-        add_ivy(o, x0=0.6, rise=2.2, sway=0.34, seed=15, leaf_n=26, branches=3)   # 地面主藤
-        add_ivy(o, x0=-2.4, z0=1.3, rise=1.1, sway=0.20, seed=21,               # 墙中缝钻出
-                leaf_n=14, branches=1)
-        add_ivy(o, x0=-0.7, z0=2.95, rise=1.9, sway=0.26, seed=27,              # 顶部垂挂
-                leaf_n=22, branches=2, down=True)
-    else:
+    if variant == "A":
+        add_grass(o, [-2.1, -0.3, 1.4])  # 墙脚草簇（错落）
         add_ivy(o, x0=-2.3, rise=2.5, sway=0.30, seed=5, leaf_n=30, branches=3)   # 地面主藤
-        add_ivy(o, x0=-0.2, z0=0.9, rise=1.2, sway=0.22, seed=33,               # 墙中缝钻出
-                leaf_n=15, branches=1)
         add_ivy(o, x0=1.2, z0=2.95, rise=1.6, sway=0.28, seed=41,               # 顶部垂挂
                 leaf_n=20, branches=1, down=True)
-        add_ivy(o, x0=2.3, rise=1.5, sway=0.22, seed=9, leaf_n=16)              # 地面副藤
+    elif variant == "B":
+        add_grass(o, [-1.4, 0.9])
+        add_ivy(o, x0=0.6, rise=2.2, sway=0.34, seed=15, leaf_n=26, branches=3)   # 地面主藤
+        add_ivy(o, x0=-0.7, z0=2.95, rise=1.9, sway=0.26, seed=27,              # 顶部垂挂
+                leaf_n=22, branches=2, down=True)
+    elif variant == "C":
+        add_grass(o, [-1.8, 0.1, 1.8])  # 无藤蔓：干净老墙（避免全部面都长藤的审美疲劳）
+    else:  # D 重风化：草密 + 双藤
+        add_grass(o, [-2.2, -0.8, 0.6, 2.0])
+        add_ivy(o, x0=1.7, rise=2.4, sway=0.30, seed=81, leaf_n=24, branches=2)
+        add_ivy(o, x0=-1.7, z0=1.1, rise=1.3, sway=0.22, seed=85, leaf_n=14, branches=1)
     return o
 
 
@@ -643,6 +741,46 @@ def build_treasure():
     return o
 
 
+def add_flame(o, petals=5, core=3):
+    """碗口火焰建模：锥形曲带外焰 5 瓣（M_Fire 半透明）+ 内芯 3 瓣（M_Fire_Core）。
+    每瓣带背面镜像片（Unity 单面剔除兼容，间隔 8mm 抗后续微扰）。"""
+    rnd = random.Random(99)
+    bm = bmesh.new(); bm.from_mesh(o.data)
+    PROF = ((0.55, 0.00, 0.55), (1.22, 0.30, 0.95), (1.05, 0.62, 0.72), (0.50, 0.85, 0.30))
+
+    def petal(ang, r0, z0, h, hw, mat_i):
+        rows = []
+        for rf, zf, wf in PROF:  # 轮廓环：半径系数 / 高度系数 / 半宽系数
+            c = Vector((math.cos(ang), math.sin(ang), 0)) * (r0 * rf)
+            side = Vector((-math.sin(ang), math.cos(ang), 0)) * (r0 * hw * wf)
+            zb = z0 + zf * h
+            rows.append((bm.verts.new(c - side + Vector((0, 0, zb))),
+                         bm.verts.new(c + side + Vector((0, 0, zb)))))
+        apex = bm.verts.new(Vector((math.cos(ang), math.sin(ang), 0)) * (r0 * 0.12)
+                            + Vector((0, 0, z0 + h * 1.05)))
+        faces = []
+        for (a1, a2), (b1, b2) in zip(rows[:-1], rows[1:]):
+            faces.append(bm.faces.new((a1, a2, b2, b1)))
+        a1, a2 = rows[-1]
+        faces.append(bm.faces.new((a1, a2, apex)))
+        for f in faces:
+            f.material_index = mat_i
+        bm.normal_update()
+        for f in faces:  # 背面镜像片（法线反向、微偏移）
+            nf = bm.faces.new([bm.verts.new(v.co + f.normal * 0.008)
+                               for v in reversed(f.verts[:])])
+            nf.material_index = mat_i
+
+    for i in range(petals):  # 外焰：绕碗口散布
+        petal(math.tau * i / petals + rnd.uniform(-0.15, 0.15),
+              0.145 + rnd.uniform(-0.012, 0.012), 0.90,
+              0.40 + rnd.uniform(-0.05, 0.06), 0.45, 1)
+    for i in range(core):    # 内芯：更高亮，插入外焰之间
+        petal(math.tau * i / core + 0.4, 0.085, 0.90,
+              0.30 + rnd.uniform(-0.03, 0.04), 0.40, 2)
+    bm.to_mesh(o.data); bm.free()
+
+
 def build_brazier():
     base = add_cylinder("br_base", 0.13, 0.55, (0, 0, 0.275), verts=10)
     bowl = add_cone("br_bowl", 0.14, 0.36, 0.40, (0, 0, 0.75), verts=12)
@@ -653,10 +791,12 @@ def build_brazier():
     o = join_objs([base, bowl, fire], "SM_Brazier")
     o.data.materials.append(get_material("M_Metal_Dark"))
     o.data.materials.append(get_material("M_Fire"))
+    o.data.materials.append(get_material("M_Fire_Core"))
     for p in o.data.polygons:
         r = math.hypot(p.center.x, p.center.y)
         p.material_index = 1 if (p.center.z > 0.84 and r < 0.30) else 0
     jitter(o, 0.005, zmin=0.05, amp_z=0.005)
+    add_flame(o)  # 火焰建模：外焰槽 1 / 内芯槽 2
     return o
 
 
@@ -673,8 +813,8 @@ def build_all():
     objs = []
     objs.append(build_floor_tile("SM_FloorTile_A", broken=False))
     objs.append(build_floor_tile("SM_FloorTile_B", broken=True))
-    objs.append(build_wall("SM_Wall_A", cracked=False))
-    objs.append(build_wall("SM_Wall_B", cracked=True))
+    objs.append(build_wall("SM_Wall_A", "A"))
+    objs.append(build_wall("SM_Wall_B", "B"))
     objs.append(build_pillar_whole())
     objs.append(build_pillar_broken())
     objs.append(build_arch())
@@ -688,6 +828,9 @@ def build_all():
     objs.append(build_brazier())
     objs.append(build_debris("SM_Debris_A", 0.5))
     objs.append(build_debris("SM_Debris_B", 0.9))
+    # 墙体新变体追加在序列末尾：不扰动既有资产的随机流
+    objs.append(build_wall("SM_Wall_C", "C"))
+    objs.append(build_wall("SM_Wall_D", "D"))
     return objs
 
 
@@ -719,8 +862,8 @@ def render_overview(objs):
     cam_data.lens = 42
     cam = bpy.data.objects.new("KitCam", cam_data)
     scene.collection.objects.link(cam)
-    cam.location = (0.5, -23.5, 13.5)
-    direction = mathutils.Vector((0.0, -4.8, 1.15)) - cam.location
+    cam.location = (0.5, -30.0, 17.0)   # 19 件 = 4 行陈列，拉远取景
+    direction = mathutils.Vector((0.0, -6.6, 1.10)) - cam.location
     cam.rotation_euler = direction.to_track_quat('-Z', 'Y').to_euler()
     scene.camera = cam
     # 灯光
@@ -788,14 +931,22 @@ def main():
     os.makedirs(EXPORT_DIR, exist_ok=True)
     os.makedirs(SCENES_DIR, exist_ok=True)
     objs = build_all()
-    # 计划表 A/B 变体分计共 17 件（16 类；计划正文"16"为计数笔误）
-    assert len(objs) == 17, f"资产数量不符: {len(objs)}"
+    # 变体分计共 19 件（16 类；计划正文"16"为计数笔误；墙含 A/B/C/D 四变体）
+    assert len(objs) == 19, f"资产数量不符: {len(objs)}"
     total = 0
     for o in objs:
         refine(o)                                        # 细分至 1000-3000 面
         bump(o, BUMP_AMP.get(o.name, 0.008))             # 沿法线凹凸（次要颗粒）
         jitter(o, FINE_AMP.get(o.name, 0.004))           # 细微全向扰动
         flat(o)
+        if o.name.startswith("SM_Wall"):
+            n = sanitize_front(o)                        # 终清（quad 级判据）：bump/jitter 在缝区/墙角
+            print(f"  {o.name}: final sanitize {n}")     # 小面上重推翻折的残留面
+                                                         # 注意顺序：sanitize 必须在三角化前——三角
+                                                         # 面级法线更陡，会把翘曲正常面误翻出新透光缝
+        triangulate(o)                                   # 导出前全量三角化：非平面 quad 成"蝴蝶结"形
+                                                         # 会被 Unity 判自交丢弃并刷警告（SM_Wall_D
+                                                         # 曾丢 1 面）；三角化后无此问题，tris/视觉不变
         tris = tris_of(o)
         assert TRIS_MIN <= tris <= TRIS_HI, f"{o.name} 面数超范围: {tris}"
         total += tris
