@@ -2,12 +2,26 @@ using UnityEngine;
 
 public class GoalTrigger : MonoBehaviour
 {
-    bool done;
+    public float radius = 1.5f;             // 世界半径（与构建器 SphereCollider 一致）
 
-    void OnTriggerEnter(Collider other)
+    bool done;
+    Transform player;
+
+    void Update()
     {
-        if (done || !other.CompareTag("Player")) return;
-        done = true;
-        if (SimpleUI.Instance) SimpleUI.Instance.ShowComplete();
+        if (done) return;
+        if (!player)
+        {
+            var p = GameObject.FindGameObjectWithTag("Player");
+            if (!p) return;
+            player = p.transform;
+        }
+        // 玩家为 CharacterController，不产生 Trigger 事件 → 用躯干点到宝物球心的距离检测
+        Vector3 torso = player.position + Vector3.up * 0.9f;
+        if (Vector3.Distance(torso, transform.position) <= radius)
+        {
+            done = true;
+            if (SimpleUI.Instance) SimpleUI.Instance.ShowComplete();
+        }
     }
 }

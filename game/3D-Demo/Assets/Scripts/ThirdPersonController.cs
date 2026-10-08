@@ -3,7 +3,7 @@ using UnityEngine;
 [RequireComponent(typeof(CharacterController))]
 public class ThirdPersonController : MonoBehaviour
 {
-    public float moveSpeed = 4f, runSpeed = 6f, turnLerp = 12f, gravity = -20f, jumpHeight = 1.2f;
+    public float moveSpeed = 4f, runSpeed = 8f, turnLerp = 12f, gravity = -20f, jumpHeight = 1.2f;
     public Transform cameraPivot;
 
     CharacterController cc;
