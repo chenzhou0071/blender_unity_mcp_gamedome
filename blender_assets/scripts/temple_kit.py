@@ -21,11 +21,11 @@ FINE_AMP = {"SM_Treasure": 0.003, "SM_Brazier": 0.005}
 BUMP_AMP = {"SM_Treasure": 0.003, "SM_Brazier": 0.005, "SM_Debris_A": 0.022, "SM_Debris_B": 0.026}
 
 MATERIALS = {
-    "M_Stone":          dict(color=(0.42, 0.40, 0.37, 1), rough=0.90),
-    "M_Stone_Dark":     dict(color=(0.30, 0.29, 0.27, 1), rough=0.92),
-    "M_Metal_Dark":     dict(color=(0.25, 0.24, 0.22, 1), rough=0.55, metal=0.8),
-    "M_Fire":           dict(color=(1.0, 0.5, 0.1, 1), rough=1.0, emission=(1.0, 0.4, 0.05)),
-    "M_Treasure_Glow":  dict(color=(1.0, 0.85, 0.4, 1), rough=0.3, emission=(1.0, 0.8, 0.3)),
+    "M_Stone":          dict(color=(0.47, 0.39, 0.28, 1), rough=0.90),   # 暖砂岩
+    "M_Stone_Dark":     dict(color=(0.30, 0.25, 0.18, 1), rough=0.92),   # 深棕灰石
+    "M_Metal_Dark":     dict(color=(0.23, 0.16, 0.11, 1), rough=0.60, metal=0.75),  # 暗锈铁
+    "M_Fire":           dict(color=(1.0, 0.55, 0.15, 1), rough=1.0, emission=(1.0, 0.42, 0.06)),
+    "M_Treasure_Glow":  dict(color=(1.0, 0.85, 0.35, 1), rough=0.3, emission=(1.0, 0.78, 0.25)),
 }
 
 
@@ -522,12 +522,12 @@ def render_overview(objs):
     scene.camera = cam
     # 灯光
     sun_data = bpy.data.lights.new("KitSun", type='SUN')
-    sun_data.energy = 3.5
+    sun_data.energy = 2.6
     sun = bpy.data.objects.new("KitSun", sun_data)
     scene.collection.objects.link(sun)
     sun.rotation_euler = (0.9, 0.1, 0.6)
     fill_data = bpy.data.lights.new("KitFill", type='SUN')
-    fill_data.energy = 1.2
+    fill_data.energy = 0.8
     fill = bpy.data.objects.new("KitFill", fill_data)
     scene.collection.objects.link(fill)
     fill.rotation_euler = (1.1, -0.2, -2.4)
