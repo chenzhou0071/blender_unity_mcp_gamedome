@@ -17,6 +17,8 @@ DO_RENDER = "--render" in sys.argv
 TRIS_MIN, TRIS_HI = 1000, 3000
 # 细分后的高频细抖动幅度（默认 0.008；宝石/火盆等精修件更收敛）
 FINE_AMP = {"SM_Treasure": 0.003, "SM_Brazier": 0.005}
+# 沿法线凹凸幅度（主细节：石面颗粒感）
+BUMP_AMP = {"SM_Treasure": 0.004, "SM_Brazier": 0.006, "SM_Debris_A": 0.028, "SM_Debris_B": 0.032}
 
 MATERIALS = {
     "M_Stone":          dict(color=(0.42, 0.40, 0.37, 1), rough=0.90),
@@ -147,6 +149,45 @@ def refine(obj, lo=TRIS_MIN + 100, hi=TRIS_HI - 100):
         guard += 1
 
 
+def bump(obj, amp):
+    """沿顶点法线凹凸：粗糙石面颗粒感（比全向抖动更显质感）。"""
+    bm = bmesh.new(); bm.from_mesh(obj.data)
+    bm.normal_update()
+    for v in bm.verts:
+        v.co += v.normal * random.uniform(-amp, amp)
+    bm.to_mesh(obj.data); bm.free()
+
+
+def brickify(obj, face_filter, cuts=0, thick=0.035, depth=-0.024):
+    """对选定大面做砌块分割：可局部细分后逐面独立 inset，形成石板缝。"""
+    bm = bmesh.new(); bm.from_mesh(obj.data)
+    sel = [f for f in bm.faces if f.calc_area() > 0.15 and face_filter(f)]
+    if not sel:
+        bm.free(); return
+    if cuts > 0:
+        edges = list({e for f in sel for e in f.edges})
+        bmesh.ops.subdivide_edges(bm, edges=edges, cuts=cuts, use_grid_fill=True)
+        bm.normal_update()
+        sel = [f for f in bm.faces if f.calc_area() > 0.15 and face_filter(f)]
+    bmesh.ops.inset_individual(bm, faces=sel, thickness=thick, depth=depth, use_even_offset=True)
+    bm.to_mesh(obj.data); bm.free()
+
+
+def ring_bands(obj, zs, band_h=0.07, shrink=0.86, r_max=0.45):
+    """柱身分节：双水平环切并收腰，形成凸起腰线（石柱分节线脚）。"""
+    for zc in zs:
+        bm = bmesh.new(); bm.from_mesh(obj.data)
+        for z in (zc, zc + band_h):
+            geom = bm.verts[:] + bm.edges[:] + bm.faces[:]
+            bmesh.ops.bisect_plane(bm, geom=geom, plane_co=(0, 0, z), plane_no=(0, 0, 1),
+                                   clear_outer=False, clear_inner=False)
+        for v in bm.verts:
+            if (abs(v.co.z - zc) < 1e-4 or abs(v.co.z - (zc + band_h)) < 1e-4) \
+                    and v.co.xy.length < r_max:
+                v.co.x *= shrink; v.co.y *= shrink
+        bm.to_mesh(obj.data); bm.free()
+
+
 def recess(obj, face_filter, thickness=0.1, depth=-0.05):
     """对满足条件的面组做 inset 凹陷（浮雕槽/裂纹/砖面）。"""
     bm = bmesh.new(); bm.from_mesh(obj.data)
@@ -225,6 +266,7 @@ def set_material(obj, name):
 def build_floor_tile(name, broken):
     o = add_box(name, (2, 2, 0.3), loc=(0, 0, 0.15), subdiv=1)
     recess(o, lambda f: f.normal.z > 0.9, thickness=0.10, depth=-0.02)  # 砖面微凹
+    brickify(o, lambda f: f.normal.z > 0.9, cuts=0, thick=0.045, depth=-0.03)  # 顶面板缝
     if broken:
         chip_corner(o, Vector((0.7, 0.7, 0.35)), Vector((1, 1, -0.35)).normalized(), depth=0.16)
         jitter(o, 0.045, zmin=0.24)
@@ -236,12 +278,13 @@ def build_floor_tile(name, broken):
 
 def build_wall(name, cracked):
     o = add_box(name, (4, 0.5, 3), loc=(0, 0, 1.5), bevel=0.025, subdiv=1)
+    brickify(o, lambda f: abs(f.normal.y) > 0.9, cuts=0, thick=0.05, depth=-0.032)  # 正反面大板缝
     if cracked:
-        # 正面(-y)两条竖直裂纹槽
+        # 正面(-y)两条竖直裂纹槽（加深）
         recess(o, lambda f: f.normal.y < -0.9 and abs(f.calc_center_median().x - 0.9) < 0.6,
-               thickness=0.05, depth=-0.035)
+               thickness=0.05, depth=-0.055)
         recess(o, lambda f: f.normal.y < -0.9 and abs(f.calc_center_median().x + 0.8) < 0.6
-               and f.calc_center_median().z < 2.6, thickness=0.05, depth=-0.035)
+               and f.calc_center_median().z < 2.6, thickness=0.05, depth=-0.055)
         jitter(o, 0.018, zmin=0.06)
     else:
         jitter(o, 0.012, zmin=0.06)
@@ -256,6 +299,7 @@ def build_pillar_whole():
     cap = add_box("pw_cap", (0.7, 0.7, 0.3), (0, 0, 2.55), bevel=0.02)
     top = add_box("pw_top", (0.8, 0.8, 0.3), (0, 0, 2.85), bevel=0.02)
     o = join_objs([body, base, cap, top], "SM_Pillar_Whole")
+    ring_bands(o, (1.0, 2.0))  # 柱身两圈分节腰线
     jitter(o, 0.008, zmin=0.2)
     set_material(o, "M_Stone")
     return o
@@ -278,6 +322,7 @@ def build_pillar_broken():
     if tops:
         bmesh.ops.triangulate(bm, faces=tops, quad_method='BEAUTY', ngon_method='BEAUTY')
     bm.to_mesh(o.data); bm.free()
+    ring_bands(o, (1.0, 2.0))
     jitter(o, 0.01, zmin=2.1)
     set_material(o, "M_Stone")
     return o
@@ -288,6 +333,7 @@ def build_arch():
     col_r = add_box("arch_r", (0.8, 0.6, 3.2), (-1.6, 0, 1.6), bevel=0.03, subdiv=1)
     top = add_box("arch_top", (4.0, 0.6, 0.8), (0, 0, 3.6), bevel=0.03, subdiv=1)
     o = join_objs([col_l, col_r, top], "SM_Arch")
+    brickify(o, lambda f: abs(f.normal.y) > 0.9, cuts=0, thick=0.045, depth=-0.03)  # 前后大板缝
     # 门洞: 下部矩形 + 上部半圆（圆柱横放）
     cut1 = add_box("cut_rect", (2.4, 1.4, 2.2), (0, 0, 1.1))
     boolean_cut(o, cut1)
@@ -307,6 +353,7 @@ def build_stairs():
         y = -0.45 + 0.3 * i
         parts.append(add_box(f"st_{i}", (3.0, 0.3, h), (0, y, h / 2), bevel=0.012))
     o = join_objs(parts, "SM_Stairs")
+    brickify(o, lambda f: f.normal.z > 0.9, cuts=0, thick=0.035, depth=-0.022)  # 各级踏面缝线
     jitter(o, 0.01, zmin=0.05)
     set_material(o, "M_Stone")
     return o
@@ -319,6 +366,7 @@ def build_door_frame():
         add_box("df_t", (3.4, 0.6, 0.6), (0, 0, 3.9), bevel=0.03),
     ]
     o = join_objs(parts, "SM_DoorFrame")
+    brickify(o, lambda f: abs(f.normal.y) > 0.9, cuts=1, thick=0.035, depth=-0.026)  # 框体面分块
     # 立柱内缘（朝向门洞中心）浅凹线脚
     recess(o, lambda f: f.normal.x < -0.9 and f.calc_center_median().x > 0 and f.calc_center_median().z < 3.6,
            thickness=0.06, depth=-0.025)
@@ -335,6 +383,7 @@ def build_stone_door():
     recess(o, lambda f: f.normal.y < -0.9, thickness=0.22, depth=-0.05)
     recess(o, lambda f: f.normal.y < -0.9 and abs(f.calc_center_median().x) < 1.15
            and 0.45 < f.calc_center_median().z < 3.3, thickness=0.35, depth=-0.04)
+    brickify(o, lambda f: f.normal.y < -0.9, cuts=0, thick=0.055, depth=-0.045)  # 门板分块缝
     jitter(o, 0.012, zmin=0.15)
     set_material(o, "M_Stone_Dark")
     return o
@@ -343,6 +392,7 @@ def build_stone_door():
 def build_pressure_plate():
     o = add_box("SM_PressurePlate", (1.2, 1.2, 0.12), (0, 0, 0.06), subdiv=1)
     recess(o, lambda f: f.normal.z > 0.9, thickness=0.10, depth=-0.018)
+    brickify(o, lambda f: f.normal.z > 0.9, cuts=0, thick=0.03, depth=-0.022)
     jitter(o, 0.006, zmin=0.05)
     set_material(o, "M_Metal_Dark")
     return o
@@ -351,6 +401,7 @@ def build_pressure_plate():
 def build_push_block():
     o = add_box("SM_PushBlock", (1, 1, 1), (0, 0, 0.5), bevel=0.03, subdiv=1)
     chip_corner(o, Vector((0.6, 0.6, 0.85)), Vector((0.6, 0.6, 1)).normalized(), depth=0.12)
+    brickify(o, lambda f: True, cuts=0, thick=0.04, depth=-0.03)  # 各面分块凿面
     jitter(o, 0.018)
     set_material(o, "M_Stone")
     return o
@@ -363,6 +414,7 @@ def build_altar():
     ]
     o = join_objs(parts, "SM_Altar")
     recess(o, lambda f: f.normal.z > 0.9, thickness=0.12, depth=-0.02)  # 台面浅凹
+    brickify(o, lambda f: f.calc_center_median().z > 0.05, cuts=0, thick=0.04, depth=-0.028)
     jitter(o, 0.008, zmin=0.1)
     set_material(o, "M_Stone")
     return o
@@ -506,7 +558,8 @@ def main():
     total = 0
     for o in objs:
         refine(o)                                        # 细分至 1000-3000 面
-        jitter(o, FINE_AMP.get(o.name, 0.008))           # 高频细抖动（风化颗粒）
+        bump(o, BUMP_AMP.get(o.name, 0.014))             # 沿法线凹凸（石面颗粒主细节）
+        jitter(o, FINE_AMP.get(o.name, 0.004))           # 细微全向扰动
         flat(o)
         tris = tris_of(o)
         assert TRIS_MIN <= tris <= TRIS_HI, f"{o.name} 面数超范围: {tris}"
