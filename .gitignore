@@ -34,3 +34,7 @@ docs/milestones/**/*.mov
 Thumbs.db
 desktop.ini
 .DS_Store
+
+# ---- Python 缓存 ----
+__pycache__/
+*.pyc
