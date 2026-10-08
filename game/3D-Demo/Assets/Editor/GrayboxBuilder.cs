@@ -88,8 +88,9 @@ public static class GrayboxBuilder
         Debug.Log("[GrayboxBuilder] Demo.unity 构建完成");
     }
 
-    static float WallH2() => LevelSpec.WallH / 2f;
-    static float L2() => LevelSpec.WallH;
+    // 墙底向下延长 0.3m 埋入地面/大地坪，消除墙脚与地面的可见缝隙（室内侧被地板遮挡，观感不变）
+    static float WallH2() => (LevelSpec.WallH + 0.3f) / 2f - 0.3f;
+    static float L2() => LevelSpec.WallH + 0.3f;
 
     static GameObject Box(string name, Vector3 center, Vector3 size)
     {
