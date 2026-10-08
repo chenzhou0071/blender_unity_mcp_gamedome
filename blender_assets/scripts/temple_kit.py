@@ -339,27 +339,40 @@ def add_ivy(obj, x0, y_face=-0.27, rise=2.4, sway=0.32, seed=5, leaf_n=28, branc
 
     def grow(x_start, z_start, height, lean, seed_off, nleaf):
         r2 = random.Random(seed + seed_off)
-        n = max(6, int(height / 0.18))
-        pts = []
-        for i in range(n + 1):
-            t = i / n
-            x = x_start + lean * t + sway * math.sin(t * 4.2 + seed_off) * (0.3 + t)
-            pts.append(Vector((x, y_face + 0.012, z_start + t * height)))
+        n = max(8, int(height / 0.16))
+        pts = [Vector((x_start, y_face + 0.012, z_start))]
+        drift = 0.0
+        zig_amp = max(0.03, sway * 0.18)
+        for i in range(n):
+            t = (i + 1) / n
+            drift += r2.uniform(-0.05, 0.05) - drift * 0.12      # 带回复的随机游走
+            x = x_start + lean * t + drift + zig_amp * math.sin(i * 1.9 + seed_off * 1.7)
+            if r2.random() < 0.16:                               # 偶发拐折
+                x += r2.choice([-1, 1]) * r2.uniform(0.08, 0.2)
+            z = z_start + height * t + r2.uniform(-0.02, 0.02)
+            y = y_face + 0.012 + r2.uniform(-0.008, 0.03)        # 离墙起伏
+            pts.append(Vector((x, y, z)))
         ribbon(pts)
-        for i in range(1, n):
-            for _ in range(max(1, nleaf // n)):
-                ang = r2.uniform(0, math.tau)
-                p = pts[i] + Vector((r2.uniform(-0.05, 0.05), 0, r2.uniform(-0.04, 0.04)))
-                leaf(p, ang, r2.uniform(0.07, 0.12), r2.uniform(0.03, 0.05),
-                     r2.uniform(0.02, 0.06))
+        # 叶簇：沿茎随机簇心 + 簇内散布（偏下垂）
+        for _ in range(max(2, nleaf // 6)):
+            i0 = r2.randint(1, n - 1)
+            cx = pts[i0]
+            for _ in range(r2.randint(4, 8)):
+                p = cx + Vector((r2.uniform(-0.18, 0.18), r2.uniform(-0.02, 0.0),
+                                 r2.uniform(-0.16, 0.12)))
+                ang = r2.uniform(-math.pi, -0.2) if r2.random() < 0.75 \
+                    else r2.uniform(-math.pi, math.pi)
+                leaf(p, ang, r2.uniform(0.05, 0.14), r2.uniform(0.025, 0.055),
+                     r2.uniform(0.03, 0.09))
         return pts
 
     pts = grow(x0, 0.0, rise, 0.0, 0, leaf_n)
     for b in range(branches):
-        i0 = int(len(pts) * rnd.uniform(0.35, 0.7))
+        i0 = int(len(pts) * rnd.uniform(0.3, 0.75))
         bp = pts[i0]
-        grow(bp.x, bp.z, rise * rnd.uniform(0.25, 0.45),
-             rnd.choice([-1, 1]) * 0.25, 10 + b, max(6, leaf_n // 3))
+        grow(bp.x, bp.z, rise * rnd.uniform(0.2, 0.5),
+             rnd.choice([-1, 1]) * rnd.uniform(0.15, 0.35), 10 + b * 3,
+             max(6, leaf_n // 3))
     bm.to_mesh(obj.data); bm.free()
 
 
@@ -470,13 +483,13 @@ def build_wall(name, cracked):
         jitter(o, 0.012, zmin=0.06)
     set_material(o, "M_Stone")
     o.data.materials.append(get_material("M_Grass"))
-    add_grass(o, [-1.5, 0.2, 1.7] if not cracked else [-0.9, 1.2])  # 墙脚草簇
+    add_grass(o, [-2.1, -0.3, 1.4] if not cracked else [-1.4, 0.9])  # 墙脚草簇（错落）
     if cracked:
-        add_ivy(o, x0=0.6, rise=2.2, sway=0.34, seed=15, leaf_n=26)   # 主藤（绕开裂口）
-        add_ivy(o, x0=-1.9, rise=1.5, sway=0.22, seed=21, leaf_n=18)  # 副藤
+        add_ivy(o, x0=0.6, rise=2.2, sway=0.34, seed=15, leaf_n=26, branches=3)   # 主藤（绕开裂口）
+        add_ivy(o, x0=-1.9, rise=1.5, sway=0.22, seed=21, leaf_n=18)              # 副藤
     else:
-        add_ivy(o, x0=-2.3, rise=2.5, sway=0.30, seed=5, leaf_n=30)   # 主藤（爬至雕带）
-        add_ivy(o, x0=1.9, rise=1.8, sway=0.24, seed=9, leaf_n=20)    # 副藤
+        add_ivy(o, x0=-2.3, rise=2.5, sway=0.30, seed=5, leaf_n=30, branches=3)   # 主藤（爬至雕带）
+        add_ivy(o, x0=1.9, rise=1.8, sway=0.24, seed=9, leaf_n=20)                # 副藤
     return o
 
 
