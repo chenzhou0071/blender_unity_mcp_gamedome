@@ -72,6 +72,9 @@ public static class GrayboxBuilder
 
         new GameObject("UI").AddComponent<SimpleUI>();
 
+        // 外部大地坪：让房间落在实地上（顶面比室内地板低 2cm，避免共面闪烁）
+        Box("GroundOutside", new Vector3(0, -0.27f, 7), new Vector3(40, 0.5f, 50));
+
         // 光照占位（暗环境 + 暖色点光）
         RenderSettings.ambientMode = UnityEngine.Rendering.AmbientMode.Flat;
         RenderSettings.ambientLight = new Color(0.08f, 0.08f, 0.12f);
