@@ -26,6 +26,7 @@ MATERIALS = {
     "M_Metal_Dark":     dict(color=(0.23, 0.16, 0.11, 1), rough=0.60, metal=0.75),  # 暗锈铁
     "M_Fire":           dict(color=(1.0, 0.55, 0.15, 1), rough=1.0, emission=(1.0, 0.42, 0.06)),
     "M_Treasure_Glow":  dict(color=(1.0, 0.85, 0.35, 1), rough=0.3, emission=(1.0, 0.78, 0.25)),
+    "M_Grass":          dict(color=(0.20, 0.30, 0.11, 1), rough=0.90),   # 幽暗草绿
 }
 
 
@@ -194,6 +195,174 @@ def ring_bands(obj, zs, band_h=0.07, shrink=0.86, r_max=0.45):
         bm.to_mesh(obj.data); bm.free()
 
 
+def refine_region(obj, face_filter, cuts=2):
+    """对选定区域面做一轮网格加密（为裂缝/雕带提供顶点密度）。"""
+    bm = bmesh.new(); bm.from_mesh(obj.data)
+    bm.normal_update()
+    sel = [f for f in bm.faces if face_filter(f)]
+    if sel:
+        edges = list({e for f in sel for e in f.edges})
+        bmesh.ops.subdivide_edges(bm, edges=edges, cuts=cuts, use_grid_fill=True)
+    bm.to_mesh(obj.data); bm.free()
+
+
+def _seg_dist2(p, a, b):
+    """点 p 到线段 ab 的距离（x-z 平面内）。"""
+    pa = Vector((p.x - a.x, 0, p.z - a.z))
+    ab = Vector((b.x - a.x, 0, b.z - a.z))
+    t = 0.0 if ab.length_squared < 1e-9 else max(0.0, min(1.0, pa.dot(ab) / ab.length_squared))
+    return (pa - ab * t).length
+
+
+def crack_line(obj, face_filter, start, angle_deg, length=2.0, width=0.09, depth=0.06,
+               seed=1, branches=1):
+    """在选定面上生成随机折线裂缝：局部加密后按距离场沿法线 V 形推入。"""
+    rnd = random.Random(seed)
+    n = max(3, int(length / 0.35))
+    ang = math.radians(angle_deg)
+    pts = [Vector(start)]
+    for _ in range(n):
+        ang += rnd.uniform(-0.45, 0.45)
+        pts.append(pts[-1] + Vector((math.cos(ang), 0, math.sin(ang)))
+                   * (length / n * rnd.uniform(0.7, 1.3)))
+    paths = [pts]
+    for _ in range(branches):
+        i0 = int(len(pts) * rnd.uniform(0.4, 0.7))
+        ba = ang + rnd.choice([-1, 1]) * rnd.uniform(0.7, 1.2)
+        bp = [pts[i0]]
+        for _ in range(3):
+            ba += rnd.uniform(-0.4, 0.4)
+            bp.append(bp[-1] + Vector((math.cos(ba), 0, math.sin(ba))) * (length / n * 0.9))
+        paths.append(bp)
+    segs = [s for p in paths for s in zip(p[:-1], p[1:])]
+    xs = [v.x for p in paths for v in p]
+    zs = [v.z for p in paths for v in p]
+    lo_x, hi_x = min(xs) - width - 0.25, max(xs) + width + 0.25
+    lo_z, hi_z = min(zs) - width - 0.25, max(zs) + width + 0.25
+
+    def in_box(f):
+        c = f.calc_center_median()
+        return lo_x < c.x < hi_x and lo_z < c.z < hi_z
+
+    def near_path(f):
+        c = f.calc_center_median()
+        return min(_seg_dist2(c, a, b) for a, b in segs) < width + 0.15
+
+    refine_region(obj, lambda f: face_filter(f) and in_box(f), cuts=2)      # 区域整体加密
+    refine_region(obj, lambda f: face_filter(f) and near_path(f), cuts=2)   # 缝带二次加密
+
+    bm = bmesh.new(); bm.from_mesh(obj.data)
+    bm.normal_update()
+    sel = [f for f in bm.faces if face_filter(f) and in_box(f)]
+    tgt = set(v for f in sel for v in f.verts)
+    for v in tgt:
+        d = min(_seg_dist2(v.co, a, b) for a, b in segs)
+        if d < width:
+            v.co -= v.normal * (depth * (1.0 - d / width))
+    bm.to_mesh(obj.data); bm.free()
+
+
+def molding_band(obj, z0, height=0.30, inset=0.09, out=0.03, y_dir=-1):
+    """水平装饰雕带：切出带区后整体外凸，上下缘斜面过渡形成阴影。"""
+    bm = bmesh.new(); bm.from_mesh(obj.data)
+    for z in (z0, z0 + height):
+        geom = bm.verts[:] + bm.edges[:] + bm.faces[:]
+        bmesh.ops.bisect_plane(bm, geom=geom, plane_co=(0, 0, z), plane_no=(0, 0, 1),
+                               clear_outer=False, clear_inner=False)
+    bm.normal_update()
+    sel = [f for f in bm.faces
+           if f.normal.y * y_dir > 0.9
+           and z0 + 0.02 < f.calc_center_median().z < z0 + height - 0.02]
+    if sel:
+        bmesh.ops.inset_region(bm, faces=sel, thickness=inset, depth=out, use_even_offset=True)
+    bm.to_mesh(obj.data); bm.free()
+
+
+def add_grass(obj, xs, y_base=-0.27):
+    """墙脚放射状草簇（双面细叶，材质槽 1 = M_Grass）。"""
+    bm = bmesh.new(); bm.from_mesh(obj.data)
+    rnd = random.Random(7)
+    for x0 in xs:
+        base = Vector((x0 + rnd.uniform(-0.25, 0.25), y_base, 0.0))
+        for _ in range(rnd.randint(5, 7)):
+            a = rnd.uniform(0, math.tau)
+            h = rnd.uniform(0.16, 0.30)
+            w = rnd.uniform(0.03, 0.05)
+            d = Vector((math.cos(a), 0, math.sin(a))) * w
+            tip = base + Vector((math.cos(a) * rnd.uniform(0.06, 0.15),
+                                 rnd.uniform(-0.16, -0.05), h))
+            v1 = bm.verts.new(base - d)
+            v2 = bm.verts.new(base + d)
+            v3 = bm.verts.new(tip)
+            f = bm.faces.new((v1, v2, v3))
+            f.material_index = 1
+            off = Vector((math.sin(a), 0, -math.cos(a))) * 0.002  # 背面片微偏移防重合
+            vb1 = bm.verts.new(base - d + off)
+            vb2 = bm.verts.new(base + d + off)
+            vb3 = bm.verts.new(tip + off)
+            f2 = bm.faces.new((vb1, vb3, vb2))
+            f2.material_index = 1
+    bm.to_mesh(obj.data); bm.free()
+
+
+def add_ivy(obj, x0, y_face=-0.27, rise=2.4, sway=0.32, seed=5, leaf_n=28, branches=2):
+    """墙正面攀爬藤蔓：蜿蜒主茎 + 侧枝 + 沿途双面菱形叶片（材质槽 1 = M_Grass）。"""
+    rnd = random.Random(seed)
+    bm = bmesh.new(); bm.from_mesh(obj.data)
+
+    def ribbon(pts, lw=0.018):
+        for p, q in zip(pts[:-1], pts[1:]):
+            dx = Vector((lw, 0, 0))
+            a1 = bm.verts.new(p - dx); a2 = bm.verts.new(p + dx)
+            b1 = bm.verts.new(q + dx); b2 = bm.verts.new(q - dx)
+            f = bm.faces.new((a1, a2, b1, b2)); f.material_index = 1
+            off = Vector((0, -0.002, 0))
+            o1 = bm.verts.new(p - dx + off); o2 = bm.verts.new(q - dx + off)
+            o3 = bm.verts.new(q + dx + off); o4 = bm.verts.new(p + dx + off)
+            f2 = bm.faces.new((o1, o2, o3, o4)); f2.material_index = 1
+
+    def leaf(pos, angle, ln, wd, droop):
+        tip = pos + Vector((math.cos(angle) * ln, -rnd.uniform(0.02, 0.05),
+                            math.sin(angle) * ln - droop))
+        side = Vector((-math.sin(angle), 0, math.cos(angle))) * wd
+        mid1 = pos + (tip - pos) * 0.45 + side
+        mid2 = pos + (tip - pos) * 0.45 - side
+        va = bm.verts.new(pos); vb = bm.verts.new(tip)
+        vc = bm.verts.new(mid1); vd = bm.verts.new(mid2)
+        f = bm.faces.new((va, vc, vb)); f.material_index = 1
+        f2 = bm.faces.new((va, vb, vd)); f2.material_index = 1
+        off = Vector((0, -0.002, 0))
+        va2 = bm.verts.new(pos + off); vb2 = bm.verts.new(tip + off)
+        vc2 = bm.verts.new(mid1 + off); vd2 = bm.verts.new(mid2 + off)
+        f3 = bm.faces.new((va2, vb2, vc2)); f3.material_index = 1
+        f4 = bm.faces.new((va2, vd2, vb2)); f4.material_index = 1
+
+    def grow(x_start, z_start, height, lean, seed_off, nleaf):
+        r2 = random.Random(seed + seed_off)
+        n = max(6, int(height / 0.18))
+        pts = []
+        for i in range(n + 1):
+            t = i / n
+            x = x_start + lean * t + sway * math.sin(t * 4.2 + seed_off) * (0.3 + t)
+            pts.append(Vector((x, y_face + 0.012, z_start + t * height)))
+        ribbon(pts)
+        for i in range(1, n):
+            for _ in range(max(1, nleaf // n)):
+                ang = r2.uniform(0, math.tau)
+                p = pts[i] + Vector((r2.uniform(-0.05, 0.05), 0, r2.uniform(-0.04, 0.04)))
+                leaf(p, ang, r2.uniform(0.07, 0.12), r2.uniform(0.03, 0.05),
+                     r2.uniform(0.02, 0.06))
+        return pts
+
+    pts = grow(x0, 0.0, rise, 0.0, 0, leaf_n)
+    for b in range(branches):
+        i0 = int(len(pts) * rnd.uniform(0.35, 0.7))
+        bp = pts[i0]
+        grow(bp.x, bp.z, rise * rnd.uniform(0.25, 0.45),
+             rnd.choice([-1, 1]) * 0.25, 10 + b, max(6, leaf_n // 3))
+    bm.to_mesh(obj.data); bm.free()
+
+
 def recess(obj, face_filter, thickness=0.1, depth=-0.05):
     """对满足条件的面组做 inset 凹陷（浮雕槽/裂纹/砖面）。"""
     bm = bmesh.new(); bm.from_mesh(obj.data)
@@ -285,16 +454,29 @@ def build_floor_tile(name, broken):
 def build_wall(name, cracked):
     o = add_box(name, (4, 0.5, 3), loc=(0, 0, 1.5), bevel=0.025, subdiv=1)
     brickify(o, lambda f: abs(f.normal.y) > 0.9, cuts=0, thick=0.05, depth=-0.032)  # 正反面大板缝
+    molding_band(o, z0=2.2, height=0.30)  # 上部水平装饰雕带（外凸线脚）
     if cracked:
-        # 正面(-y)两条竖直裂纹槽（加深）
-        recess(o, lambda f: f.normal.y < -0.9 and abs(f.calc_center_median().x - 0.9) < 0.6,
-               thickness=0.05, depth=-0.055)
-        recess(o, lambda f: f.normal.y < -0.9 and abs(f.calc_center_median().x + 0.8) < 0.6
-               and f.calc_center_median().z < 2.6, thickness=0.05, depth=-0.055)
+        # 主斜裂（自上向右下贯通）+ 两条分叉 + 顶部崩口
+        crack_line(o, lambda f: f.normal.y < -0.9, start=(-0.5, -0.25, 2.9), angle_deg=-62,
+                   length=2.4, width=0.10, depth=0.07, seed=31, branches=2)
+        chip_corner(o, Vector((1.6, -0.25, 2.88)), Vector((0.5, -0.3, 0.8)).normalized(), depth=0.16)
         jitter(o, 0.018, zmin=0.06)
     else:
+        # 两条浅细风化纹
+        crack_line(o, lambda f: f.normal.y < -0.9, start=(-1.3, -0.25, 2.55), angle_deg=-78,
+                   length=1.5, width=0.06, depth=0.03, seed=11, branches=1)
+        crack_line(o, lambda f: f.normal.y < -0.9, start=(0.9, -0.25, 0.7), angle_deg=-35,
+                   length=0.9, width=0.05, depth=0.022, seed=12, branches=0)
         jitter(o, 0.012, zmin=0.06)
     set_material(o, "M_Stone")
+    o.data.materials.append(get_material("M_Grass"))
+    add_grass(o, [-1.5, 0.2, 1.7] if not cracked else [-0.9, 1.2])  # 墙脚草簇
+    if cracked:
+        add_ivy(o, x0=0.6, rise=2.2, sway=0.34, seed=15, leaf_n=26)   # 主藤（绕开裂口）
+        add_ivy(o, x0=-1.9, rise=1.5, sway=0.22, seed=21, leaf_n=18)  # 副藤
+    else:
+        add_ivy(o, x0=-2.3, rise=2.5, sway=0.30, seed=5, leaf_n=30)   # 主藤（爬至雕带）
+        add_ivy(o, x0=1.9, rise=1.8, sway=0.24, seed=9, leaf_n=20)    # 副藤
     return o
 
 
@@ -566,6 +748,18 @@ def render_overview(objs):
     size3 = os.path.getsize(out3) if os.path.exists(out3) else 0
     assert size3 > 20000, f"火盆特写渲染过小: {size3}B"
     print(f"RENDER ok brazier {size3}B")
+    # 特写3: Wall_B 正面（裂纹/雕带/草簇/崩口验证，相机置于陈列排间空隙）
+    cam_data.lens = 28
+    cam.location = (1.3, -3.7, 1.8)
+    direction = mathutils.Vector((1.3, 0.0, 1.5)) - cam.location
+    cam.rotation_euler = direction.to_track_quat('-Z', 'Y').to_euler()
+    out4 = os.path.join(RENDER_DIR, "kit_wall_closeup.png")
+    scene.render.filepath = out4
+    bpy.ops.render.render(write_still=True)
+    size4 = os.path.getsize(out4) if os.path.exists(out4) else 0
+    assert size4 > 20000, f"墙特写渲染过小: {size4}B"
+    print(f"RENDER ok wall {size4}B")
+    cam_data.lens = 42
 
 
 def main():
