@@ -87,7 +87,8 @@ public class ClimbSystem : MonoBehaviour
                 {
                     toppingOut = true; topOutT = 0f;
                     topStart = transform.position;
-                    topEnd = new Vector3(g.point.x, g.point.y + 0.02f, g.point.z) + transform.forward * 0.3f;
+                    // +0.045 = 站立位校准高（与 ThirdPersonController.standOffsetY 一致，落台即贴地）
+                    topEnd = new Vector3(g.point.x, g.point.y + 0.045f, g.point.z) + transform.forward * 0.3f;
                     return;
                 }
             }
