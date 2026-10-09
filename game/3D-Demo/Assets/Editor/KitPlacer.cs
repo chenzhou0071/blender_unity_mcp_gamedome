@@ -108,7 +108,8 @@ public static class KitPlacer
             if (go) go.transform.localScale = Vector3.one * Random.Range(0.8f, 1.25f);
         }
 
-        ApplyLightingMood();   // M3-5 光照氛围（清晨）：薄雾/晨光/淡蓝天空（幂等施加）
+        ApplyLightingMood();   // M3-5 光照氛围（清晨）：晨光/淡蓝天空（幂等施加）
+        SpawnFogPatches();     // M3-5 低空可见雾团：贴地飘动的白雾（FogDrift 驱动流动）
 
         EditorSceneManager.MarkSceneDirty(scene);
         EditorSceneManager.SaveScene(scene);
@@ -192,19 +193,7 @@ public static class KitPlacer
     static void WallRun(string grayName, float cx, float cz, bool alongX, float len, float yaw)
     {
         Hide(grayName);
-        // 墙后挡板：封住墙板内腔与装配缝的掠射透视（细白缝透出天空盒的根因），
-        // 深色石面从缝里看即"石缝阴影"观感；位于墙板背面外 0.1m，正常视角被墙板遮住
-        {
-            var back = GameObject.CreatePrimitive(PrimitiveType.Cube);
-            back.name = $"VIZ_Back_{grayName}";
-            Object.DestroyImmediate(back.GetComponent<Collider>());
-            var front = Quaternion.Euler(0, yaw, 0) * Vector3.forward;   // 正面（朝室内）方向
-            back.transform.rotation = Quaternion.Euler(0, yaw, 0);
-            back.transform.position = new Vector3(cx, 2.95f, cz) - front * 0.35f;
-            back.transform.localScale = new Vector3(len, 6f, 0.12f);
-            back.GetComponent<MeshRenderer>().sharedMaterial = EnsureWallBackMaterial();
-            vizCount++;
-        }
+        // 注：曾有墙后深色挡板封装配缝透视，M3-5 验收反馈"墙后黑墙穿帮"，已删除
         int n = Mathf.CeilToInt(len / 4f);
         float w = len / n;
         string prev = "";
@@ -243,27 +232,6 @@ public static class KitPlacer
         for (int tries = 0; tries < 8 && pick == prev; tries++)
             pick = pool[Random.Range(0, pool.Length)];
         return pick;
-    }
-
-    // ---------- 墙后挡板材质 ----------
-    // 深色粗糙石面：墙板装配缝掠射透视时看到的"内衬"，不再透出天空盒
-    static Material EnsureWallBackMaterial()
-    {
-        const string path = "Assets/Art/Static/temple/M_WallBack.mat";
-        var m = AssetDatabase.LoadAssetAtPath<Material>(path);
-        if (m == null)
-        {
-            var shader = Shader.Find("Universal Render Pipeline/Lit");
-            if (shader == null) { Debug.LogError("[KitPlacer] 找不到 URP/Lit shader，挡板材质创建失败"); return null; }
-            m = new Material(shader);
-            m.name = "M_WallBack";
-            AssetDatabase.CreateAsset(m, path);
-        }
-        m.SetColor("_BaseColor", new Color(0.17f, 0.14f, 0.11f, 1f));
-        m.SetFloat("_Smoothness", 0.05f);
-        m.SetFloat("_Metallic", 0f);
-        EditorUtility.SetDirty(m);
-        return m;
     }
 
     // ---------- 火焰半透明材质 ----------
@@ -350,23 +318,30 @@ public static class KitPlacer
     // 幂等：每次重建场景统一施加；后续微调数值只改这一处。
     static void ApplyLightingMood()
     {
-        // 雾：线性 10~60m 淡暖灰（清晨薄雾：能见度高、远处轻纱）
-        RenderSettings.fog = true;
-        RenderSettings.fogMode = FogMode.Linear;
-        RenderSettings.fogColor = new Color(0.50f, 0.49f, 0.47f);
-        RenderSettings.fogStartDistance = 10f;
-        RenderSettings.fogEndDistance = 60f;
-        // 环境光：亮冷灰蓝（清晨天光）
+        // 雾：不使用全局距离雾（M3-5 反馈：全屏均匀发白"像霾"、无可见雾感），
+        // 改为低空可见雾团（见 SpawnFogPatches，飘动由 FogDrift 驱动）
+        RenderSettings.fog = false;
+        // 环境光：清晨天光（M3-5 二调：0.22→0.16，压暗一档）
         RenderSettings.ambientMode = UnityEngine.Rendering.AmbientMode.Flat;
-        RenderSettings.ambientLight = new Color(0.22f, 0.235f, 0.27f);
-        // 太阳 → 清晨暖阳（斜射、暖金、柔和阴影）
+        RenderSettings.ambientLight = new Color(0.16f, 0.17f, 0.20f);
+        // 太阳 → 清晨暖阳（斜射、暖金、柔和阴影；M3-5 二调：0.75→0.55）
         var sun = RenderSettings.sun;
         if (sun != null)
         {
-            sun.intensity = 0.75f;
+            sun.intensity = 0.55f;
             sun.color = new Color(1.0f, 0.90f, 0.72f);
             sun.shadows = LightShadows.Soft;
             EditorUtility.SetDirty(sun);
+        }
+        // 天光补光：无阴影弱冷光从对侧（西向东）照，防止背光侧墙面死黑（清晨天空散射的近似）
+        var fill = EnsureFillLight();
+        if (fill != null)
+        {
+            fill.transform.rotation = Quaternion.Euler(35f, 90f, 0f);   // 从西上方照向东（主光对侧）
+            fill.intensity = 0.18f;
+            fill.color = new Color(0.62f, 0.70f, 0.85f);
+            fill.shadows = LightShadows.None;
+            EditorUtility.SetDirty(fill);
         }
         // 天空：程序化清晨天空（淡蓝穹顶 + 微亮地平线下），全局生效所见即所得
         const string skyPath = "Assets/Art/Static/temple/M_MorningSky.mat";
@@ -384,9 +359,9 @@ public static class KitPlacer
         }
         if (sky != null)
         {
-            sky.SetColor("_SkyTint", new Color(0.68f, 0.72f, 0.82f));      // 清晨淡蓝（提亮）
-            sky.SetColor("_GroundColor", new Color(0.45f, 0.43f, 0.40f));  // 地平线下贴近雾色
-            sky.SetFloat("_Exposure", 1.35f);
+            sky.SetColor("_SkyTint", new Color(0.68f, 0.72f, 0.82f));      // 清晨淡蓝
+            sky.SetColor("_GroundColor", new Color(0.42f, 0.40f, 0.37f));  // 地平线下
+            sky.SetFloat("_Exposure", 0.95f);                              // M3-5 二调：1.35→0.95（压暗一档）
             sky.SetFloat("_AtmosphereThickness", 0.55f);
             sky.SetFloat("_SunSize", 0.03f);
             EditorUtility.SetDirty(sky);
@@ -399,7 +374,123 @@ public static class KitPlacer
             cam.clearFlags = CameraClearFlags.Skybox;
             EditorUtility.SetDirty(cam);
         }
-        Debug.Log("[KitPlacer] 光照氛围已施加（清晨）：雾 10~60m / 晨光 0.65 暖金 / 淡蓝天空");
+        Debug.Log("[KitPlacer] 光照氛围已施加（清晨二调）：晨光 0.55 / 无全局雾（低空雾团）/ 淡蓝天空");
+    }
+
+    // 天光补光：确保存在一盏名为 FillLight 的无影方向光（重建时复用，幂等配置）
+    static Light EnsureFillLight()
+    {
+        foreach (var c in Object.FindObjectsByType<Light>(
+                     FindObjectsInactive.Include, FindObjectsSortMode.None))
+            if (c.name == "FillLight" && c.type == LightType.Directional) return c;
+        var go = new GameObject("FillLight");
+        var l = go.AddComponent<Light>();
+        l.type = LightType.Directional;
+        Debug.Log("[KitPlacer] 新建天光补光 FillLight");
+        return l;
+    }
+
+    // ---------- M3-5 低空可见雾团 ----------
+    // 验收反馈"看不出有雾、都在空中"：关掉全局距离雾，改为低空（0.8~2.2m）一团团
+    // 明显可见的白雾缓缓飘动（每团 2~3 张交叉雾片，FogDrift 脚本驱动漂移/呼吸）。
+    static void SpawnFogPatches()
+    {
+        var mat = EnsureFogMaterial();
+        if (mat == null) return;
+        // 雾团锚点（x,z）：柱子间/墙角/火盆附近浓，中央走道留薄
+        var spots = new[] {
+            new Vector2(-7f, -3f), new Vector2(-4.5f, 4f), new Vector2(6f, -2f),
+            new Vector2(5.5f, 6f), new Vector2(-6f, 6.5f), new Vector2(0.5f, 10.6f),
+            new Vector2(-5f, 13f), new Vector2(5f, 14f), new Vector2(-3f, 19f), new Vector2(4f, 20f) };
+        int cards = 0;
+        foreach (var c in spots)
+        {
+            float baseY = Random.Range(0.9f, 2.0f);
+            int n = Random.Range(2, 4);
+            for (int k = 0; k < n; k++)
+            {
+                var g = GameObject.CreatePrimitive(PrimitiveType.Quad);
+                g.name = $"VIZ_Fog_{vizCount++:D3}";
+                Object.DestroyImmediate(g.GetComponent<Collider>());   // 无碰撞，不挡玩家
+                g.transform.SetPositionAndRotation(
+                    new Vector3(c.x + Random.Range(-1.2f, 1.2f),
+                                baseY + Random.Range(-0.3f, 0.3f),
+                                c.y + Random.Range(-1.2f, 1.2f)),
+                    Quaternion.Euler(Random.Range(-8f, 8f), Random.Range(0f, 360f), Random.Range(-8f, 8f)));
+                float s = Random.Range(3f, 5.5f);
+                g.transform.localScale = new Vector3(s, s * Random.Range(0.6f, 0.85f), 1f);
+                var mr = g.GetComponent<MeshRenderer>();
+                mr.sharedMaterial = mat;
+                mr.shadowCastingMode = UnityEngine.Rendering.ShadowCastingMode.Off;
+                mr.receiveShadows = false;
+                g.AddComponent<FogDrift>().Init(Random.Range(0.5f, 1.6f),
+                    Random.Range(0.15f, 0.4f), Random.Range(0f, 6.28f), 0.10f);
+                cards++;
+            }
+        }
+        Debug.Log($"[KitPlacer] 低空雾团已摆放：{spots.Length} 团 / {cards} 片");
+    }
+
+    // 雾片材质（URP Unlit 透明、双面、不写深度；幂等施加便于调参）
+    static Material EnsureFogMaterial()
+    {
+        const string path = "Assets/Art/Static/temple/M_FogCard.mat";
+        var m = AssetDatabase.LoadAssetAtPath<Material>(path);
+        if (m == null)
+        {
+            var shader = Shader.Find("Universal Render Pipeline/Unlit");
+            if (shader == null) { Debug.LogError("[KitPlacer] 找不到 URP/Unlit shader，雾材质创建失败"); return null; }
+            m = new Material(shader);
+            m.name = "M_FogCard";
+            AssetDatabase.CreateAsset(m, path);
+        }
+        m.SetTexture("_BaseMap", EnsureFogTexture());
+        m.SetColor("_BaseColor", new Color(0.76f, 0.79f, 0.83f, 0.24f));   // 清晨冷灰白：可见但不挡视线
+        m.SetFloat("_Surface", 1f);                                        // Transparent
+        m.SetFloat("_Blend", 0f);                                          // Alpha 混合
+        m.SetFloat("_SrcBlend", (float)UnityEngine.Rendering.BlendMode.SrcAlpha);
+        m.SetFloat("_DstBlend", (float)UnityEngine.Rendering.BlendMode.OneMinusSrcAlpha);
+        m.SetFloat("_ZWrite", 0f);
+        m.SetFloat("_Cull", (float)UnityEngine.Rendering.CullMode.Off);   // 双面：从任意侧可见
+        m.EnableKeyword("_SURFACE_TYPE_TRANSPARENT");
+        m.renderQueue = (int)UnityEngine.Rendering.RenderQueue.Transparent;
+        EditorUtility.SetDirty(m);
+        return m;
+    }
+
+    // 雾团纹理（程序化软团噪声，仅生成一次；径向淡出边缘防方片穿帮）
+    static Texture2D EnsureFogTexture()
+    {
+        const string path = "Assets/Art/Static/temple/T_GroundFog.png";
+        var tex = AssetDatabase.LoadAssetAtPath<Texture2D>(path);
+        if (tex != null) return tex;
+        const int S = 256;
+        var t = new Texture2D(S, S, TextureFormat.RGBA32, false);
+        var px = new Color[S * S];
+        for (int y = 0; y < S; y++)
+            for (int x = 0; x < S; x++)
+            {
+                float u = x / (S - 1f), v = y / (S - 1f);
+                float n = 0f, amp = 1f, freq = 3f;
+                for (int o = 0; o < 4; o++)
+                { n += amp * Mathf.PerlinNoise(u * freq + 7.3f, v * freq + 2.9f); amp *= 0.5f; freq *= 2f; }
+                n /= 1.875f;
+                float r = Mathf.Sqrt((u - 0.5f) * (u - 0.5f) + (v - 0.5f) * (v - 0.5f)) * 2f;
+                float fade = Mathf.Clamp01(1f - r); fade = fade * fade * (3f - 2f * fade);
+                float a = Mathf.Clamp01((n - 0.42f) * 2.2f) * fade;
+                px[y * S + x] = new Color(1f, 1f, 1f, a);
+            }
+        t.SetPixels(px); t.Apply();
+        System.IO.File.WriteAllBytes(path, t.EncodeToPNG());
+        Object.DestroyImmediate(t);
+        AssetDatabase.ImportAsset(path);
+        if (AssetImporter.GetAtPath(path) is TextureImporter imp)
+        {
+            imp.alphaIsTransparency = true;
+            imp.wrapMode = TextureWrapMode.Clamp;
+            imp.SaveAndReimport();
+        }
+        return AssetDatabase.LoadAssetAtPath<Texture2D>(path);
     }
 
     static void CleanupOld()

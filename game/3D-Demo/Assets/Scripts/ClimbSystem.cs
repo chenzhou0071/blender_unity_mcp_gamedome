@@ -9,6 +9,7 @@ public class ClimbSystem : MonoBehaviour
 
     CharacterController cc;
     bool toppingOut; float topOutT;
+    bool slipping; float slipV;               // 空中抓墙的滑坠相位（抓住瞬间先下滑再上爬）
     Vector3 topStart, topEnd;
 
     void Awake() { cc = GetComponent<CharacterController>(); }
@@ -33,6 +34,9 @@ public class ClimbSystem : MonoBehaviour
         // 水平吸附到贴墙位置（胶囊半径 0.3 + 2cm 余量），保证攀爬过程射线检测稳定命中
         Vector3 snapped = wallPoint + wallNormal * 0.32f;
         cc.Move(new Vector3(snapped.x - transform.position.x, 0f, snapped.z - transform.position.z));
+        // 空中抓墙（跳扑/下落）：先往下滑一小段（约 0.27m），滑停后再开始爬——抓墙的顿挫手感
+        slipping = !cc.isGrounded;
+        slipV = -2.2f;
     }
 
     void TickClimb()
@@ -61,6 +65,13 @@ public class ClimbSystem : MonoBehaviour
 
         float v = Input.GetAxisRaw("Vertical");
         if (v < -0.1f) { IsClimbing = false; return; }                   // 按 S 松手
+
+        if (slipping)                                                    // 滑坠相位：减速下滑，滑停转正常攀爬
+        {
+            slipV += 9f * Time.deltaTime;
+            if (slipV >= 0f) { slipping = false; slipV = 0f; }
+            else { cc.Move(Vector3.up * slipV * Time.deltaTime); return; }
+        }
 
         // 到顶检测：贴近头顶高度处墙消失 = 头部已越过台顶
         bool wallAhead = Physics.Raycast(transform.position + Vector3.up * 1.7f,
