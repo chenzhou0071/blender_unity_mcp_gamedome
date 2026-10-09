@@ -318,22 +318,22 @@ public static class KitPlacer
     // 幂等：每次重建场景统一施加；后续微调数值只改这一处。
     static void ApplyLightingMood()
     {
-        // 雾：线性距离雾 10~60m（M3-5 验收：低空雾团效果偏假，恢复此前线性雾方案；
-        // 雾团代码保留在 SpawnFogPatches，待地图扩大后再启用）
+        // 雾：线性距离雾 10~60m（M3-5 三调：黎明暗雾随整体压暗）
         RenderSettings.fog = true;
         RenderSettings.fogMode = FogMode.Linear;
-        RenderSettings.fogColor = new Color(0.50f, 0.49f, 0.47f);
+        RenderSettings.fogColor = new Color(0.33f, 0.32f, 0.35f);
         RenderSettings.fogStartDistance = 10f;
         RenderSettings.fogEndDistance = 60f;
-        // 环境光：清晨天光（M3-5 二调：0.22→0.16，压暗一档）
+        // 环境光：黎明蓝紫天光（M3-5 三调：0.16→0.11，"凌晨4-5点"）
         RenderSettings.ambientMode = UnityEngine.Rendering.AmbientMode.Flat;
-        RenderSettings.ambientLight = new Color(0.16f, 0.17f, 0.20f);
-        // 太阳 → 清晨暖阳（斜射、暖金、柔和阴影；M3-5 二调：0.75→0.55）
+        RenderSettings.ambientLight = new Color(0.10f, 0.105f, 0.14f);
+        // 太阳 → 黎明低角度弱光（仰角约20°、弱橙、长影）
         var sun = RenderSettings.sun;
         if (sun != null)
         {
-            sun.intensity = 0.55f;
-            sun.color = new Color(1.0f, 0.90f, 0.72f);
+            sun.intensity = 0.28f;
+            sun.color = new Color(1.0f, 0.78f, 0.55f);
+            sun.transform.rotation = Quaternion.Euler(70f, 330f, 0f);   // 低角度斜照：黎明长影
             sun.shadows = LightShadows.Soft;
             EditorUtility.SetDirty(sun);
         }
@@ -342,7 +342,7 @@ public static class KitPlacer
         if (fill != null)
         {
             fill.transform.rotation = Quaternion.Euler(35f, 90f, 0f);   // 从西上方照向东（主光对侧）
-            fill.intensity = 0.18f;
+            fill.intensity = 0.12f;
             fill.color = new Color(0.62f, 0.70f, 0.85f);
             fill.shadows = LightShadows.None;
             EditorUtility.SetDirty(fill);
@@ -363,10 +363,10 @@ public static class KitPlacer
         }
         if (sky != null)
         {
-            sky.SetColor("_SkyTint", new Color(0.68f, 0.72f, 0.82f));      // 清晨淡蓝
-            sky.SetColor("_GroundColor", new Color(0.42f, 0.40f, 0.37f));  // 地平线下
-            sky.SetFloat("_Exposure", 0.95f);                              // M3-5 二调：1.35→0.95（压暗一档）
-            sky.SetFloat("_AtmosphereThickness", 0.55f);
+            sky.SetColor("_SkyTint", new Color(0.40f, 0.43f, 0.58f));      // 黎明蓝紫
+            sky.SetColor("_GroundColor", new Color(0.22f, 0.20f, 0.19f));  // 暗地平线下
+            sky.SetFloat("_Exposure", 0.62f);                              // M3-5 三调：0.95→0.62
+            sky.SetFloat("_AtmosphereThickness", 0.75f);                   // 厚大气：地平线暖色带
             sky.SetFloat("_SunSize", 0.03f);
             EditorUtility.SetDirty(sky);
             RenderSettings.skybox = sky;
@@ -378,7 +378,7 @@ public static class KitPlacer
             cam.clearFlags = CameraClearFlags.Skybox;
             EditorUtility.SetDirty(cam);
         }
-        Debug.Log("[KitPlacer] 光照氛围已施加（清晨）：晨光 0.55 / 线性雾 10~60m / 淡蓝天空");
+        Debug.Log("[KitPlacer] 光照氛围已施加（黎明4-5点）：晨光 0.28/20° / 环境 0.10 / 线性雾 0.33");
     }
 
     // 天光补光：确保存在一盏名为 FillLight 的无影方向光（重建时复用，幂等配置）
