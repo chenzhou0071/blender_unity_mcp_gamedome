@@ -56,7 +56,7 @@ public static class KitPlacer
         if (treasure) Spawn("SM_Treasure", new Vector3(0, 4.0f, 19f), 0f, treasure.transform);
         // 祭坛（无脚本；灰盒保留碰撞，视觉独立摆放，底面贴石台顶 y=3）
         Hide("Altar");
-        Spawn("SM_Altar", new Vector3(0, 3f, 19f), 0f);
+        SpawnSolid("SM_Altar", new Vector3(0, 3f, 19f), 0f);   // 视觉精确碰撞（叠在灰盒盒体上，无副作用）
 
         // ---- 5) 攀爬石台：灰盒（Climbable layer + 碰撞）禁渲染；四周墙段贴面（嵌入台体内，
         //         外表面与碰撞面重合）+ 顶面地砖
@@ -79,12 +79,12 @@ public static class KitPlacer
                 Spawn((i + j) % 2 == 0 ? "SM_FloorTile_A" : "SM_FloorTile_B",
                       new Vector3(-2 + 2 * i, 2.7f, 17 + 2 * j), (i + j) % 2 * 90f);
 
-        // ---- 6) 装饰：石柱×4 / 破柱×2（一立一躺）/ 火盆×4 / 台阶 / 碎石×6
+        // ---- 6) 装饰：石柱×4 / 破柱×2（一立一躺）/ 火盆×4 / 台阶 / 碎石×6（全部实体碰撞）
         foreach (var x in new[] { -7f, 7f })
             foreach (var z in new[] { -5f, 5f })
-                Spawn("SM_Pillar_Whole", new Vector3(x, 0, z), Random.Range(0, 4) * 90f);
-        Spawn("SM_Pillar_Broken", new Vector3(-6.5f, 0, 2.5f), 40f);
-        var fallen = Spawn("SM_Pillar_Broken", new Vector3(6.2f, 0.30f, 4.5f), 0f);
+                SpawnSolid("SM_Pillar_Whole", new Vector3(x, 0, z), Random.Range(0, 4) * 90f);
+        SpawnSolid("SM_Pillar_Broken", new Vector3(-6.5f, 0, 2.5f), 40f);
+        var fallen = SpawnSolid("SM_Pillar_Broken", new Vector3(6.2f, 0.30f, 4.5f), 0f);
         if (fallen) fallen.transform.rotation = Quaternion.Euler(0, 20, 0)
             * Quaternion.Euler(0, 0, 90) * Quaternion.Euler(270, 0, 0);
         var braziers = new[] {
@@ -93,22 +93,22 @@ public static class KitPlacer
         var torchNames = new[] { "TorchA_L", "TorchA_R", "TorchB_L", "TorchB_R" };
         for (int i = 0; i < braziers.Length; i++)
         {
-            RetintFire(Spawn("SM_Brazier", braziers[i], 0f));
+            RetintFire(SpawnSolid("SM_Brazier", braziers[i], 0f));
             EnsureTorchLight(braziers[i], torchNames[i]);   // 火盆点光：确保存在并对齐火焰光心
         }
-        Spawn("SM_Stairs", new Vector3(0, 0, 20.9f), 180f);
+        SpawnSolid("SM_Stairs", new Vector3(0, 0, 20.9f), 180f);
         var rubble = new[] {
             new Vector3(2.4f, 0, 7.2f), new Vector3(-2.6f, 0, 7.3f),
             new Vector3(-9.2f, 0, -6.5f), new Vector3(8.8f, 0, -6.8f),
             new Vector3(3.6f, 0, 13.2f), new Vector3(-5.4f, 0, 20.4f) };
         for (int i = 0; i < rubble.Length; i++)
         {
-            var go = Spawn(i % 2 == 0 ? "SM_Debris_A" : "SM_Debris_B", rubble[i],
-                           Random.Range(0, 4) * 90f);
+            var go = SpawnSolid(i % 2 == 0 ? "SM_Debris_A" : "SM_Debris_B", rubble[i],
+                                Random.Range(0, 4) * 90f);
             if (go) go.transform.localScale = Vector3.one * Random.Range(0.8f, 1.25f);
         }
 
-        ApplyLightingMood();   // M3-4 光照氛围初调：雾/暗环境/相机背景（幂等施加）
+        ApplyLightingMood();   // M3-5 光照氛围（清晨）：薄雾/晨光/淡蓝天空（幂等施加）
 
         EditorSceneManager.MarkSceneDirty(scene);
         EditorSceneManager.SaveScene(scene);
@@ -131,6 +131,22 @@ public static class KitPlacer
         go.transform.position = worldPos;
         // 以 prefab 自带的轴向修正（Blender Z-up→Unity Y-up 的 X 旋转）为基准，再按 yaw 绕世界 Y
         go.transform.rotation = Quaternion.Euler(0, yaw, 0) * prefab.transform.rotation;
+        return go;
+    }
+
+    // 装饰件实体碰撞：给视觉件所有带 MeshFilter 的节点挂 MeshCollider（non-convex，静态装饰用）。
+    // M3-5 验收反馈：石柱/火盆/碎石/祭坛/台阶此前是可穿模的纯视觉件。
+    // 墙体/地板/机关不用（灰盒逻辑体已带碰撞，见 Hide() 注释）。
+    static GameObject SpawnSolid(string asset, Vector3 worldPos, float yaw, Transform parent = null)
+    {
+        var go = Spawn(asset, worldPos, yaw, parent);
+        if (go == null) return null;
+        foreach (var mf in go.GetComponentsInChildren<MeshFilter>())
+        {
+            if (mf.sharedMesh == null || mf.GetComponent<MeshCollider>() != null) continue;
+            var mc = mf.gameObject.AddComponent<MeshCollider>();
+            mc.sharedMesh = mf.sharedMesh;
+        }
         return go;
     }
 
@@ -328,31 +344,32 @@ public static class KitPlacer
         EditorUtility.SetDirty(l);
     }
 
-    // ---------- M3-4 光照氛围初调 ----------
-    // 地下古墓感：深暖尘雾 + 冷暗环境光 + 弱冷天光 + 相机雾色背景（封闭空间不露天空盒）。
+    // ---------- M3-5 光照氛围（清晨版） ----------
+    // 验收反馈：M3-4 夜景太暗（可玩性佳但看不清），改为清晨古墓——
+    // 明亮晨光 + 淡金天空 + 浅雾；火光保留（暗处/室内仍有暖光）。
     // 幂等：每次重建场景统一施加；后续微调数值只改这一处。
     static void ApplyLightingMood()
     {
-        // 雾：线性 8~42m（近景可玩性优先，远处渐隐入背景）
+        // 雾：线性 10~60m 淡暖灰（清晨薄雾：能见度高、远处轻纱）
         RenderSettings.fog = true;
         RenderSettings.fogMode = FogMode.Linear;
-        RenderSettings.fogColor = new Color(0.075f, 0.065f, 0.058f);   // 深暖灰褐（尘雾）
-        RenderSettings.fogStartDistance = 8f;
-        RenderSettings.fogEndDistance = 42f;
-        // 环境光：暗蓝（地下感，衬托暖火光）
+        RenderSettings.fogColor = new Color(0.50f, 0.49f, 0.47f);
+        RenderSettings.fogStartDistance = 10f;
+        RenderSettings.fogEndDistance = 60f;
+        // 环境光：亮冷灰蓝（清晨天光）
         RenderSettings.ambientMode = UnityEngine.Rendering.AmbientMode.Flat;
-        RenderSettings.ambientLight = new Color(0.08f, 0.08f, 0.12f);
-        // 太阳 → 冷弱天光（墙顶开口漏下的光，不再是正午太阳）
+        RenderSettings.ambientLight = new Color(0.22f, 0.235f, 0.27f);
+        // 太阳 → 清晨暖阳（斜射、暖金、柔和阴影）
         var sun = RenderSettings.sun;
         if (sun != null)
         {
-            sun.intensity = 0.14f;
-            sun.color = new Color(0.55f, 0.65f, 0.95f);
+            sun.intensity = 0.75f;
+            sun.color = new Color(1.0f, 0.90f, 0.72f);
             sun.shadows = LightShadows.Soft;
             EditorUtility.SetDirty(sun);
         }
-        // 天空：程序化深色夜空——全局渲染设置，实机与任何相机一致变暗（不再亮蓝穿帮）
-        const string skyPath = "Assets/Art/Static/temple/M_NightSky.mat";
+        // 天空：程序化清晨天空（淡蓝穹顶 + 微亮地平线下），全局生效所见即所得
+        const string skyPath = "Assets/Art/Static/temple/M_MorningSky.mat";
         var sky = AssetDatabase.LoadAssetAtPath<Material>(skyPath);
         if (sky == null)
         {
@@ -360,29 +377,29 @@ public static class KitPlacer
             if (sh != null)
             {
                 sky = new Material(sh);
-                sky.name = "M_NightSky";
+                sky.name = "M_MorningSky";
                 AssetDatabase.CreateAsset(sky, skyPath);
             }
             else Debug.LogWarning("[KitPlacer] 找不到 Skybox/Procedural shader");
         }
         if (sky != null)
         {
-            sky.SetColor("_SkyTint", new Color(0.16f, 0.18f, 0.28f));      // 夜深蓝
-            sky.SetColor("_GroundColor", new Color(0.06f, 0.055f, 0.05f)); // 地平线下贴近雾色
-            sky.SetFloat("_Exposure", 0.06f);
-            sky.SetFloat("_AtmosphereThickness", 0.5f);
-            sky.SetFloat("_SunSize", 0.02f);
+            sky.SetColor("_SkyTint", new Color(0.68f, 0.72f, 0.82f));      // 清晨淡蓝（提亮）
+            sky.SetColor("_GroundColor", new Color(0.45f, 0.43f, 0.40f));  // 地平线下贴近雾色
+            sky.SetFloat("_Exposure", 1.35f);
+            sky.SetFloat("_AtmosphereThickness", 0.55f);
+            sky.SetFloat("_SunSize", 0.03f);
             EditorUtility.SetDirty(sky);
             RenderSettings.skybox = sky;
         }
-        // 相机：保持 Skybox 清屏（配合深色夜空），不再另设纯色背景
+        // 相机：保持 Skybox 清屏（配合清晨天空）
         var cam = Camera.main;
         if (cam != null)
         {
             cam.clearFlags = CameraClearFlags.Skybox;
             EditorUtility.SetDirty(cam);
         }
-        Debug.Log("[KitPlacer] 光照氛围已施加：雾 8~42m / 天光 0.14 / 深色夜空");
+        Debug.Log("[KitPlacer] 光照氛围已施加（清晨）：雾 10~60m / 晨光 0.65 暖金 / 淡蓝天空");
     }
 
     static void CleanupOld()

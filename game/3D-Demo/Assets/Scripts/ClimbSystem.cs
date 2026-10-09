@@ -16,7 +16,9 @@ public class ClimbSystem : MonoBehaviour
     void Update()
     {
         if (IsClimbing) { TickClimb(); return; }
-        if (!cc.isGrounded) return;
+        // 空中也可接攀爬：跳跃扑墙/贴墙下落时按住前进键直接抓住上壁。
+        // （原先要求 cc.isGrounded——跳向高台在壁上悬挂时无法直接开始爬，
+        //   必须落地站稳后才行；验收反馈要求衔接跳跃）
         float v = Input.GetAxisRaw("Vertical"), h = Input.GetAxisRaw("Horizontal");
         if (v <= 0.1f || Mathf.Abs(h) > 0.5f) return;                    // 须朝向墙前进
         Vector3 origin = transform.position + Vector3.up * 1.1f;
