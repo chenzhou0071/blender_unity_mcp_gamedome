@@ -109,7 +109,7 @@ public static class KitPlacer
         }
 
         ApplyLightingMood();   // M3-5 光照氛围（清晨）：晨光/淡蓝天空（幂等施加）
-        SpawnFogPatches();     // M3-5 低空可见雾团：贴地飘动的白雾（FogDrift 驱动流动）
+        // SpawnFogPatches();  // 低空雾团：M3-5 验收"偏假"暂缓；代码/资产已就位，地图扩大后再启用
 
         EditorSceneManager.MarkSceneDirty(scene);
         EditorSceneManager.SaveScene(scene);
@@ -318,9 +318,13 @@ public static class KitPlacer
     // 幂等：每次重建场景统一施加；后续微调数值只改这一处。
     static void ApplyLightingMood()
     {
-        // 雾：不使用全局距离雾（M3-5 反馈：全屏均匀发白"像霾"、无可见雾感），
-        // 改为低空可见雾团（见 SpawnFogPatches，飘动由 FogDrift 驱动）
-        RenderSettings.fog = false;
+        // 雾：线性距离雾 10~60m（M3-5 验收：低空雾团效果偏假，恢复此前线性雾方案；
+        // 雾团代码保留在 SpawnFogPatches，待地图扩大后再启用）
+        RenderSettings.fog = true;
+        RenderSettings.fogMode = FogMode.Linear;
+        RenderSettings.fogColor = new Color(0.50f, 0.49f, 0.47f);
+        RenderSettings.fogStartDistance = 10f;
+        RenderSettings.fogEndDistance = 60f;
         // 环境光：清晨天光（M3-5 二调：0.22→0.16，压暗一档）
         RenderSettings.ambientMode = UnityEngine.Rendering.AmbientMode.Flat;
         RenderSettings.ambientLight = new Color(0.16f, 0.17f, 0.20f);
@@ -374,7 +378,7 @@ public static class KitPlacer
             cam.clearFlags = CameraClearFlags.Skybox;
             EditorUtility.SetDirty(cam);
         }
-        Debug.Log("[KitPlacer] 光照氛围已施加（清晨二调）：晨光 0.55 / 无全局雾（低空雾团）/ 淡蓝天空");
+        Debug.Log("[KitPlacer] 光照氛围已施加（清晨）：晨光 0.55 / 线性雾 10~60m / 淡蓝天空");
     }
 
     // 天光补光：确保存在一盏名为 FillLight 的无影方向光（重建时复用，幂等配置）
