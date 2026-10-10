@@ -14,6 +14,7 @@ public class ThirdPersonController : MonoBehaviour
     bool jumpPending; float jumpDelayT; bool jumpIsRun;   // M4-9: 起跳前摇（蹲→蹬→离地时序对齐 A_Jump）；M4-11: 起跳档位（跑跳）
     bool airLocked; Vector3 airVel;       // M4-11: 跑跳空中惯性（离地时启用按下瞬间锁定的起跳冲量，松键不空中急停）
     const float runJumpDelay = 0.1f;      // M4-11: 跑跳前摇 0.1s（对齐 A_JumpRun f3 蹬伸；走/立定跳保持 0.26s）
+    bool wasGrounded; float stepDist;     // M5-2: 上帧着地状态（落地检测）/ 脚步位移累计
 
     void Awake() { cc = GetComponent<CharacterController>(); climb = GetComponent<ClimbSystem>(); }
 
@@ -23,6 +24,8 @@ public class ThirdPersonController : MonoBehaviour
     {
         if (climb && climb.IsClimbing) { velocityY = 0f; airLocked = false; SyncAnimator(); return; }   // 攀爬期间交出控制权（跑跳扑墙则清除惯性锁）
         bool grounded = cc.isGrounded;
+        if (!wasGrounded && grounded && velocityY < -3f) AudioManager.Instance?.Land();   // M5-2: 落地音（下落足够快才响，轻踩不触发）
+        wasGrounded = grounded;
         if (grounded && velocityY < 0f) velocityY = -2f;
 
         float h = Input.GetAxisRaw("Horizontal"), v = Input.GetAxisRaw("Vertical");
@@ -68,6 +71,13 @@ public class ThirdPersonController : MonoBehaviour
         move.y = velocityY;
         cc.Move(move * Time.deltaTime);
         GroundSnap(grounded);                              // 贴地吸附（消除 skinWidth 内悬空残差）
+
+        // M5-2: 脚步声——按实际水平位移累计触发（走 0.75m/跑 1.25m 一步，对齐动画步频）
+        if (grounded)
+        {
+            stepDist += new Vector2(cc.velocity.x, cc.velocity.z).magnitude * Time.deltaTime;
+            if (stepDist >= (speed > 2.5f ? 1.25f : 0.75f)) { AudioManager.Instance?.Footstep(); stepDist = 0f; }
+        }
 
         SyncAnimator();
     }

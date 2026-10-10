@@ -9,15 +9,15 @@ AUDIO = os.path.join(HERE, "..", "game", "3D-Demo", "Assets", "Audio")
 
 TARGETS = [
     ("ambient_temple.wav", 30.0),
-    ("fire_crackle.wav", 10.0),
-    ("footstep_stone_1.wav", 0.25),
-    ("footstep_stone_2.wav", 0.25),
-    ("footstep_stone_3.wav", 0.25),
-    ("footstep_stone_4.wav", 0.25),
+    ("fire_crackle.wav", 9.855),
+    ("footstep_stone_1.wav", 0.30),
+    ("footstep_stone_2.wav", 0.30),
+    ("footstep_stone_3.wav", 0.30),
+    ("footstep_stone_4.wav", 0.30),
     ("land.wav", 0.30),
-    ("block_grind.wav", 2.0),
+    ("block_grind.wav", 2.15),
     ("plate_click.wav", 0.25),
-    ("door_rumble.wav", 3.0),
+    ("door_rumble.wav", 3.6),
     ("goal_chime.wav", 2.5),
 ]
 

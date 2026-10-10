@@ -21,6 +21,7 @@ public class GoalTrigger : MonoBehaviour
         if (Vector3.Distance(torso, transform.position) <= radius)
         {
             done = true;
+            AudioManager.Instance?.Goal();                       // M5-2: 取得圣物钟声
             if (SimpleUI.Instance) SimpleUI.Instance.ShowComplete();
         }
     }

@@ -8,6 +8,13 @@ public class PushBlock : MonoBehaviour
     Rigidbody rb;
     void Awake() { rb = GetComponent<Rigidbody>(); }
 
+    void Update()
+    {
+        // M5-2: 推石摩擦声——按实际水平速度开关（滑动中响、停推即停）
+        Vector3 hv = rb.linearVelocity; hv.y = 0f;
+        AudioManager.Instance?.Grind(hv.magnitude > 0.05f);
+    }
+
     // 由玩家控制器 OnControllerColliderHit 调用；把推力约束到 X/Z 主导轴，避免斜推乱飘
     public void Push(Vector3 pushDirWorld)
     {

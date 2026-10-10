@@ -62,57 +62,72 @@ def high_noise(noise, fc):
 
 # ---------- 10 个音效生成器 ----------
 def gen_ambient_temple(dur=30.0):
-    """30s loop：棕噪声低速滤波 + 0.05Hz 幅度起伏 + 每 4-9s 随机水滴（1.2kHz 指数衰减 80ms）。"""
+    """30s loop：洞穴氛围（四轮试听：去水滴）——低频 swell（低通抬到 600Hz）+ 轻中频空气层（小喇叭可听）。"""
     n = int(dur * SR)
-    base = lowpass(brown_noise(n, 0.015), alpha_for(180))
+    base = lowpass(brown_noise(n, 0.015), alpha_for(600))
     out = [base[i] * (0.6 + 0.4 * math.sin(2 * math.pi * 0.05 * i / SR)) * 0.5 for i in range(n)]
-    dn = int(0.4 * SR)                                   # 水滴长度（5τ）
-    t = random.uniform(4, 9)
-    while t < dur - 0.5:
-        start = int(t * SR)
-        for i in range(dn):
-            if start + i < n:
-                out[start + i] += 0.5 * math.sin(2 * math.pi * 1200 * i / SR) * math.exp(-i / (0.08 * SR))
-        t += random.uniform(4, 9)
+    air = band_noise(white(n), 500, 1500)                # 空气层：中频轻层，异相 swell 缓起伏
+    for i in range(n):
+        swell2 = 0.6 + 0.4 * math.sin(2 * math.pi * 0.037 * i / SR + 1.3)
+        out[i] += air[i] * swell2 * 0.16
     return out
 
 def gen_fire_crackle(dur=10.0):
-    """10s loop：低幅棕噪声底 + 随机噼啪（细噼 70% 高通 900Hz / 闷噗 30% 带通 300-700Hz），整体偏闷。"""
+    """10s loop：宽频脆响火盆（五轮：参照用户实录音）——低频燃烧底噪 + 三层噼啪（高频碎点 / 宽频脆响 / 大爆）。"""
     n = int(dur * SR)
-    out = [b * 0.20 for b in lowpass(brown_noise(n, 0.03), alpha_for(350))]
-    t = 0.15
-    while True:
-        t += random.expovariate(5.5)                     # 平均 5.5 个/秒
-        if t >= dur - 0.1:
+    out = [b * 0.10 for b in lowpass(brown_noise(n, 0.03), alpha_for(900))]  # ①燃烧底噪：0-900Hz 温热沙沙
+    t = 0.0
+    while True:                                          # ②碎点层：密集微小噼啪（3-10kHz、极短、很轻）
+        t += random.expovariate(14.0)
+        if t >= dur - 0.05:
             break
         start = int(t * SR)
-        amp = random.uniform(0.35, 0.8)
-        if random.random() < 0.7:                        # 细噼：降亮 + 拉长尾（15-30ms）
-            cn = int(random.uniform(0.03, 0.07) * SR)
-            tau = random.uniform(0.012, 0.03) * SR
-            pulse = high_noise(white(cn), 900)
-        else:                                            # 闷噗：低频爆（50-100ms）
-            cn = int(random.uniform(0.05, 0.1) * SR)
-            tau = random.uniform(0.02, 0.045) * SR
-            pulse = band_noise(white(cn), 300, 700)
+        cn = int(0.04 * SR)
+        pulse = band_noise(white(cn), 3000, 10000)
+        amp = random.uniform(0.04, 0.12)
+        tau = random.uniform(0.002, 0.005) * SR
         for i in range(cn):
             if start + i < n:
                 out[start + i] += pulse[i] * math.exp(-i / tau) * amp
+    t = 0.15
+    while True:                                          # ③脆响层：宽带"啪"（600Hz 以上全开、~3/s）
+        t += random.expovariate(3.0)
+        if t >= dur - 0.1:
+            break
+        start = int(t * SR)
+        cn = int(0.1 * SR)
+        pulse = band_noise(white(cn), 600, 11000)        # 限高频端（参考：核心 3-9k、顶部渐弱）
+        thud = band_noise(white(cn), 150, 500)           # 低频噗：线底部重一点（仿参考）
+        amp = random.uniform(0.30, 0.60)
+        tau = random.uniform(0.008, 0.018) * SR
+        for i in range(cn):
+            if start + i < n:
+                out[start + i] += (pulse[i] + thud[i] * 0.35) * math.exp(-i / tau) * amp
+    t = 0.5
+    while True:                                          # ④大爆层：偶尔一声更响（~0.4/s）
+        t += random.expovariate(0.4)
+        if t >= dur - 0.1:
+            break
+        start = int(t * SR)
+        cn = int(0.15 * SR)
+        pulse = band_noise(white(cn), 500, 12000)
+        thud = band_noise(white(cn), 120, 450)
+        amp = random.uniform(0.75, 1.0)
+        tau = random.uniform(0.012, 0.025) * SR
+        for i in range(cn):
+            if start + i < n:
+                out[start + i] += (pulse[i] + thud[i] * 0.4) * math.exp(-i / tau) * amp
     return out
 
-def gen_footstep(fc, dur=0.25, seed=1, tau_ms=60, spread=1.8, thump_hz=0, thump_amp=0.0):
-    """0.25s：带通噪声 burst（中心 fc、带宽 spread、尾音 tau_ms）+ 可选低频夯击层。
-    4 个变体在音高/亮度/尾音/夯击上拉开差异。"""
+def gen_footstep(hi_fc, seed=1, dur=0.18, hi_amp=0.42, tau2_ms=8):
+    """0.18s：参考式轻脚步（六轮：用户实录）——低频"扑"层（60-1200Hz、τ14ms）+ 中高频"哒"层（1200-hi_fc 二次滤波、快衰）。"""
     random.seed(seed)
     n = int(dur * SR)
-    noise = white(n)
-    band = band_noise(noise, fc * 0.55, fc * spread)
-    e = env(n, int(0.02 * SR), int(tau_ms / 1000.0 * SR))
-    out = [band[i] * e[i] * 0.8 for i in range(n)]
-    if thump_hz:
-        for i in range(n):
-            out[i] += math.sin(2 * math.pi * thump_hz * i / SR) * math.exp(-i / (0.04 * SR)) * thump_amp
-    return out
+    lo = band_noise(white(n), 60, 1200)
+    hi = lowpass(band_noise(white(n), 1200, hi_fc), alpha_for(hi_fc))   # 二次滚降：15kHz 以上急降（贴参考）
+    e1 = env(n, int(0.004 * SR), 0.014 * SR)
+    e2 = env(n, int(0.002 * SR), tau2_ms / 1000.0 * SR)
+    return [lo[i] * e1[i] * 0.55 + hi[i] * e2[i] * hi_amp for i in range(n)]
 
 def gen_land(dur=0.30):
     """0.30s：低频 thud（90Hz）+ 噪声，更重尾音（τ 100ms）。"""
@@ -140,19 +155,18 @@ def gen_block_grind(dur=2.0):
     return out
 
 def gen_plate_click(dur=0.25):
-    """0.25s：石板压下的"咔-哒"双响（1.1k/850Hz clack + 160Hz 低频 thud 层），更沉。"""
+    """0.25s：清脆"咔-嗒"（MC 按钮风）——1.6-2.2kHz 宽频短脉冲（τ≈10ms）+ 轻石质共鸣，双响间隔 45ms。"""
     n = int(dur * SR)
     out = [0.0] * n
-    for t0, amp, f, tau in ((0.0, 1.0, 1100, 0.02), (0.09, 0.7, 850, 0.025)):
+    for t0, amp, fc, tau in ((0.0, 1.0, 2000, 0.010), (0.045, 0.8, 1700, 0.012)):
         start = int(t0 * SR)
-        cn = int(0.08 * SR)
+        cn = int(0.06 * SR)
+        band = high_noise(white(cn), fc * 0.7)           # 宽频短脉冲（高频主导，非纯音→不刺）
         for i in range(cn):
             if start + i < n:
-                e = math.exp(-i / (tau * SR))
-                s = math.sin(2 * math.pi * f * i / SR) * 0.7 + random.uniform(-1, 1) * 0.3
-                out[start + i] += s * e * amp
-    for i in range(n):                                   # 低频 thud 层：压下去的"咚"（τ50ms）
-        out[i] += math.sin(2 * math.pi * 160 * i / SR) * math.exp(-i / (0.05 * SR)) * 0.5
+                out[start + i] += band[i] * math.exp(-i / (tau * SR)) * amp
+    for i in range(int(0.06 * SR)):                      # 轻石质共鸣：给"实体感"的短 body
+        out[i] += math.sin(2 * math.pi * 900 * i / SR) * math.exp(-i / (0.010 * SR)) * 0.25
     return out
 
 def gen_door_rumble(dur=3.0):
@@ -201,12 +215,8 @@ def main():
     random.seed(42)
     jobs = [
         ("ambient_temple.wav", gen_ambient_temple(), 0.5),
-        ("fire_crackle.wav", gen_fire_crackle(), 0.9),
-        # 脚步 4 变体：低闷/中浑/亮尾/高脆，拉开区分度（首轮试听反馈"没区别"）
-        ("footstep_stone_1.wav", gen_footstep(320, seed=1, tau_ms=45, spread=1.6, thump_hz=110, thump_amp=0.35), 0.92),
-        ("footstep_stone_2.wav", gen_footstep(480, seed=2, tau_ms=75, spread=2.0, thump_hz=95, thump_amp=0.22), 0.92),
-        ("footstep_stone_3.wav", gen_footstep(720, seed=3, tau_ms=95, spread=2.4), 0.92),
-        ("footstep_stone_4.wav", gen_footstep(980, seed=4, tau_ms=40, spread=1.5, thump_hz=150, thump_amp=0.30), 0.92),
+        # 脚步与火盆改用实录提取（tools/audio_extract.py 从 docs/milestones/M5/ref_audio/*.mp3 生成），
+        # 不经本脚本合成，避免重跑时覆盖
         ("land.wav", gen_land(), 0.92),
         ("block_grind.wav", gen_block_grind(), 0.9),
         ("plate_click.wav", gen_plate_click(), 0.92),
@@ -220,4 +230,5 @@ def main():
     if "--preview" in sys.argv:
         preview_montage()
 
-main()
+if __name__ == "__main__":
+    main()

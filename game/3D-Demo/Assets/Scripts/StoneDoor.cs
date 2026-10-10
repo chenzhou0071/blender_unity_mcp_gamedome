@@ -10,10 +10,18 @@ public class StoneDoor : MonoBehaviour
 
     public void Open()
     {
-        if (!open && SimpleUI.Instance) SimpleUI.Instance.SetObjective("石门已开——攀上高台，取得圣物！");
+        if (!open)
+        {
+            if (SimpleUI.Instance) SimpleUI.Instance.SetObjective("石门已开——攀上高台，取得圣物！");
+            AudioManager.Instance?.Door();                       // M5-2: 开门轰隆（仅状态切换首帧）
+        }
         open = true;
     }
-    public void Close() { open = false; }
+    public void Close()
+    {
+        if (open) AudioManager.Instance?.Door();                 // M5-2: 关门轰隆（仅状态切换首帧）
+        open = false;
+    }
 
     void Update()
     {

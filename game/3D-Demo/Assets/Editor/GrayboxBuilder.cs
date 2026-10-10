@@ -71,6 +71,7 @@ public static class GrayboxBuilder
 
         var camGo = new GameObject("MainCamera");
         var cam = camGo.AddComponent<Camera>(); camGo.tag = "MainCamera";
+        camGo.AddComponent<AudioListener>();                          // M5-2: 音频监听（此前遗漏——无音效阶段未暴露）
         // 编辑态初始机位：室内南侧上方俯视主厅（避免相机贴地板 y=0 共面产生掠射伪透视；Play 后由 CameraFollow 接管）
         camGo.transform.position = new Vector3(0, 3.2f, -7.3f);
         camGo.transform.LookAt(new Vector3(0, 1.2f, 2f));

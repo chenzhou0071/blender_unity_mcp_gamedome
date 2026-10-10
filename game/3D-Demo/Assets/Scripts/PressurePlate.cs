@@ -8,6 +8,7 @@ public class PressurePlate : MonoBehaviour
 
     int occupants;
     bool playerOn, wasPressed;
+    float debounce;
     Vector3 initialPos;
     Transform player;
 
@@ -45,12 +46,22 @@ public class PressurePlate : MonoBehaviour
             playerOn = Mathf.Abs(d.x) < 0.7f && Mathf.Abs(d.z) < 0.7f && d.y > -0.2f && d.y < 0.6f;
         }
 
-        bool pressed = occupants > 0 || playerOn;
-        if (pressed != wasPressed)
+        // M5-2 修复: pressed 去抖——石头/玩家在检测边缘反复进出时原逻辑逐帧翻转，
+        // 导致石门开/关高频交替、隆声逐帧叠加；现要求新状态连续稳定 0.15s 才切换
+        bool pressedRaw = occupants > 0 || playerOn;
+        if (pressedRaw != wasPressed)
         {
-            wasPressed = pressed;
-            if (door) { if (pressed) door.Open(); else door.Close(); }
+            debounce += Time.deltaTime;
+            if (debounce >= 0.15f)
+            {
+                debounce = 0f;
+                wasPressed = pressedRaw;
+                if (wasPressed) AudioManager.Instance?.PlateClick();    // M5-2: 压板触发"咔-哒"（0→1 首帧）
+                if (door) { if (wasPressed) door.Open(); else door.Close(); }
+            }
         }
+        else debounce = 0f;
+        bool pressed = wasPressed;
         Vector3 target = initialPos + (pressed ? Vector3.down * pressDepth : Vector3.zero);
         transform.position = Vector3.Lerp(transform.position, target, 10f * Time.deltaTime);
     }
