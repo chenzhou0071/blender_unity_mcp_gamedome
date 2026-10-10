@@ -215,12 +215,9 @@ def main():
     random.seed(42)
     jobs = [
         ("ambient_temple.wav", gen_ambient_temple(), 0.5),
-        # 脚步与火盆改用实录提取（tools/audio_extract.py 从 docs/milestones/M5/ref_audio/*.mp3 生成），
-        # 不经本脚本合成，避免重跑时覆盖
-        ("land.wav", gen_land(), 0.92),
-        ("block_grind.wav", gen_block_grind(), 0.9),
+        # 脚步/火盆/石门/推石/落地改用实录提取（tools/audio_extract.py 从 docs/milestones/M5/ref_audio/*.mp3 生成），
+        # 不经本脚本合成，避免重跑时覆盖（对应 gen_* 函数保留便于回退）
         ("plate_click.wav", gen_plate_click(), 0.92),
-        ("door_rumble.wav", gen_door_rumble(), 0.9),
         ("goal_chime.wav", gen_goal_chime(), 0.88),
     ]
     for name, samples, norm in jobs:

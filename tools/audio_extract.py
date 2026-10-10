@@ -4,7 +4,8 @@
   python tools/audio_extract.py fire [refmp3]       火盆：整段采用 + 150ms 循环交叉淡化 + 响度对齐
   python tools/audio_extract.py door [refmp3]       石门：裁纯静音 + 头尾淡化 + 响度对齐（单发音）
   python tools/audio_extract.py grind [refmp3]      推石：裁持续摩擦活跃段 + 循环交叉淡化 + 响度对齐
-默认参考：docs/milestones/M5/ref_audio/{footstep,fire,door,grind}_ref.mp3
+  python tools/audio_extract.py land [refmp3]       落地：裁静音 + 头尾淡化 + 响度对齐（单发音，较常规更轻）
+默认参考：docs/milestones/M5/ref_audio/{footstep,fire,door,grind,land}_ref.mp3
 注意：上述 wav 以此脚本产出为准（audio_gen.py 已移除对应合成，重跑勿覆盖）。
 """
 import os
@@ -28,11 +29,13 @@ EDGE_FADE = int(0.01 * SR)     # 单发音头尾淡化（石门）
 FIRE_RMS = -25.5               # 火盆目标 RMS（dB，对齐上一版合成响度）
 DOOR_RMS = -17.9               # 石门目标 RMS（同上）
 GRIND_RMS = -17.2              # 推石目标 RMS（同上）
+LAND_RMS = -20.0               # 落地目标 RMS（dB，较常规压低——用户要求落地小声）
 SILENCE_REL = -60.0            # 首尾静音判定：低于全局峰 X dB 视为静音（door/grind 裁段）
 LIMIT_TH = -12.0               # 限幅阈值（dB，只作用于溢出瞬态，主体不动）
 LIMIT_RATIO = 8.0              # 限幅比
 DOOR_REF = os.path.join(HERE, "..", "docs", "milestones", "M5", "ref_audio", "door_ref.mp3")
 GRIND_REF = os.path.join(HERE, "..", "docs", "milestones", "M5", "ref_audio", "grind_ref.mp3")
+LAND_REF = os.path.join(HERE, "..", "docs", "milestones", "M5", "ref_audio", "land_ref.mp3")
 
 
 def decode_mono(mp3):
@@ -183,6 +186,14 @@ def grind_main(ref=GRIND_REF):
     align_and_write(s[a:b], "block_grind.wav", GRIND_RMS, loop=True, th_db=-4.0, ratio=6.0)
 
 
+def land_main(ref=LAND_REF):
+    """落地实录：裁掉首尾静音 + 头尾淡化 + 响度对齐（目标较常规压低，播放端再降音量）。"""
+    s = decode_mono(ref)
+    a, b = active_span(s, SILENCE_REL)
+    print("land span: %.2f-%.2f s (%.2f s)" % (a / SR, b / SR, (b - a) / SR))
+    align_and_write(s[a:b], "land.wav", LAND_RMS, loop=False, th_db=-3.0, ratio=5.0)
+
+
 def main():
     mode = sys.argv[1] if len(sys.argv) > 1 else "footstep"
     arg = sys.argv[2] if len(sys.argv) > 2 else None
@@ -192,10 +203,12 @@ def main():
         door_main(arg or DOOR_REF)
     elif mode == "grind":
         grind_main(arg or GRIND_REF)
+    elif mode == "land":
+        land_main(arg or LAND_REF)
     elif mode == "footstep":
         footstep_main(arg or REF)
     else:
-        print("usage: python tools/audio_extract.py [footstep|fire|door|grind] [refmp3]")
+        print("usage: python tools/audio_extract.py [footstep|fire|door|grind|land] [refmp3]")
         sys.exit(1)
 
 

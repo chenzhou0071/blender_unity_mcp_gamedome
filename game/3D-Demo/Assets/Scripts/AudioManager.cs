@@ -27,7 +27,7 @@ public class AudioManager : MonoBehaviour
 
     public void OneShot(AudioClip c, float v = 1f) { if (c) oneShot.PlayOneShot(c, v); }
     public void Footstep() { if (footsteps != null && footsteps.Length > 0) oneShot.PlayOneShot(footsteps[Random.Range(0, footsteps.Length)], 0.25f); }   // 四轮试听：脚步再微降
-    public void Land() => OneShot(land, 0.5f);   // 四轮试听：落地再微降
+    public void Land() => OneShot(land, 0.4f);   // 落地实录版：文件对齐 -20dB + 音量再降至 0.4（用户要求小声）
     public void PlateClick() => OneShot(plateClick);
     public void Door()
     {

@@ -14,7 +14,7 @@ TARGETS = [
     ("footstep_stone_2.wav", 0.30),
     ("footstep_stone_3.wav", 0.30),
     ("footstep_stone_4.wav", 0.30),
-    ("land.wav", 0.30),
+    ("land.wav", 0.80),
     ("block_grind.wav", 2.15),
     ("plate_click.wav", 0.25),
     ("door_rumble.wav", 3.6),
