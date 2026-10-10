@@ -1,6 +1,6 @@
-"""主角五段程序化动画：idle/walk/run/jump/climb → Action 推独立 NLA track + 4 帧条图。
+"""主角七段程序化动画：idle/walk/run/jump/jumprun/climb/mantle → Action 推独立 NLA track + 4 帧条图。
 用法: blender.exe --background --factory-startup --python hero_anims.py
-产出: hero_rigged.blend 增加 5 个 Action（A_Idle 60f / A_Walk 27f / A_Run 20f / A_Jump 27f / A_Climb 36f）
+产出: hero_rigged.blend 增加 7 个 Action（A_Idle 60f / A_Walk 27f / A_Run 20f / A_Jump 27f / A_JumpRun 28f / A_Climb 36f / A_Mantle 30f）
       + docs/milestones/M4/anim_sheet_*.png（每动作 1 行 × 4 帧）
 坐标系: 面朝 +X，左=+Y，上=+Z；前后摆=绕世界 Y 轴，侧向摆臂=绕世界 X 轴。
 参数幅度严格按实施计划 M4-3 参数表，不另设。
@@ -29,7 +29,7 @@ for pb in arm.pose.bones:
 ad = arm.animation_data if arm.animation_data else arm.animation_data_create()
 for tr in list(ad.nla_tracks):
     ad.nla_tracks.remove(tr)
-ANAMES = ["A_Idle", "A_Walk", "A_Run", "A_Jump", "A_Climb"]
+ANAMES = ["A_Idle", "A_Walk", "A_Run", "A_Jump", "A_JumpRun", "A_Climb", "A_Mantle"]
 for nm in ANAMES:
     if nm in bpy.data.actions:
         bpy.data.actions.remove(bpy.data.actions[nm])
@@ -123,12 +123,14 @@ def make_idle():
     return act
 
 def make_walk():
-    """27f 正弦循环：大腿 ±28° 左右反相（收腿 12°）；小腿 0~35° 滞后 0.6rad；垂臂 ∓20° 反相（肘微屈15°）；Hips ±0.03m 双频"""
+    """27f 正弦循环：大腿 ±33° 左右反相（收腿 12°；M4-8 反馈 28°→33° 增大步幅）；
+    M4-9 速度分层：走路降速 2.5→1.5m/s 散步档，播放率 0.9（原速以下悠闲步伐，零滑步）；
+    小腿 0~35° 滞后 0.6rad；垂臂 ∓20° 反相（肘微屈15°）；Hips ±0.03m 双频"""
     act = begin("A_Walk"); n = 27
     for f in range(n + 1):
         ph = 2 * math.pi * f / n
-        wrot2("LeftUpLeg", [("X", LEG_MV_L), ("Y", -28 * math.sin(ph))])          # 内收+前摆（负角=前摆）
-        wrot2("RightUpLeg", [("X", LEG_MV_R), ("Y", -28 * math.sin(ph + math.pi))])
+        wrot2("LeftUpLeg", [("X", LEG_MV_L), ("Y", -33 * math.sin(ph))])          # 内收+前摆（负角=前摆）
+        wrot2("RightUpLeg", [("X", LEG_MV_R), ("Y", -33 * math.sin(ph + math.pi))])
         wrot("LeftLeg", "Y", 35 * max(0.0, math.sin(ph + 0.6)))       # 正角=屈膝（仅半波）
         wrot("RightLeg", "Y", 35 * max(0.0, math.sin(ph + math.pi + 0.6)))
         wrot2("LeftArm", [("X", ARM_DROP_L), ("Y", 20 * math.sin(ph))])           # 垂臂，与同侧腿反相
@@ -142,15 +144,17 @@ def make_walk():
     return act
 
 def make_run():
-    """20f 正弦循环：大腿 ±48°（含收腿 12° 基分）；摆臂=贴身直给方向（大臂前后摆+肘屈约90°）；躯干前倾 8°；Hips ±0.05m 双频"""
+    """20f 正弦循环：大腿 ±58°（含收腿 12° 基分；M4-8 反馈 48°→58° 增大步幅）；
+    M4-9 速度分层：跑步降速 5→3.5m/s，播放率 1.0（零滑步原速点——动画设计节奏直出，不再被加速放大）；
+    动画侧加大 Hips 起伏 0.05→0.08 强化弹跳浮空感；摆臂=贴身直给方向（大臂前后摆+肘屈约90°）；躯干前倾 8°"""
     act = begin("A_Run"); n = 20
     ARM_F, ARM_B = (0.66, 0.10, -0.74), (-0.50, 0.10, -0.86)   # 大臂：前摆端点/后摆端点（y=贴身侧偏）
     FA_F, FA_B = (0.99, 0.09, 0.13), (0.42, 0.09, -0.90)       # 前臂：前摆近水平前伸（肘约125°展开）/后摆垂落髋侧
     for f in range(n + 1):
         ph = 2 * math.pi * f / n
         wrot("Spine", "Y", 8)                                  # 固定前倾（上向骨正角=前倾）
-        wrot2("LeftUpLeg", [("X", LEG_MV_L), ("Y", -48 * math.sin(ph))])
-        wrot2("RightUpLeg", [("X", LEG_MV_R), ("Y", -48 * math.sin(ph + math.pi))])
+        wrot2("LeftUpLeg", [("X", LEG_MV_L), ("Y", -58 * math.sin(ph))])
+        wrot2("RightUpLeg", [("X", LEG_MV_R), ("Y", -58 * math.sin(ph + math.pi))])
         wrot("LeftLeg", "Y", 60 * max(0.0, math.sin(ph + 0.6)))
         wrot("RightLeg", "Y", 60 * max(0.0, math.sin(ph + math.pi + 0.6)))
         kL = (1 - math.sin(ph)) / 2                            # 左臂相位（与左腿反相：0=后摆 1=前摆）
@@ -161,20 +165,24 @@ def make_run():
         walign2("RightForeArm", nlerp(mir(FA_B), mir(FA_F), kR))
         wrot("LeftFoot", "Y", FOOT_FIX)                        # 脚部矫正：压平鞋底坡度
         wrot("RightFoot", "Y", FOOT_FIX)
-        wloc("Hips", dz=0.05 * math.sin(2 * ph))
+        wloc("Hips", dz=0.08 * math.sin(2 * ph))               # M4-9: 0.05→0.08 弹跳浮空感
         key_all(f)
     return act
 
 def make_jump():
-    """27f 关键姿态（6 帧重做）：站→下蹲蓄力→蹬伸起跳→空中收腿→落地缓冲→回站；双臂不举高（M4-7 反馈：自然摆臂）"""
+    """27f 关键姿态（M4-10 节奏再重排：核心挥臂段 0.133s→0.3s，实测"挥臂太快没变化"反馈）：
+    站→下蹲蓄力(0.2s)→蹬伸→挥臂峰值(正下→前上 0.3s)→空中收腿→落地缓冲→回站；
+    手臂沿矢状面钟摆弧线（后摆→正下方→前上方），中间帧锁定路径防欧拉插值绕体侧。
+    物理侧配合：起跳前摇 0.26s 落在 f6-f9 蹬伸段内。"""
     act = begin("A_Jump")
     # (frame, hips_dz, spine前倾, 大腿, 屈膝, 大臂方向, 前臂方向)；腿部始终含收腿基分
     K = [
         (0,   0.00,  0,   0,   0, (0.00, 0.06, -1.00), (0.00, 0.06, -1.00)),   # 站（垂臂贴身）
-        (4,  -0.16, 14, -50,  72, (-0.42, 0.10, -0.90), (-0.60, 0.08, -0.79)), # 下蹲蓄力：屈膝/臀降/躯干前倾/双臂后摆
-        (9,   0.06,  4,   8,   4, (0.88, 0.12, 0.46), (0.82, 0.08, 0.57)),     # 蹬伸起跳：腿伸直/双臂前摆至胸前高度（不举过头）
-        (16,  0.02,  6, -42,  72, (0.30, 0.10, -0.95), (0.35, 0.08, -0.93)),   # 空中收腿：大腿前收/屈膝/双臂自然垂放身侧
-        (21, -0.12, 10, -28,  50, (0.45, 0.10, -0.85), (0.30, 0.08, -0.95)),   # 落地缓冲：屈膝吸收/双臂前下压
+        (6,  -0.16, 12, -46,  66, (-0.40, 0.10, -0.91), (-0.58, 0.08, -0.81)), # 下蹲蓄力 0.2s / 双臂后摆到底
+        (9,  -0.05,  8, -20,  34, (0.03, 0.08, -1.00), (0.10, 0.07, -0.99)),   # 蹬伸：双臂经正下方（矢状面锁），物理离地（前摇 0.26s）落此段
+        (18,  0.08,  4,   8,   4, (0.88, 0.12, 0.46), (0.82, 0.08, 0.57)),     # 挥臂峰值：正下→前上摆 0.3s（9 帧，此前 4 帧 0.133s 感知不到）
+        (21,  0.05,  6, -38,  66, (0.35, 0.10, -0.93), (0.38, 0.08, -0.92)),   # 空中收腿：大腿前收/屈膝/双臂前下回落
+        (24, -0.12, 10, -26,  46, (0.45, 0.10, -0.85), (0.30, 0.08, -0.95)),   # 落地缓冲：屈膝吸收/双臂前下压
         (27,  0.00,  0,   0,   0, (0.00, 0.06, -1.00), (0.00, 0.06, -1.00)),   # 回站
     ]
     for f, dz, sp, th, kn, ua, fa in K:
@@ -189,6 +197,42 @@ def make_jump():
         walign2("RightArm", mir(ua))
         walign2("LeftForeArm", fa)
         walign2("RightForeArm", mir(fa))
+        wrot("LeftFoot", "Y", FOOT_FIX)                        # 脚部矫正：压平鞋底坡度
+        wrot("RightFoot", "Y", FOOT_FIX)
+        key_all(f)
+    return act
+
+def make_jump_run():
+    """28f 跑跳（M4-11 新增，反馈"跑步时要有专门的跑跳动作"）：单脚蹬地跨步式——
+    无深蹲蓄力（跑步中不打断节奏），右腿蹬伸离地→左腿前抬跨步→空中顶点（左前右后）→
+    左腿前下探触地缓冲→起身回跑姿；躯干持续前倾 16-22°（前冲感）；手臂跑步摆臂相位
+    （左前右后）→空中翻转（左后右前，异侧平衡）→落地前下压缓冲。
+    物理侧配合：跑跳前摇 0.1s（f3 蹬伸=物理起跳点）；滞空 0.693s 物理落地≈f24
+    （动画触地段 f22-f25）；Animator JumpRun→Run exitTime 0.85 与物理落地同步。"""
+    act = begin("A_JumpRun")
+    # (frame, hips_dz, spine前倾, 大腿L, 膝L, 大腿R, 膝R, 大臂L, 前臂L, 大臂R, 前臂R)；右臂 y 分量取负（右侧）
+    K = [
+        (0,  -0.02, 16,  22, 25, -38, 38, (0.55, 0.10, -0.80), (0.85, 0.08, -0.30), (-0.35, -0.10, -0.90), (-0.15, -0.08, -0.95)),  # 蹬地瞬时：右腿前触地/左腿后蹬/左臂前右臂后（跑姿相位）
+        (3,   0.05, 18, -30, 45,  28, 10, (-0.15, 0.08, -0.97), (0.05, 0.07, -0.99), (0.10, -0.08, -0.98), (0.20, -0.07, -0.98)),    # 蹬伸离地（物理起跳点 0.1s）：右腿蹬直后伸/左腿前摆/双臂经下
+        (8,   0.08, 20, -68, 82,  32, 35, (-0.45, 0.10,  0.45), (-0.55, 0.09,  0.30), (0.50, -0.10,  0.55), (0.60, -0.08,  0.42)),  # 空中上升：左腿前抬跨步/右腿后伸/左臂后上右臂前上（异侧）
+        (12,  0.10, 18, -72, 88,  30, 40, (-0.35, 0.12,  0.30), (-0.45, 0.10,  0.15), (0.70, -0.12,  0.05), (0.80, -0.09, -0.10)),  # 空中顶点：跨步姿态保持/右臂前平/左臂后上
+        (17,  0.08, 16, -55, 45,  15, 55, (-0.30, 0.15, -0.55), (-0.35, 0.12, -0.70), (0.45, -0.12, -0.65), (0.55, -0.10, -0.75)),  # 下落：左腿前下探准备落地/右腿回收/双臂前下平衡
+        (22, -0.10, 22, -35, 50,  -5, 65, (0.40, 0.12, -0.85), (0.50, 0.10, -0.80), (0.35, -0.12, -0.88), (0.40, -0.10, -0.85)),    # 左脚触地缓冲（物理落地≈f24）：屈膝吸收/躯干前压/双臂前下压
+        (25, -0.05, 14, -15, 35, -20, 55, (0.10, 0.08, -0.97), (0.15, 0.07, -0.98), (0.12, -0.08, -0.97), (0.18, -0.07, -0.98)),    # 缓冲过渡：重心前移/右腿跟进/双臂垂落
+        (28,  0.00,  8,  10, 25, -38, 48, (0.50, 0.10, -0.82), (0.75, 0.08, -0.45), (-0.30, -0.10, -0.92), (-0.12, -0.08, -0.96)),  # 恢复跑姿（接 Run 融合）：回跑步摆臂相位
+    ]
+    for f, dz, sp, thL, knL, thR, knR, uaL, faL, uaR, faR in K:
+        clear_pose()
+        wloc("Hips", dz=dz)
+        wrot("Spine", "Y", sp)
+        wrot2("LeftUpLeg", [("X", LEG_MV_L), ("Y", thL)])
+        wrot2("RightUpLeg", [("X", LEG_MV_R), ("Y", thR)])
+        wrot("LeftLeg", "Y", knL)
+        wrot("RightLeg", "Y", knR)
+        walign2("LeftArm", uaL)
+        walign2("RightArm", uaR)
+        walign2("LeftForeArm", faL)
+        walign2("RightForeArm", faR)
         wrot("LeftFoot", "Y", FOOT_FIX)                        # 脚部矫正：压平鞋底坡度
         wrot("RightFoot", "Y", FOOT_FIX)
         key_all(f)
@@ -218,6 +262,39 @@ def make_climb():
         key_all(f)
     return act
 
+def make_mantle():
+    """30f 关键姿态（1.0s 一次性，非循环）：悬挂抓沿→引体→弯腰俯身撑台→提膝跪台→蹬起→站直。
+    M4-10 重做（实测"和跳一样"反馈）：旧版躯干只前倾 20° 的近直立引体式 → 观感像"被弹上去"；
+    新版躯干大幅前倾 42°（弯腰俯身读感）+ 左腿"提膝上台→单膝跪撑"，手臂沿台沿从上滑向前下压撑
+    （沿用手臂段已视觉验证的撑压数值）；时长对齐 topOutDuration 1.0s。"""
+    act = begin("A_Mantle")
+    # (frame, spine前倾, 大腿L, 膝L, 大腿R, 膝R, 大臂方向, 前臂方向)
+    K = [
+        (0,   0, -40,  70, -12,  18, (0.30, 0.22,  0.93), (0.38, 0.15,  0.91)),  # 悬挂：双手抓台沿/左腿屈膝踩墙
+        (4,   8, -50,  80, -16,  24, (0.22, 0.42,  0.88), (0.20, 0.18,  0.96)),  # 引体：肘屈身体上升/手在头前上
+        (8,  26, -60,  88, -20,  30, (0.40, 0.66,  0.64), (0.35, 0.42,  0.83)),  # 翻肘俯身：开始弯腰/手翻到前上
+        (12, 42, -95, 110, -22,  32, (0.62, 0.48,  0.10), (0.72, 0.05,  0.05)),  # 弯腰撑台：俯身 42°/翻腕平撑台沿/左膝提上台面
+        (16, 34, -72, 102, -40,  64, (0.45, 0.45, -0.60), (0.60, -0.10, -0.70)), # 跪撑：左膝跪台/手前下压撑
+        (20, 16, -52,  74, -62,  96, (0.10, 0.25, -0.96), (-0.10, 0.05, -0.99)), # 蹬起：左腿蹬伸/右腿收起上台/手侧下推离
+        (25,  6, -20,  44, -32,  60, (0.10, 0.08, -0.99), (0.10, 0.08, -0.98)),  # 起身：双脚站上台面
+        (30,  0,   0,   0,   0,   0, (0.00, 0.06, -1.00), (0.00, 0.06, -1.00)),  # 站直（=Idle 姿态收尾）
+    ]
+    for f, sp, thL, knL, thR, knR, ua, fa in K:
+        clear_pose()
+        wrot("Spine", "Y", sp)
+        wrot2("LeftUpLeg", [("X", LEG_IN_L), ("Y", thL)])
+        wrot2("RightUpLeg", [("X", LEG_IN_R), ("Y", thR)])
+        wrot("LeftLeg", "Y", knL)
+        wrot("RightLeg", "Y", knR)
+        walign2("LeftArm", ua)
+        walign2("RightArm", mir(ua))
+        walign2("LeftForeArm", fa)
+        walign2("RightForeArm", mir(fa))
+        wrot("LeftFoot", "Y", FOOT_FIX)                        # 脚部矫正：压平鞋底坡度
+        wrot("RightFoot", "Y", FOOT_FIX)
+        key_all(f)
+    return act
+
 # —— 制作 + 断言（fcurve 非空 / 帧范围 / 循环闭合）——
 def act_fcurves(act):
     """兼容新旧 Action 数据模型：4.3- legacy fcurves / 4.4+ layered(channelbag)"""
@@ -230,8 +307,8 @@ def act_fcurves(act):
                 out.extend(cb.fcurves)
     return out
 
-acts = [make_idle(), make_walk(), make_run(), make_jump(), make_climb()]
-EXPECT = {"A_Idle": 60, "A_Walk": 27, "A_Run": 20, "A_Jump": 27, "A_Climb": 36}
+acts = [make_idle(), make_walk(), make_run(), make_jump(), make_jump_run(), make_climb(), make_mantle()]
+EXPECT = {"A_Idle": 60, "A_Walk": 27, "A_Run": 20, "A_Jump": 27, "A_JumpRun": 28, "A_Climb": 36, "A_Mantle": 30}
 for act in acts:
     fr = act.frame_range
     fcs = act_fcurves(act)
@@ -242,7 +319,8 @@ for act in acts:
     print(f"ACT {act.name:7s} fcurves={nfc:4d} range={tuple(round(v, 1) for v in fr)} loop_maxdiff={md:.6f}")
     assert nfc > 0, act.name
     assert abs(fr[1] - EXPECT[act.name]) < 0.01, act.name
-    assert md < 1e-4, f"{act.name} loop gap {md}"
+    if act.name not in ("A_Mantle", "A_JumpRun"):          # Mantle/JumpRun 为一次性动作，豁免循环闭合断言（首尾不闭合是设计：落地接 Run 融合）
+        assert md < 1e-4, f"{act.name} loop gap {md}"
 
 # —— push 独立 NLA track（供 M4-4 FBX 全量导出）——
 ad.action = None
@@ -308,12 +386,10 @@ fill.rotation_euler = (1.15, -0.25, -2.3)
 cd = bpy.data.cameras.new("C"); cd.lens = 50
 cam = bpy.data.objects.new("C", cd); bpy.context.scene.collection.objects.link(cam)
 bpy.context.scene.camera = cam
-engines = list(bpy.types.RenderSettings.bl_rna.properties['engine'].enum_items.keys())
-for cand in ('BLENDER_EEVEE_NEXT', 'BLENDER_EEVEE', 'CYCLES'):
-    if cand in engines:
-        bpy.context.scene.render.engine = cand
-        break
 sc = bpy.context.scene
+sc.render.engine = 'CYCLES'      # M4-10: EEVEE 在当前 NV 驱动下 headless 崩溃（nvoglv64 EXCEPTION_STACK_OVERFLOW），改用 CYCLES CPU
+sc.cycles.device = 'CPU'
+sc.cycles.samples = 32
 sc.render.resolution_x = 640
 sc.render.resolution_y = 640
 
@@ -330,7 +406,9 @@ SHOTS = {
     "A_Walk":  [0, 6, 13, 20],
     "A_Run":   [0, 5, 10, 15],
     "A_Jump":  [4, 9, 16, 21],
+    "A_JumpRun": [0, 8, 14, 22],
     "A_Climb": [0, 9, 18, 27],
+    "A_Mantle": [0, 5, 12, 20],
 }
 CS = (2.3, 0.0, 0.85) if "--front" in sys.argv else (0.0, 2.3, 0.85)   # 默认侧视（前后摆）；--front 正视（腿侧向开合）
 TGT = (0.0, 0.0, 0.05)

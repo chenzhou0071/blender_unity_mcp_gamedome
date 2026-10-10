@@ -19,7 +19,7 @@ public class HeroImporter : AssetPostprocessor
         var clips = imp.defaultClipAnimations;
         foreach (var c in clips)
         {
-            c.loopTime = !c.name.Contains("Jump");       // Idle/Walk/Run/Climb 循环，Jump 单次
+            c.loopTime = !(c.name.Contains("Jump") || c.name.Contains("Mantle"));   // Jump/Mantle 单次，其余循环
             Debug.Log($"[HeroImporter] clip {c.name} loop={c.loopTime}");
         }
         imp.clipAnimations = clips;

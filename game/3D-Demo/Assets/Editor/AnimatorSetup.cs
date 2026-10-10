@@ -23,6 +23,7 @@ public static class AnimatorSetup
         ctrl.AddParameter("speed", AnimatorControllerParameterType.Float);
         ctrl.AddParameter("grounded", AnimatorControllerParameterType.Bool);
         ctrl.AddParameter("climbing", AnimatorControllerParameterType.Bool);
+        ctrl.AddParameter("toppingOut", AnimatorControllerParameterType.Bool);   // M4-8: 爬顶翻越段
         ctrl.AddParameter("jump", AnimatorControllerParameterType.Trigger);
 
         var sm = ctrl.layers[0].stateMachine;
@@ -31,22 +32,31 @@ public static class AnimatorSetup
         var walk = sm.AddState("Walk"); walk.motion = clips["A_Walk"];
         var run = sm.AddState("Run"); run.motion = clips["A_Run"];
         var jump = sm.AddState("Jump"); jump.motion = clips["A_Jump"];
+        var jumpRun = sm.AddState("JumpRun"); jumpRun.motion = clips["A_JumpRun"];   // M4-11: 跑跳（跑速档起跳，单脚蹬地跨步式）
         var climb = sm.AddState("Climb"); climb.motion = clips["A_Climb"];
+        var mantle = sm.AddState("Mantle"); mantle.motion = clips["A_Mantle"];   // M4-8: 爬顶翻上（一次性）
         sm.defaultState = idle;
+
+        walk.speed = 0.9f;                                           // M4-9: 走路降速 2.5→1.5m/s 散步档（零滑步 0.9，原速以下悠闲步伐）
+        run.speed = 1.0f;                                            // M4-9: 跑步 3.5m/s 配 1.0 = 动画零滑步原速点（动画设计节奏直出，不再加速播放）
 
         T(idle, walk, "speed", AnimatorConditionMode.Greater, 0.1f);
         T(walk, idle, "speed", AnimatorConditionMode.Less, 0.1f);
-        T(walk, run, "speed", AnimatorConditionMode.Greater, 4.5f);
-        T(run, walk, "speed", AnimatorConditionMode.Less, 4.5f);
+        T(walk, run, "speed", AnimatorConditionMode.Greater, 2.5f);  // M4-9: 1.5/3.5 的中点（速度分层后重算）
+        T(run, walk, "speed", AnimatorConditionMode.Less, 2.5f);     // M4-9: 与去程同值（速度仅两档离散切换）
         T(idle, jump, "jump", AnimatorConditionMode.If, 0f);
         T(walk, jump, "jump", AnimatorConditionMode.If, 0f);
-        T(run, jump, "jump", AnimatorConditionMode.If, 0f);          // 补：跑步起跳
+        T(run, jumpRun, "jump", AnimatorConditionMode.If, 0f);       // M4-11: 跑步起跳→跑跳（原 run→Jump 改此；走/立定跳保持 Jump）
         T(climb, idle, "climbing", AnimatorConditionMode.IfNot, 0f);
         T(idle, climb, "climbing", AnimatorConditionMode.If, 0f);
         T(walk, climb, "climbing", AnimatorConditionMode.If, 0f);
         T(run, climb, "climbing", AnimatorConditionMode.If, 0f);     // 补：跑步贴墙接管
+        T(climb, mantle, "toppingOut", AnimatorConditionMode.If, 0f);    // M4-8: 到顶翻越段
+        T(mantle, idle, "toppingOut", AnimatorConditionMode.IfNot, 0f);  // M4-8: 翻越完成回 Idle
         var back = jump.AddTransition(idle);                         // 跳跃播完自动回
         back.hasExitTime = true; back.exitTime = 0.85f; back.duration = 0.1f;
+        var jrBack = jumpRun.AddTransition(run);                     // M4-11: 跑跳落地回跑（0.85×0.933s≈0.79s 与物理落地同步）
+        jrBack.hasExitTime = true; jrBack.exitTime = 0.85f; jrBack.duration = 0.1f;
         AssetDatabase.SaveAssets();
         Debug.Log("[AnimatorSetup] ExplorerAnimator.controller 生成完成");
     }

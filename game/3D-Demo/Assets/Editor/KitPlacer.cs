@@ -42,8 +42,14 @@ public static class KitPlacer
         if (lintel) lintel.transform.localScale = new Vector3(0.75f, 2f / 3f, 1f);
 
         // ---- 3) 门洞装饰：石门框 + 拱门（贴 A 厅一侧墙面）
-        Spawn("SM_DoorFrame", new Vector3(0, 0, 8f), 0f);
-        Spawn("SM_Arch", new Vector3(0, 0, 7.70f), 0f);
+        // M4-8 反馈：门框立柱此前可穿模，改实体碰撞（SpawnSolid）
+        SpawnSolid("SM_DoorFrame", new Vector3(0, 0, 8f), 0f);
+        SpawnSolid("SM_Arch", new Vector3(0, 0, 7.70f), 0f);
+
+        // 攀爬石台参数（M4-9：台高 3.75→4.5m，墙段/地砖/祭坛/宝物全部派生自 LedgeTop，
+        // 与 ClimbableLedge 碰撞面（LevelSpec）保持一致；改高度只动此处）
+        const float LedgeTop = 4.5f;
+        const float WallHz = LedgeTop / 3.015f;   // 墙段原始高 3.015m ⇒ 纵向缩放后顶面恰 LedgeTop
 
         // ---- 4) 机关/道具：灰盒保留为逻辑体，视觉挂子物体（跟随开门/下沉/被推动画）
         var door = Normalize("StoneDoor");          // 石门：缩放归一，碰撞尺寸转存 BoxCollider
@@ -53,31 +59,31 @@ public static class KitPlacer
         var block = Normalize("PushBlock");
         if (block) Spawn("SM_PushBlock", new Vector3(-2, 0, -2f), 15f, block.transform);
         var treasure = Normalize("Treasure", 1.5f); // 宝物：SphereCollider 半径由 0.4 缩放换算为世界 1.5
-        if (treasure) Spawn("SM_Treasure", new Vector3(0, 4.0f, 19f), 0f, treasure.transform);
-        // 祭坛（无脚本；灰盒保留碰撞，视觉独立摆放，底面贴石台顶 y=3）
+        if (treasure) Spawn("SM_Treasure", new Vector3(0, LedgeTop + 1f, 19f), 0f, treasure.transform);
+        // 祭坛（无脚本；灰盒保留碰撞，视觉独立摆放，底面贴石台顶）
         Hide("Altar");
-        SpawnSolid("SM_Altar", new Vector3(0, 3f, 19f), 0f);   // 视觉精确碰撞（叠在灰盒盒体上，无副作用）
+        SpawnSolid("SM_Altar", new Vector3(0, LedgeTop, 19f), 0f);   // 视觉精确碰撞（叠在灰盒盒体上，无副作用）
 
         // ---- 5) 攀爬石台：灰盒（Climbable layer + 碰撞）禁渲染；四周墙段贴面（嵌入台体内，
-        //         外表面与碰撞面重合）+ 顶面地砖
+        //         外表面与碰撞面重合，M4-9 纵向缩放至 LedgeTop）+ 顶面地砖
         Hide("ClimbableLedge");
         string prevP = "";
         for (int i = 0; i < 3; i++)     // 南立面（正面朝房间）
         {
             prevP = PickWallVariant(prevP);
-            WallPiece(prevP, new Vector3(-2 + 2 * i, 0, 16.25f), 180f, 0.5f);
+            WallPiece(prevP, new Vector3(-2 + 2 * i, 0, 16.25f), 180f, 0.5f, WallHz);
         }
         for (int i = 0; i < 2; i++)     // 北立面
         {
             prevP = PickWallVariant(prevP);
-            WallPiece(prevP, new Vector3(-1.5f + 3 * i, 0, 19.75f), 0f, 0.75f);
+            WallPiece(prevP, new Vector3(-1.5f + 3 * i, 0, 19.75f), 0f, 0.75f, WallHz);
         }
-        WallPiece(PickWallVariant(""), new Vector3(3.25f, 0, 18f), 90f, 1f);    // 东立面
-        WallPiece(PickWallVariant(""), new Vector3(-3.25f, 0, 18f), -90f, 1f);  // 西立面
-        for (int i = 0; i < 3; i++)     // 顶面 6 块地砖（2×2 网格，顶面 y=3）
+        WallPiece(PickWallVariant(""), new Vector3(3.25f, 0, 18f), 90f, 1f, WallHz);    // 东立面
+        WallPiece(PickWallVariant(""), new Vector3(-3.25f, 0, 18f), -90f, 1f, WallHz);  // 西立面
+        for (int i = 0; i < 3; i++)     // 顶面 6 块地砖（2×2 网格，厚 0.6，顶面=LedgeTop）
             for (int j = 0; j < 2; j++)
                 Spawn((i + j) % 2 == 0 ? "SM_FloorTile_A" : "SM_FloorTile_B",
-                      new Vector3(-2 + 2 * i, 2.7f, 17 + 2 * j), (i + j) % 2 * 90f);
+                      new Vector3(-2 + 2 * i, LedgeTop - 0.3f, 17 + 2 * j), (i + j) % 2 * 90f);
 
         // ---- 6) 装饰：石柱×4 / 破柱×2（一立一躺）/ 火盆×4 / 台阶 / 碎石×6（全部实体碰撞）
         foreach (var x in new[] { -7f, 7f })
@@ -216,11 +222,11 @@ public static class KitPlacer
         }
     }
 
-    // 石台贴面单块墙段（sx=0.5→2m / 0.75→3m / 1→4m）
-    static void WallPiece(string asset, Vector3 pos, float yaw, float sx)
+    // 石台贴面单块墙段（sx=0.5→2m / 0.75→3m / 1→4m；hz=纵向缩放，1=原始高 3.015m）
+    static void WallPiece(string asset, Vector3 pos, float yaw, float sx, float hz)
     {
         var go = Spawn(asset, pos, yaw);
-        if (go) go.transform.localScale = new Vector3(sx * 1.04f, 1f, 1f);  // 相邻贴面同样留重叠
+        if (go) go.transform.localScale = new Vector3(sx * 1.04f, 1f, hz);  // 相邻贴面同样留重叠
     }
 
     // ---------- 墙体变体随机 ----------
