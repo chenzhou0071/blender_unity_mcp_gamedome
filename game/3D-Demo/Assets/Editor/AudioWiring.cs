@@ -51,17 +51,25 @@ public static class AudioWiring
         }
         Debug.Log("[AudioWiring] 火盆空间音源: " + fireCount + " 个（近响远弱）");
 
-        // 确保场景有 AudioListener（M2 建场景时 MainCamera 遗漏——此前无音效未暴露）
-        if (UnityEngine.Object.FindObjectsByType<AudioListener>(FindObjectsSortMode.None).Length == 0)
+        // M5-3.1: 音频听者——位置跟随人物（3D 距离衰减按人物算，而非相机；相机会后移 5m，
+        // 导致"人物贴着火盆却听不清"）；朝向跟随相机（左右声场与画面一致）。
+        // 不再把 AudioListener 放在 MainCamera 上。
+        var camListener = Camera.main ? Camera.main.GetComponent<AudioListener>() : null;
+        if (camListener != null) UnityEngine.Object.DestroyImmediate(camListener);
+        var rigGo = GameObject.Find("AudioListenerRig");
+        if (rigGo == null)
         {
-            var cam = Camera.main;
-            if (cam)
-            {
-                cam.gameObject.AddComponent<AudioListener>();
-                Debug.Log("[AudioWiring] 已给 MainCamera 补 AudioListener");
-            }
-            else Debug.LogWarning("[AudioWiring] 场景无主相机，AudioListener 未添加");
+            rigGo = new GameObject("AudioListenerRig");
+            Undo.RegisterCreatedObjectUndo(rigGo, "Create AudioListenerRig");
         }
+        if (rigGo.GetComponent<AudioListener>() == null) rigGo.AddComponent<AudioListener>();
+        var follower = rigGo.GetComponent<ListenerFollower>();
+        if (follower == null) follower = rigGo.AddComponent<ListenerFollower>();
+        var player = GameObject.Find("Player");
+        if (player) follower.player = player.transform;
+        else Debug.LogWarning("[AudioWiring] 未找到 Player 对象，听者位置跟随未接线");
+        if (Camera.main) follower.cam = Camera.main.transform;
+        Debug.Log("[AudioWiring] 听者：位置跟人物(胸高1.2m)/朝向跟相机");
 
         EditorSceneManager.MarkSceneDirty(SceneManager.GetActiveScene());
         EditorSceneManager.SaveScene(SceneManager.GetActiveScene());
