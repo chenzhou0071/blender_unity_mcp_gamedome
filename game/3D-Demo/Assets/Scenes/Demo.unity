@@ -171,6 +171,10 @@ PrefabInstance:
       propertyPath: m_Name
       value: VIZ_FloorA_0400
       objectReference: {fileID: 0}
+    - target: {fileID: 919132149155446097, guid: cb4493524fb87f6468470f491090b590, type: 3}
+      propertyPath: m_StaticEditorFlags
+      value: 4
+      objectReference: {fileID: 0}
     m_RemovedComponents: []
     m_RemovedGameObjects: []
     m_AddedGameObjects: []
@@ -232,6 +236,10 @@ PrefabInstance:
       propertyPath: m_Name
       value: VIZ_SM_Wall_B_137
       objectReference: {fileID: 0}
+    - target: {fileID: 919132149155446097, guid: 7fb1ff1881c87884b9c2021fbaeae10d, type: 3}
+      propertyPath: m_StaticEditorFlags
+      value: 4
+      objectReference: {fileID: 0}
     m_RemovedComponents: []
     m_RemovedGameObjects: []
     m_AddedGameObjects: []
@@ -288,6 +296,10 @@ PrefabInstance:
     - target: {fileID: 919132149155446097, guid: cb4493524fb87f6468470f491090b590, type: 3}
       propertyPath: m_Name
       value: VIZ_FloorB_0400
+      objectReference: {fileID: 0}
+    - target: {fileID: 919132149155446097, guid: cb4493524fb87f6468470f491090b590, type: 3}
+      propertyPath: m_StaticEditorFlags
+      value: 4
       objectReference: {fileID: 0}
     m_RemovedComponents: []
     m_RemovedGameObjects: []
@@ -350,6 +362,10 @@ PrefabInstance:
       propertyPath: m_Name
       value: VIZ_SM_Wall_A_184
       objectReference: {fileID: 0}
+    - target: {fileID: 919132149155446097, guid: 7c19cc73ac82d2345864e4d684951e75, type: 3}
+      propertyPath: m_StaticEditorFlags
+      value: 4
+      objectReference: {fileID: 0}
     m_RemovedComponents: []
     m_RemovedGameObjects: []
     m_AddedGameObjects: []
@@ -406,6 +422,10 @@ PrefabInstance:
     - target: {fileID: 919132149155446097, guid: cb4493524fb87f6468470f491090b590, type: 3}
       propertyPath: m_Name
       value: VIZ_FloorA_0301
+      objectReference: {fileID: 0}
+    - target: {fileID: 919132149155446097, guid: cb4493524fb87f6468470f491090b590, type: 3}
+      propertyPath: m_StaticEditorFlags
+      value: 4
       objectReference: {fileID: 0}
     m_RemovedComponents: []
     m_RemovedGameObjects: []
@@ -468,6 +488,10 @@ PrefabInstance:
       propertyPath: m_Name
       value: VIZ_SM_Wall_C_157
       objectReference: {fileID: 0}
+    - target: {fileID: 919132149155446097, guid: 6b421c2786f962b4fa7bcf99677a8595, type: 3}
+      propertyPath: m_StaticEditorFlags
+      value: 4
+      objectReference: {fileID: 0}
     m_RemovedComponents: []
     m_RemovedGameObjects: []
     m_AddedGameObjects: []
@@ -525,6 +549,10 @@ PrefabInstance:
       propertyPath: m_Name
       value: VIZ_FloorA_0504
       objectReference: {fileID: 0}
+    - target: {fileID: 919132149155446097, guid: 48405bf537dde7248add1d42f9636953, type: 3}
+      propertyPath: m_StaticEditorFlags
+      value: 4
+      objectReference: {fileID: 0}
     m_RemovedComponents: []
     m_RemovedGameObjects: []
     m_AddedGameObjects: []
@@ -547,7 +575,7 @@ GameObject:
   m_TagString: Untagged
   m_Icon: {fileID: 0}
   m_NavMeshLayer: 0
-  m_StaticEditorFlags: 0
+  m_StaticEditorFlags: 4
   m_IsActive: 1
 --- !u!23 &116709268
 MeshRenderer:
@@ -694,6 +722,10 @@ PrefabInstance:
       propertyPath: m_Name
       value: VIZ_SM_Pillar_Whole_221
       objectReference: {fileID: 0}
+    - target: {fileID: 919132149155446097, guid: bded0c7f9ca88b34e80dde336436b75f, type: 3}
+      propertyPath: m_StaticEditorFlags
+      value: 4
+      objectReference: {fileID: 0}
     m_RemovedComponents: []
     m_RemovedGameObjects: []
     m_AddedGameObjects: []
@@ -781,6 +813,10 @@ PrefabInstance:
       propertyPath: m_Name
       value: VIZ_FloorA_0807
       objectReference: {fileID: 0}
+    - target: {fileID: 919132149155446097, guid: 48405bf537dde7248add1d42f9636953, type: 3}
+      propertyPath: m_StaticEditorFlags
+      value: 4
+      objectReference: {fileID: 0}
     m_RemovedComponents: []
     m_RemovedGameObjects: []
     m_AddedGameObjects: []
@@ -837,6 +873,10 @@ PrefabInstance:
     - target: {fileID: 919132149155446097, guid: cb4493524fb87f6468470f491090b590, type: 3}
       propertyPath: m_Name
       value: VIZ_FloorA_0206
+      objectReference: {fileID: 0}
+    - target: {fileID: 919132149155446097, guid: cb4493524fb87f6468470f491090b590, type: 3}
+      propertyPath: m_StaticEditorFlags
+      value: 4
       objectReference: {fileID: 0}
     m_RemovedComponents: []
     m_RemovedGameObjects: []
@@ -899,6 +939,10 @@ PrefabInstance:
       propertyPath: m_Name
       value: VIZ_SM_Wall_B_186
       objectReference: {fileID: 0}
+    - target: {fileID: 919132149155446097, guid: 7fb1ff1881c87884b9c2021fbaeae10d, type: 3}
+      propertyPath: m_StaticEditorFlags
+      value: 4
+      objectReference: {fileID: 0}
     m_RemovedComponents: []
     m_RemovedGameObjects: []
     m_AddedGameObjects: []
@@ -955,6 +999,10 @@ PrefabInstance:
     - target: {fileID: 919132149155446097, guid: 48405bf537dde7248add1d42f9636953, type: 3}
       propertyPath: m_Name
       value: VIZ_FloorA_0706
+      objectReference: {fileID: 0}
+    - target: {fileID: 919132149155446097, guid: 48405bf537dde7248add1d42f9636953, type: 3}
+      propertyPath: m_StaticEditorFlags
+      value: 4
       objectReference: {fileID: 0}
     m_RemovedComponents: []
     m_RemovedGameObjects: []
@@ -1016,6 +1064,10 @@ PrefabInstance:
     - target: {fileID: 919132149155446097, guid: 7fb1ff1881c87884b9c2021fbaeae10d, type: 3}
       propertyPath: m_Name
       value: VIZ_SM_Wall_B_158
+      objectReference: {fileID: 0}
+    - target: {fileID: 919132149155446097, guid: 7fb1ff1881c87884b9c2021fbaeae10d, type: 3}
+      propertyPath: m_StaticEditorFlags
+      value: 4
       objectReference: {fileID: 0}
     m_RemovedComponents: []
     m_RemovedGameObjects: []
@@ -1085,6 +1137,10 @@ PrefabInstance:
     - target: {fileID: 919132149155446097, guid: dfe77f0421f353343a0dabca476d4d6d, type: 3}
       propertyPath: m_Name
       value: VIZ_SM_Debris_B_235
+      objectReference: {fileID: 0}
+    - target: {fileID: 919132149155446097, guid: dfe77f0421f353343a0dabca476d4d6d, type: 3}
+      propertyPath: m_StaticEditorFlags
+      value: 4
       objectReference: {fileID: 0}
     m_RemovedComponents: []
     m_RemovedGameObjects: []
@@ -1177,6 +1233,10 @@ PrefabInstance:
       propertyPath: m_Name
       value: VIZ_SM_Wall_D_170
       objectReference: {fileID: 0}
+    - target: {fileID: 919132149155446097, guid: 4a5724f55cb6c344bbf3658f11c11fcb, type: 3}
+      propertyPath: m_StaticEditorFlags
+      value: 4
+      objectReference: {fileID: 0}
     m_RemovedComponents: []
     m_RemovedGameObjects: []
     m_AddedGameObjects: []
@@ -1233,6 +1293,10 @@ PrefabInstance:
     - target: {fileID: 919132149155446097, guid: c364435f72897f647bcce5954e0ef083, type: 3}
       propertyPath: m_Name
       value: VIZ_SM_Pillar_Broken_224
+      objectReference: {fileID: 0}
+    - target: {fileID: 919132149155446097, guid: c364435f72897f647bcce5954e0ef083, type: 3}
+      propertyPath: m_StaticEditorFlags
+      value: 4
       objectReference: {fileID: 0}
     m_RemovedComponents: []
     m_RemovedGameObjects: []
@@ -1563,6 +1627,10 @@ PrefabInstance:
       propertyPath: m_Name
       value: VIZ_FloorB_0301
       objectReference: {fileID: 0}
+    - target: {fileID: 919132149155446097, guid: cb4493524fb87f6468470f491090b590, type: 3}
+      propertyPath: m_StaticEditorFlags
+      value: 4
+      objectReference: {fileID: 0}
     m_RemovedComponents: []
     m_RemovedGameObjects: []
     m_AddedGameObjects: []
@@ -1628,6 +1696,10 @@ PrefabInstance:
       propertyPath: m_Name
       value: VIZ_SM_Wall_A_198
       objectReference: {fileID: 0}
+    - target: {fileID: 919132149155446097, guid: 7c19cc73ac82d2345864e4d684951e75, type: 3}
+      propertyPath: m_StaticEditorFlags
+      value: 4
+      objectReference: {fileID: 0}
     m_RemovedComponents: []
     m_RemovedGameObjects: []
     m_AddedGameObjects: []
@@ -1684,6 +1756,10 @@ PrefabInstance:
     - target: {fileID: 919132149155446097, guid: cb4493524fb87f6468470f491090b590, type: 3}
       propertyPath: m_Name
       value: VIZ_FloorA_0404
+      objectReference: {fileID: 0}
+    - target: {fileID: 919132149155446097, guid: cb4493524fb87f6468470f491090b590, type: 3}
+      propertyPath: m_StaticEditorFlags
+      value: 4
       objectReference: {fileID: 0}
     m_RemovedComponents: []
     m_RemovedGameObjects: []
@@ -1750,6 +1826,10 @@ PrefabInstance:
       propertyPath: m_Name
       value: VIZ_SM_Wall_D_207
       objectReference: {fileID: 0}
+    - target: {fileID: 919132149155446097, guid: 4a5724f55cb6c344bbf3658f11c11fcb, type: 3}
+      propertyPath: m_StaticEditorFlags
+      value: 4
+      objectReference: {fileID: 0}
     m_RemovedComponents: []
     m_RemovedGameObjects: []
     m_AddedGameObjects: []
@@ -1806,6 +1886,10 @@ PrefabInstance:
     - target: {fileID: 919132149155446097, guid: cb4493524fb87f6468470f491090b590, type: 3}
       propertyPath: m_Name
       value: VIZ_FloorA_0305
+      objectReference: {fileID: 0}
+    - target: {fileID: 919132149155446097, guid: cb4493524fb87f6468470f491090b590, type: 3}
+      propertyPath: m_StaticEditorFlags
+      value: 4
       objectReference: {fileID: 0}
     m_RemovedComponents: []
     m_RemovedGameObjects: []
@@ -1872,6 +1956,10 @@ PrefabInstance:
       propertyPath: m_Name
       value: VIZ_SM_Wall_D_210
       objectReference: {fileID: 0}
+    - target: {fileID: 919132149155446097, guid: 4a5724f55cb6c344bbf3658f11c11fcb, type: 3}
+      propertyPath: m_StaticEditorFlags
+      value: 4
+      objectReference: {fileID: 0}
     m_RemovedComponents: []
     m_RemovedGameObjects: []
     m_AddedGameObjects: []
@@ -1928,6 +2016,10 @@ PrefabInstance:
     - target: {fileID: 919132149155446097, guid: cb4493524fb87f6468470f491090b590, type: 3}
       propertyPath: m_Name
       value: VIZ_FloorB_0604
+      objectReference: {fileID: 0}
+    - target: {fileID: 919132149155446097, guid: cb4493524fb87f6468470f491090b590, type: 3}
+      propertyPath: m_StaticEditorFlags
+      value: 4
       objectReference: {fileID: 0}
     m_RemovedComponents: []
     m_RemovedGameObjects: []
@@ -1990,6 +2082,10 @@ PrefabInstance:
       propertyPath: m_Name
       value: VIZ_SM_Wall_A_193
       objectReference: {fileID: 0}
+    - target: {fileID: 919132149155446097, guid: 7c19cc73ac82d2345864e4d684951e75, type: 3}
+      propertyPath: m_StaticEditorFlags
+      value: 4
+      objectReference: {fileID: 0}
     m_RemovedComponents: []
     m_RemovedGameObjects: []
     m_AddedGameObjects: []
@@ -2046,6 +2142,10 @@ PrefabInstance:
     - target: {fileID: 919132149155446097, guid: 48405bf537dde7248add1d42f9636953, type: 3}
       propertyPath: m_Name
       value: VIZ_FloorB_0603
+      objectReference: {fileID: 0}
+    - target: {fileID: 919132149155446097, guid: 48405bf537dde7248add1d42f9636953, type: 3}
+      propertyPath: m_StaticEditorFlags
+      value: 4
       objectReference: {fileID: 0}
     m_RemovedComponents: []
     m_RemovedGameObjects: []
@@ -2108,6 +2208,10 @@ PrefabInstance:
       propertyPath: m_Name
       value: VIZ_SM_Wall_C_164
       objectReference: {fileID: 0}
+    - target: {fileID: 919132149155446097, guid: 6b421c2786f962b4fa7bcf99677a8595, type: 3}
+      propertyPath: m_StaticEditorFlags
+      value: 4
+      objectReference: {fileID: 0}
     m_RemovedComponents: []
     m_RemovedGameObjects: []
     m_AddedGameObjects: []
@@ -2130,7 +2234,7 @@ GameObject:
   m_TagString: Untagged
   m_Icon: {fileID: 0}
   m_NavMeshLayer: 0
-  m_StaticEditorFlags: 0
+  m_StaticEditorFlags: 4
   m_IsActive: 1
 --- !u!23 &296679416
 MeshRenderer:
@@ -2277,6 +2381,10 @@ PrefabInstance:
       propertyPath: m_Name
       value: VIZ_FloorA_0605
       objectReference: {fileID: 0}
+    - target: {fileID: 919132149155446097, guid: 48405bf537dde7248add1d42f9636953, type: 3}
+      propertyPath: m_StaticEditorFlags
+      value: 4
+      objectReference: {fileID: 0}
     m_RemovedComponents: []
     m_RemovedGameObjects: []
     m_AddedGameObjects: []
@@ -2338,6 +2446,10 @@ PrefabInstance:
       propertyPath: m_Name
       value: VIZ_SM_Wall_D_179
       objectReference: {fileID: 0}
+    - target: {fileID: 919132149155446097, guid: 4a5724f55cb6c344bbf3658f11c11fcb, type: 3}
+      propertyPath: m_StaticEditorFlags
+      value: 4
+      objectReference: {fileID: 0}
     m_RemovedComponents: []
     m_RemovedGameObjects: []
     m_AddedGameObjects: []
@@ -2395,6 +2507,10 @@ PrefabInstance:
       propertyPath: m_Name
       value: VIZ_FloorB_0300
       objectReference: {fileID: 0}
+    - target: {fileID: 919132149155446097, guid: 48405bf537dde7248add1d42f9636953, type: 3}
+      propertyPath: m_StaticEditorFlags
+      value: 4
+      objectReference: {fileID: 0}
     m_RemovedComponents: []
     m_RemovedGameObjects: []
     m_AddedGameObjects: []
@@ -2451,6 +2567,10 @@ PrefabInstance:
     - target: {fileID: 919132149155446097, guid: 48405bf537dde7248add1d42f9636953, type: 3}
       propertyPath: m_Name
       value: VIZ_FloorA_0900
+      objectReference: {fileID: 0}
+    - target: {fileID: 919132149155446097, guid: 48405bf537dde7248add1d42f9636953, type: 3}
+      propertyPath: m_StaticEditorFlags
+      value: 4
       objectReference: {fileID: 0}
     m_RemovedComponents: []
     m_RemovedGameObjects: []
@@ -2672,6 +2792,10 @@ PrefabInstance:
       propertyPath: m_Name
       value: VIZ_SM_Brazier_225
       objectReference: {fileID: 0}
+    - target: {fileID: 919132149155446097, guid: 6934e06691d74af4d87689250ba09532, type: 3}
+      propertyPath: m_StaticEditorFlags
+      value: 4
+      objectReference: {fileID: 0}
     m_RemovedComponents: []
     m_RemovedGameObjects: []
     m_AddedGameObjects: []
@@ -2759,6 +2883,10 @@ PrefabInstance:
       propertyPath: m_Name
       value: VIZ_FloorB_0403
       objectReference: {fileID: 0}
+    - target: {fileID: 919132149155446097, guid: 48405bf537dde7248add1d42f9636953, type: 3}
+      propertyPath: m_StaticEditorFlags
+      value: 4
+      objectReference: {fileID: 0}
     m_RemovedComponents: []
     m_RemovedGameObjects: []
     m_AddedGameObjects: []
@@ -2815,6 +2943,10 @@ PrefabInstance:
     - target: {fileID: 919132149155446097, guid: cb4493524fb87f6468470f491090b590, type: 3}
       propertyPath: m_Name
       value: VIZ_FloorA_0804
+      objectReference: {fileID: 0}
+    - target: {fileID: 919132149155446097, guid: cb4493524fb87f6468470f491090b590, type: 3}
+      propertyPath: m_StaticEditorFlags
+      value: 4
       objectReference: {fileID: 0}
     m_RemovedComponents: []
     m_RemovedGameObjects: []
@@ -2873,6 +3005,10 @@ PrefabInstance:
       propertyPath: m_Name
       value: VIZ_FloorA_0405
       objectReference: {fileID: 0}
+    - target: {fileID: 919132149155446097, guid: 48405bf537dde7248add1d42f9636953, type: 3}
+      propertyPath: m_StaticEditorFlags
+      value: 4
+      objectReference: {fileID: 0}
     m_RemovedComponents: []
     m_RemovedGameObjects: []
     m_AddedGameObjects: []
@@ -2930,6 +3066,10 @@ PrefabInstance:
       propertyPath: m_Name
       value: VIZ_FloorB_0105
       objectReference: {fileID: 0}
+    - target: {fileID: 919132149155446097, guid: cb4493524fb87f6468470f491090b590, type: 3}
+      propertyPath: m_StaticEditorFlags
+      value: 4
+      objectReference: {fileID: 0}
     m_RemovedComponents: []
     m_RemovedGameObjects: []
     m_AddedGameObjects: []
@@ -2986,6 +3126,10 @@ PrefabInstance:
     - target: {fileID: 919132149155446097, guid: cb4493524fb87f6468470f491090b590, type: 3}
       propertyPath: m_Name
       value: VIZ_FloorB_0602
+      objectReference: {fileID: 0}
+    - target: {fileID: 919132149155446097, guid: cb4493524fb87f6468470f491090b590, type: 3}
+      propertyPath: m_StaticEditorFlags
+      value: 4
       objectReference: {fileID: 0}
     m_RemovedComponents: []
     m_RemovedGameObjects: []
@@ -3048,6 +3192,10 @@ PrefabInstance:
       propertyPath: m_Name
       value: VIZ_SM_Wall_B_139
       objectReference: {fileID: 0}
+    - target: {fileID: 919132149155446097, guid: 7fb1ff1881c87884b9c2021fbaeae10d, type: 3}
+      propertyPath: m_StaticEditorFlags
+      value: 4
+      objectReference: {fileID: 0}
     m_RemovedComponents: []
     m_RemovedGameObjects: []
     m_AddedGameObjects: []
@@ -3105,6 +3253,10 @@ PrefabInstance:
       propertyPath: m_Name
       value: VIZ_FloorA_0005
       objectReference: {fileID: 0}
+    - target: {fileID: 919132149155446097, guid: 48405bf537dde7248add1d42f9636953, type: 3}
+      propertyPath: m_StaticEditorFlags
+      value: 4
+      objectReference: {fileID: 0}
     m_RemovedComponents: []
     m_RemovedGameObjects: []
     m_AddedGameObjects: []
@@ -3127,7 +3279,7 @@ GameObject:
   m_TagString: Untagged
   m_Icon: {fileID: 0}
   m_NavMeshLayer: 0
-  m_StaticEditorFlags: 0
+  m_StaticEditorFlags: 4
   m_IsActive: 1
 --- !u!23 &448618331
 MeshRenderer:
@@ -3274,6 +3426,10 @@ PrefabInstance:
       propertyPath: m_Name
       value: VIZ_FloorB_0502
       objectReference: {fileID: 0}
+    - target: {fileID: 919132149155446097, guid: 48405bf537dde7248add1d42f9636953, type: 3}
+      propertyPath: m_StaticEditorFlags
+      value: 4
+      objectReference: {fileID: 0}
     m_RemovedComponents: []
     m_RemovedGameObjects: []
     m_AddedGameObjects: []
@@ -3335,6 +3491,10 @@ PrefabInstance:
       propertyPath: m_Name
       value: VIZ_SM_Wall_C_166
       objectReference: {fileID: 0}
+    - target: {fileID: 919132149155446097, guid: 6b421c2786f962b4fa7bcf99677a8595, type: 3}
+      propertyPath: m_StaticEditorFlags
+      value: 4
+      objectReference: {fileID: 0}
     m_RemovedComponents: []
     m_RemovedGameObjects: []
     m_AddedGameObjects: []
@@ -3357,7 +3517,7 @@ GameObject:
   m_TagString: Untagged
   m_Icon: {fileID: 0}
   m_NavMeshLayer: 0
-  m_StaticEditorFlags: 0
+  m_StaticEditorFlags: 4
   m_IsActive: 1
 --- !u!23 &480157509
 MeshRenderer:
@@ -3504,6 +3664,10 @@ PrefabInstance:
       propertyPath: m_Name
       value: VIZ_FloorA_0901
       objectReference: {fileID: 0}
+    - target: {fileID: 919132149155446097, guid: cb4493524fb87f6468470f491090b590, type: 3}
+      propertyPath: m_StaticEditorFlags
+      value: 4
+      objectReference: {fileID: 0}
     m_RemovedComponents: []
     m_RemovedGameObjects: []
     m_AddedGameObjects: []
@@ -3561,6 +3725,10 @@ PrefabInstance:
       propertyPath: m_Name
       value: VIZ_FloorA_0306
       objectReference: {fileID: 0}
+    - target: {fileID: 919132149155446097, guid: 48405bf537dde7248add1d42f9636953, type: 3}
+      propertyPath: m_StaticEditorFlags
+      value: 4
+      objectReference: {fileID: 0}
     m_RemovedComponents: []
     m_RemovedGameObjects: []
     m_AddedGameObjects: []
@@ -3617,6 +3785,10 @@ PrefabInstance:
     - target: {fileID: 919132149155446097, guid: 48405bf537dde7248add1d42f9636953, type: 3}
       propertyPath: m_Name
       value: VIZ_FloorB_0700
+      objectReference: {fileID: 0}
+    - target: {fileID: 919132149155446097, guid: 48405bf537dde7248add1d42f9636953, type: 3}
+      propertyPath: m_StaticEditorFlags
+      value: 4
       objectReference: {fileID: 0}
     m_RemovedComponents: []
     m_RemovedGameObjects: []
@@ -3769,6 +3941,10 @@ PrefabInstance:
       propertyPath: m_Name
       value: VIZ_SM_Debris_A_232
       objectReference: {fileID: 0}
+    - target: {fileID: 919132149155446097, guid: 2b3396c161ea4574d822eb10c404d525, type: 3}
+      propertyPath: m_StaticEditorFlags
+      value: 4
+      objectReference: {fileID: 0}
     m_RemovedComponents: []
     m_RemovedGameObjects: []
     m_AddedGameObjects: []
@@ -3856,6 +4032,10 @@ PrefabInstance:
       propertyPath: m_Name
       value: VIZ_FloorA_0207
       objectReference: {fileID: 0}
+    - target: {fileID: 919132149155446097, guid: 48405bf537dde7248add1d42f9636953, type: 3}
+      propertyPath: m_StaticEditorFlags
+      value: 4
+      objectReference: {fileID: 0}
     m_RemovedComponents: []
     m_RemovedGameObjects: []
     m_AddedGameObjects: []
@@ -3912,6 +4092,10 @@ PrefabInstance:
     - target: {fileID: 919132149155446097, guid: cb4493524fb87f6468470f491090b590, type: 3}
       propertyPath: m_Name
       value: VIZ_FloorB_0206
+      objectReference: {fileID: 0}
+    - target: {fileID: 919132149155446097, guid: cb4493524fb87f6468470f491090b590, type: 3}
+      propertyPath: m_StaticEditorFlags
+      value: 4
       objectReference: {fileID: 0}
     m_RemovedComponents: []
     m_RemovedGameObjects: []
@@ -3981,6 +4165,10 @@ PrefabInstance:
     - target: {fileID: 919132149155446097, guid: 2b3396c161ea4574d822eb10c404d525, type: 3}
       propertyPath: m_Name
       value: VIZ_SM_Debris_A_234
+      objectReference: {fileID: 0}
+    - target: {fileID: 919132149155446097, guid: 2b3396c161ea4574d822eb10c404d525, type: 3}
+      propertyPath: m_StaticEditorFlags
+      value: 4
       objectReference: {fileID: 0}
     m_RemovedComponents: []
     m_RemovedGameObjects: []
@@ -4069,6 +4257,10 @@ PrefabInstance:
       propertyPath: m_Name
       value: VIZ_FloorA_0100
       objectReference: {fileID: 0}
+    - target: {fileID: 919132149155446097, guid: 48405bf537dde7248add1d42f9636953, type: 3}
+      propertyPath: m_StaticEditorFlags
+      value: 4
+      objectReference: {fileID: 0}
     m_RemovedComponents: []
     m_RemovedGameObjects: []
     m_AddedGameObjects: []
@@ -4129,6 +4321,10 @@ PrefabInstance:
     - target: {fileID: 919132149155446097, guid: 7c19cc73ac82d2345864e4d684951e75, type: 3}
       propertyPath: m_Name
       value: VIZ_SM_Wall_A_152
+      objectReference: {fileID: 0}
+    - target: {fileID: 919132149155446097, guid: 7c19cc73ac82d2345864e4d684951e75, type: 3}
+      propertyPath: m_StaticEditorFlags
+      value: 4
       objectReference: {fileID: 0}
     m_RemovedComponents: []
     m_RemovedGameObjects: []
@@ -4277,6 +4473,10 @@ PrefabInstance:
       propertyPath: m_Name
       value: VIZ_FloorB_0203
       objectReference: {fileID: 0}
+    - target: {fileID: 919132149155446097, guid: 48405bf537dde7248add1d42f9636953, type: 3}
+      propertyPath: m_StaticEditorFlags
+      value: 4
+      objectReference: {fileID: 0}
     m_RemovedComponents: []
     m_RemovedGameObjects: []
     m_AddedGameObjects: []
@@ -4334,6 +4534,10 @@ PrefabInstance:
       propertyPath: m_Name
       value: VIZ_FloorA_0904
       objectReference: {fileID: 0}
+    - target: {fileID: 919132149155446097, guid: 48405bf537dde7248add1d42f9636953, type: 3}
+      propertyPath: m_StaticEditorFlags
+      value: 4
+      objectReference: {fileID: 0}
     m_RemovedComponents: []
     m_RemovedGameObjects: []
     m_AddedGameObjects: []
@@ -4390,6 +4594,10 @@ PrefabInstance:
     - target: {fileID: 919132149155446097, guid: 48405bf537dde7248add1d42f9636953, type: 3}
       propertyPath: m_Name
       value: VIZ_FloorA_0601
+      objectReference: {fileID: 0}
+    - target: {fileID: 919132149155446097, guid: 48405bf537dde7248add1d42f9636953, type: 3}
+      propertyPath: m_StaticEditorFlags
+      value: 4
       objectReference: {fileID: 0}
     m_RemovedComponents: []
     m_RemovedGameObjects: []
@@ -4601,6 +4809,10 @@ PrefabInstance:
       propertyPath: m_Name
       value: VIZ_SM_Wall_C_188
       objectReference: {fileID: 0}
+    - target: {fileID: 919132149155446097, guid: 6b421c2786f962b4fa7bcf99677a8595, type: 3}
+      propertyPath: m_StaticEditorFlags
+      value: 4
+      objectReference: {fileID: 0}
     m_RemovedComponents: []
     m_RemovedGameObjects: []
     m_AddedGameObjects: []
@@ -4657,6 +4869,10 @@ PrefabInstance:
     - target: {fileID: 919132149155446097, guid: 48405bf537dde7248add1d42f9636953, type: 3}
       propertyPath: m_Name
       value: VIZ_FloorB_0601
+      objectReference: {fileID: 0}
+    - target: {fileID: 919132149155446097, guid: 48405bf537dde7248add1d42f9636953, type: 3}
+      propertyPath: m_StaticEditorFlags
+      value: 4
       objectReference: {fileID: 0}
     m_RemovedComponents: []
     m_RemovedGameObjects: []
@@ -4715,6 +4931,10 @@ PrefabInstance:
       propertyPath: m_Name
       value: VIZ_FloorA_0702
       objectReference: {fileID: 0}
+    - target: {fileID: 919132149155446097, guid: 48405bf537dde7248add1d42f9636953, type: 3}
+      propertyPath: m_StaticEditorFlags
+      value: 4
+      objectReference: {fileID: 0}
     m_RemovedComponents: []
     m_RemovedGameObjects: []
     m_AddedGameObjects: []
@@ -4771,6 +4991,10 @@ PrefabInstance:
     - target: {fileID: 919132149155446097, guid: bded0c7f9ca88b34e80dde336436b75f, type: 3}
       propertyPath: m_Name
       value: VIZ_SM_Pillar_Whole_222
+      objectReference: {fileID: 0}
+    - target: {fileID: 919132149155446097, guid: bded0c7f9ca88b34e80dde336436b75f, type: 3}
+      propertyPath: m_StaticEditorFlags
+      value: 4
       objectReference: {fileID: 0}
     m_RemovedComponents: []
     m_RemovedGameObjects: []
@@ -4986,6 +5210,10 @@ PrefabInstance:
       propertyPath: m_Name
       value: VIZ_FloorB_0000
       objectReference: {fileID: 0}
+    - target: {fileID: 919132149155446097, guid: cb4493524fb87f6468470f491090b590, type: 3}
+      propertyPath: m_StaticEditorFlags
+      value: 4
+      objectReference: {fileID: 0}
     m_RemovedComponents: []
     m_RemovedGameObjects: []
     m_AddedGameObjects: []
@@ -5043,6 +5271,10 @@ PrefabInstance:
       propertyPath: m_Name
       value: VIZ_FloorA_0505
       objectReference: {fileID: 0}
+    - target: {fileID: 919132149155446097, guid: cb4493524fb87f6468470f491090b590, type: 3}
+      propertyPath: m_StaticEditorFlags
+      value: 4
+      objectReference: {fileID: 0}
     m_RemovedComponents: []
     m_RemovedGameObjects: []
     m_AddedGameObjects: []
@@ -5099,6 +5331,10 @@ PrefabInstance:
     - target: {fileID: 919132149155446097, guid: cb4493524fb87f6468470f491090b590, type: 3}
       propertyPath: m_Name
       value: VIZ_FloorA_0905
+      objectReference: {fileID: 0}
+    - target: {fileID: 919132149155446097, guid: cb4493524fb87f6468470f491090b590, type: 3}
+      propertyPath: m_StaticEditorFlags
+      value: 4
       objectReference: {fileID: 0}
     m_RemovedComponents: []
     m_RemovedGameObjects: []
@@ -5161,6 +5397,10 @@ PrefabInstance:
       propertyPath: m_Name
       value: VIZ_SM_Wall_B_175
       objectReference: {fileID: 0}
+    - target: {fileID: 919132149155446097, guid: 7fb1ff1881c87884b9c2021fbaeae10d, type: 3}
+      propertyPath: m_StaticEditorFlags
+      value: 4
+      objectReference: {fileID: 0}
     m_RemovedComponents: []
     m_RemovedGameObjects: []
     m_AddedGameObjects: []
@@ -5217,6 +5457,10 @@ PrefabInstance:
     - target: {fileID: 919132149155446097, guid: 48405bf537dde7248add1d42f9636953, type: 3}
       propertyPath: m_Name
       value: VIZ_FloorA_0407
+      objectReference: {fileID: 0}
+    - target: {fileID: 919132149155446097, guid: 48405bf537dde7248add1d42f9636953, type: 3}
+      propertyPath: m_StaticEditorFlags
+      value: 4
       objectReference: {fileID: 0}
     m_RemovedComponents: []
     m_RemovedGameObjects: []
@@ -5279,6 +5523,10 @@ PrefabInstance:
       propertyPath: m_Name
       value: VIZ_SM_Wall_C_138
       objectReference: {fileID: 0}
+    - target: {fileID: 919132149155446097, guid: 6b421c2786f962b4fa7bcf99677a8595, type: 3}
+      propertyPath: m_StaticEditorFlags
+      value: 4
+      objectReference: {fileID: 0}
     m_RemovedComponents: []
     m_RemovedGameObjects: []
     m_AddedGameObjects: []
@@ -5335,6 +5583,10 @@ PrefabInstance:
     - target: {fileID: 919132149155446097, guid: cb4493524fb87f6468470f491090b590, type: 3}
       propertyPath: m_Name
       value: VIZ_FloorA_0907
+      objectReference: {fileID: 0}
+    - target: {fileID: 919132149155446097, guid: cb4493524fb87f6468470f491090b590, type: 3}
+      propertyPath: m_StaticEditorFlags
+      value: 4
       objectReference: {fileID: 0}
     m_RemovedComponents: []
     m_RemovedGameObjects: []
@@ -5393,6 +5645,10 @@ PrefabInstance:
       propertyPath: m_Name
       value: VIZ_FloorB_0405
       objectReference: {fileID: 0}
+    - target: {fileID: 919132149155446097, guid: 48405bf537dde7248add1d42f9636953, type: 3}
+      propertyPath: m_StaticEditorFlags
+      value: 4
+      objectReference: {fileID: 0}
     m_RemovedComponents: []
     m_RemovedGameObjects: []
     m_AddedGameObjects: []
@@ -5415,7 +5671,7 @@ GameObject:
   m_TagString: Untagged
   m_Icon: {fileID: 0}
   m_NavMeshLayer: 0
-  m_StaticEditorFlags: 0
+  m_StaticEditorFlags: 4
   m_IsActive: 1
 --- !u!23 &676489875
 MeshRenderer:
@@ -5565,6 +5821,10 @@ PrefabInstance:
     - target: {fileID: 919132149155446097, guid: 6b421c2786f962b4fa7bcf99677a8595, type: 3}
       propertyPath: m_Name
       value: VIZ_SM_Wall_C_147
+      objectReference: {fileID: 0}
+    - target: {fileID: 919132149155446097, guid: 6b421c2786f962b4fa7bcf99677a8595, type: 3}
+      propertyPath: m_StaticEditorFlags
+      value: 4
       objectReference: {fileID: 0}
     m_RemovedComponents: []
     m_RemovedGameObjects: []
@@ -5865,6 +6125,10 @@ PrefabInstance:
       propertyPath: m_Name
       value: VIZ_SM_Pillar_Whole_220
       objectReference: {fileID: 0}
+    - target: {fileID: 919132149155446097, guid: bded0c7f9ca88b34e80dde336436b75f, type: 3}
+      propertyPath: m_StaticEditorFlags
+      value: 4
+      objectReference: {fileID: 0}
     m_RemovedComponents: []
     m_RemovedGameObjects: []
     m_AddedGameObjects: []
@@ -5952,6 +6216,10 @@ PrefabInstance:
       propertyPath: m_Name
       value: VIZ_SM_FloorTile_A_217
       objectReference: {fileID: 0}
+    - target: {fileID: 919132149155446097, guid: cb4493524fb87f6468470f491090b590, type: 3}
+      propertyPath: m_StaticEditorFlags
+      value: 4
+      objectReference: {fileID: 0}
     m_RemovedComponents: []
     m_RemovedGameObjects: []
     m_AddedGameObjects: []
@@ -6008,6 +6276,10 @@ PrefabInstance:
     - target: {fileID: 919132149155446097, guid: cb4493524fb87f6468470f491090b590, type: 3}
       propertyPath: m_Name
       value: VIZ_FloorB_0703
+      objectReference: {fileID: 0}
+    - target: {fileID: 919132149155446097, guid: cb4493524fb87f6468470f491090b590, type: 3}
+      propertyPath: m_StaticEditorFlags
+      value: 4
       objectReference: {fileID: 0}
     m_RemovedComponents: []
     m_RemovedGameObjects: []
@@ -6066,6 +6338,10 @@ PrefabInstance:
       propertyPath: m_Name
       value: VIZ_FloorA_0200
       objectReference: {fileID: 0}
+    - target: {fileID: 919132149155446097, guid: cb4493524fb87f6468470f491090b590, type: 3}
+      propertyPath: m_StaticEditorFlags
+      value: 4
+      objectReference: {fileID: 0}
     m_RemovedComponents: []
     m_RemovedGameObjects: []
     m_AddedGameObjects: []
@@ -6122,6 +6398,10 @@ PrefabInstance:
     - target: {fileID: 919132149155446097, guid: cb4493524fb87f6468470f491090b590, type: 3}
       propertyPath: m_Name
       value: VIZ_FloorA_0707
+      objectReference: {fileID: 0}
+    - target: {fileID: 919132149155446097, guid: cb4493524fb87f6468470f491090b590, type: 3}
+      propertyPath: m_StaticEditorFlags
+      value: 4
       objectReference: {fileID: 0}
     m_RemovedComponents: []
     m_RemovedGameObjects: []
@@ -6187,6 +6467,10 @@ PrefabInstance:
     - target: {fileID: 919132149155446097, guid: 6934e06691d74af4d87689250ba09532, type: 3}
       propertyPath: m_Name
       value: VIZ_SM_Brazier_227
+      objectReference: {fileID: 0}
+    - target: {fileID: 919132149155446097, guid: 6934e06691d74af4d87689250ba09532, type: 3}
+      propertyPath: m_StaticEditorFlags
+      value: 4
       objectReference: {fileID: 0}
     m_RemovedComponents: []
     m_RemovedGameObjects: []
@@ -6402,6 +6686,10 @@ PrefabInstance:
       propertyPath: m_Name
       value: VIZ_FloorA_0701
       objectReference: {fileID: 0}
+    - target: {fileID: 919132149155446097, guid: cb4493524fb87f6468470f491090b590, type: 3}
+      propertyPath: m_StaticEditorFlags
+      value: 4
+      objectReference: {fileID: 0}
     m_RemovedComponents: []
     m_RemovedGameObjects: []
     m_AddedGameObjects: []
@@ -6463,6 +6751,10 @@ PrefabInstance:
       propertyPath: m_Name
       value: VIZ_SM_Wall_C_176
       objectReference: {fileID: 0}
+    - target: {fileID: 919132149155446097, guid: 6b421c2786f962b4fa7bcf99677a8595, type: 3}
+      propertyPath: m_StaticEditorFlags
+      value: 4
+      objectReference: {fileID: 0}
     m_RemovedComponents: []
     m_RemovedGameObjects: []
     m_AddedGameObjects: []
@@ -6519,6 +6811,10 @@ PrefabInstance:
     - target: {fileID: 919132149155446097, guid: cb4493524fb87f6468470f491090b590, type: 3}
       propertyPath: m_Name
       value: VIZ_FloorB_0705
+      objectReference: {fileID: 0}
+    - target: {fileID: 919132149155446097, guid: cb4493524fb87f6468470f491090b590, type: 3}
+      propertyPath: m_StaticEditorFlags
+      value: 4
       objectReference: {fileID: 0}
     m_RemovedComponents: []
     m_RemovedGameObjects: []
@@ -6581,6 +6877,10 @@ PrefabInstance:
       propertyPath: m_Name
       value: VIZ_SM_Wall_C_172
       objectReference: {fileID: 0}
+    - target: {fileID: 919132149155446097, guid: 6b421c2786f962b4fa7bcf99677a8595, type: 3}
+      propertyPath: m_StaticEditorFlags
+      value: 4
+      objectReference: {fileID: 0}
     m_RemovedComponents: []
     m_RemovedGameObjects: []
     m_AddedGameObjects: []
@@ -6641,6 +6941,10 @@ PrefabInstance:
     - target: {fileID: 919132149155446097, guid: 6b421c2786f962b4fa7bcf99677a8595, type: 3}
       propertyPath: m_Name
       value: VIZ_SM_Wall_C_197
+      objectReference: {fileID: 0}
+    - target: {fileID: 919132149155446097, guid: 6b421c2786f962b4fa7bcf99677a8595, type: 3}
+      propertyPath: m_StaticEditorFlags
+      value: 4
       objectReference: {fileID: 0}
     m_RemovedComponents: []
     m_RemovedGameObjects: []
@@ -6710,6 +7014,10 @@ PrefabInstance:
     - target: {fileID: 919132149155446097, guid: 2b3396c161ea4574d822eb10c404d525, type: 3}
       propertyPath: m_Name
       value: VIZ_SM_Debris_A_230
+      objectReference: {fileID: 0}
+    - target: {fileID: 919132149155446097, guid: 2b3396c161ea4574d822eb10c404d525, type: 3}
+      propertyPath: m_StaticEditorFlags
+      value: 4
       objectReference: {fileID: 0}
     m_RemovedComponents: []
     m_RemovedGameObjects: []
@@ -6798,6 +7106,10 @@ PrefabInstance:
       propertyPath: m_Name
       value: VIZ_FloorA_0304
       objectReference: {fileID: 0}
+    - target: {fileID: 919132149155446097, guid: 48405bf537dde7248add1d42f9636953, type: 3}
+      propertyPath: m_StaticEditorFlags
+      value: 4
+      objectReference: {fileID: 0}
     m_RemovedComponents: []
     m_RemovedGameObjects: []
     m_AddedGameObjects: []
@@ -6863,6 +7175,10 @@ PrefabInstance:
       propertyPath: m_Name
       value: VIZ_SM_Wall_C_209
       objectReference: {fileID: 0}
+    - target: {fileID: 919132149155446097, guid: 6b421c2786f962b4fa7bcf99677a8595, type: 3}
+      propertyPath: m_StaticEditorFlags
+      value: 4
+      objectReference: {fileID: 0}
     m_RemovedComponents: []
     m_RemovedGameObjects: []
     m_AddedGameObjects: []
@@ -6919,6 +7235,10 @@ PrefabInstance:
     - target: {fileID: 919132149155446097, guid: 48405bf537dde7248add1d42f9636953, type: 3}
       propertyPath: m_Name
       value: VIZ_FloorB_0001
+      objectReference: {fileID: 0}
+    - target: {fileID: 919132149155446097, guid: 48405bf537dde7248add1d42f9636953, type: 3}
+      propertyPath: m_StaticEditorFlags
+      value: 4
       objectReference: {fileID: 0}
     m_RemovedComponents: []
     m_RemovedGameObjects: []
@@ -6981,6 +7301,10 @@ PrefabInstance:
       propertyPath: m_Name
       value: VIZ_SM_Wall_D_195
       objectReference: {fileID: 0}
+    - target: {fileID: 919132149155446097, guid: 4a5724f55cb6c344bbf3658f11c11fcb, type: 3}
+      propertyPath: m_StaticEditorFlags
+      value: 4
+      objectReference: {fileID: 0}
     m_RemovedComponents: []
     m_RemovedGameObjects: []
     m_AddedGameObjects: []
@@ -7038,6 +7362,10 @@ PrefabInstance:
       propertyPath: m_Name
       value: VIZ_FloorA_0800
       objectReference: {fileID: 0}
+    - target: {fileID: 919132149155446097, guid: cb4493524fb87f6468470f491090b590, type: 3}
+      propertyPath: m_StaticEditorFlags
+      value: 4
+      objectReference: {fileID: 0}
     m_RemovedComponents: []
     m_RemovedGameObjects: []
     m_AddedGameObjects: []
@@ -7094,6 +7422,10 @@ PrefabInstance:
     - target: {fileID: 919132149155446097, guid: 48405bf537dde7248add1d42f9636953, type: 3}
       propertyPath: m_Name
       value: VIZ_FloorB_0102
+      objectReference: {fileID: 0}
+    - target: {fileID: 919132149155446097, guid: 48405bf537dde7248add1d42f9636953, type: 3}
+      propertyPath: m_StaticEditorFlags
+      value: 4
       objectReference: {fileID: 0}
     m_RemovedComponents: []
     m_RemovedGameObjects: []
@@ -7301,6 +7633,10 @@ PrefabInstance:
       propertyPath: m_Name
       value: VIZ_SM_PressurePlate_202
       objectReference: {fileID: 0}
+    - target: {fileID: 919132149155446097, guid: 1ef5ec187850f1f4fbe0d04341d8c3b5, type: 3}
+      propertyPath: m_StaticEditorFlags
+      value: 4
+      objectReference: {fileID: 0}
     m_RemovedComponents: []
     m_RemovedGameObjects: []
     m_AddedGameObjects: []
@@ -7363,6 +7699,10 @@ PrefabInstance:
       propertyPath: m_Name
       value: VIZ_FloorA_0001
       objectReference: {fileID: 0}
+    - target: {fileID: 919132149155446097, guid: 48405bf537dde7248add1d42f9636953, type: 3}
+      propertyPath: m_StaticEditorFlags
+      value: 4
+      objectReference: {fileID: 0}
     m_RemovedComponents: []
     m_RemovedGameObjects: []
     m_AddedGameObjects: []
@@ -7419,6 +7759,10 @@ PrefabInstance:
     - target: {fileID: 919132149155446097, guid: cb4493524fb87f6468470f491090b590, type: 3}
       propertyPath: m_Name
       value: VIZ_FloorA_0101
+      objectReference: {fileID: 0}
+    - target: {fileID: 919132149155446097, guid: cb4493524fb87f6468470f491090b590, type: 3}
+      propertyPath: m_StaticEditorFlags
+      value: 4
       objectReference: {fileID: 0}
     m_RemovedComponents: []
     m_RemovedGameObjects: []
@@ -7477,6 +7821,10 @@ PrefabInstance:
       propertyPath: m_Name
       value: VIZ_FloorA_0507
       objectReference: {fileID: 0}
+    - target: {fileID: 919132149155446097, guid: cb4493524fb87f6468470f491090b590, type: 3}
+      propertyPath: m_StaticEditorFlags
+      value: 4
+      objectReference: {fileID: 0}
     m_RemovedComponents: []
     m_RemovedGameObjects: []
     m_AddedGameObjects: []
@@ -7533,6 +7881,10 @@ PrefabInstance:
     - target: {fileID: 919132149155446097, guid: cb4493524fb87f6468470f491090b590, type: 3}
       propertyPath: m_Name
       value: VIZ_FloorA_0000
+      objectReference: {fileID: 0}
+    - target: {fileID: 919132149155446097, guid: cb4493524fb87f6468470f491090b590, type: 3}
+      propertyPath: m_StaticEditorFlags
+      value: 4
       objectReference: {fileID: 0}
     m_RemovedComponents: []
     m_RemovedGameObjects: []
@@ -7646,7 +7998,7 @@ GameObject:
   m_TagString: Untagged
   m_Icon: {fileID: 0}
   m_NavMeshLayer: 0
-  m_StaticEditorFlags: 0
+  m_StaticEditorFlags: 4
   m_IsActive: 1
 --- !u!23 &927424338
 MeshRenderer:
@@ -7842,6 +8194,10 @@ PrefabInstance:
       propertyPath: m_Name
       value: VIZ_FloorA_0802
       objectReference: {fileID: 0}
+    - target: {fileID: 919132149155446097, guid: cb4493524fb87f6468470f491090b590, type: 3}
+      propertyPath: m_StaticEditorFlags
+      value: 4
+      objectReference: {fileID: 0}
     m_RemovedComponents: []
     m_RemovedGameObjects: []
     m_AddedGameObjects: []
@@ -7898,6 +8254,10 @@ PrefabInstance:
     - target: {fileID: 919132149155446097, guid: 83d573af47287984eb446e7504a120ec, type: 3}
       propertyPath: m_Name
       value: VIZ_SM_Altar_205
+      objectReference: {fileID: 0}
+    - target: {fileID: 919132149155446097, guid: 83d573af47287984eb446e7504a120ec, type: 3}
+      propertyPath: m_StaticEditorFlags
+      value: 4
       objectReference: {fileID: 0}
     m_RemovedComponents: []
     m_RemovedGameObjects: []
@@ -7986,6 +8346,10 @@ PrefabInstance:
       propertyPath: m_Name
       value: VIZ_FloorB_0702
       objectReference: {fileID: 0}
+    - target: {fileID: 919132149155446097, guid: 48405bf537dde7248add1d42f9636953, type: 3}
+      propertyPath: m_StaticEditorFlags
+      value: 4
+      objectReference: {fileID: 0}
     m_RemovedComponents: []
     m_RemovedGameObjects: []
     m_AddedGameObjects: []
@@ -8042,6 +8406,10 @@ PrefabInstance:
     - target: {fileID: 919132149155446097, guid: 48405bf537dde7248add1d42f9636953, type: 3}
       propertyPath: m_Name
       value: VIZ_FloorB_0005
+      objectReference: {fileID: 0}
+    - target: {fileID: 919132149155446097, guid: 48405bf537dde7248add1d42f9636953, type: 3}
+      propertyPath: m_StaticEditorFlags
+      value: 4
       objectReference: {fileID: 0}
     m_RemovedComponents: []
     m_RemovedGameObjects: []
@@ -8104,6 +8472,10 @@ PrefabInstance:
       propertyPath: m_Name
       value: VIZ_SM_Wall_A_136
       objectReference: {fileID: 0}
+    - target: {fileID: 919132149155446097, guid: 7c19cc73ac82d2345864e4d684951e75, type: 3}
+      propertyPath: m_StaticEditorFlags
+      value: 4
+      objectReference: {fileID: 0}
     m_RemovedComponents: []
     m_RemovedGameObjects: []
     m_AddedGameObjects: []
@@ -8161,6 +8533,10 @@ PrefabInstance:
       propertyPath: m_Name
       value: VIZ_FloorA_0503
       objectReference: {fileID: 0}
+    - target: {fileID: 919132149155446097, guid: cb4493524fb87f6468470f491090b590, type: 3}
+      propertyPath: m_StaticEditorFlags
+      value: 4
+      objectReference: {fileID: 0}
     m_RemovedComponents: []
     m_RemovedGameObjects: []
     m_AddedGameObjects: []
@@ -8217,6 +8593,10 @@ PrefabInstance:
     - target: {fileID: 919132149155446097, guid: 48405bf537dde7248add1d42f9636953, type: 3}
       propertyPath: m_Name
       value: VIZ_FloorB_0605
+      objectReference: {fileID: 0}
+    - target: {fileID: 919132149155446097, guid: 48405bf537dde7248add1d42f9636953, type: 3}
+      propertyPath: m_StaticEditorFlags
+      value: 4
       objectReference: {fileID: 0}
     m_RemovedComponents: []
     m_RemovedGameObjects: []
@@ -8282,6 +8662,10 @@ PrefabInstance:
     - target: {fileID: 919132149155446097, guid: 7fb1ff1881c87884b9c2021fbaeae10d, type: 3}
       propertyPath: m_Name
       value: VIZ_SM_Wall_B_208
+      objectReference: {fileID: 0}
+    - target: {fileID: 919132149155446097, guid: 7fb1ff1881c87884b9c2021fbaeae10d, type: 3}
+      propertyPath: m_StaticEditorFlags
+      value: 4
       objectReference: {fileID: 0}
     m_RemovedComponents: []
     m_RemovedGameObjects: []
@@ -8430,6 +8814,10 @@ PrefabInstance:
       propertyPath: m_Name
       value: VIZ_FloorA_0205
       objectReference: {fileID: 0}
+    - target: {fileID: 919132149155446097, guid: 48405bf537dde7248add1d42f9636953, type: 3}
+      propertyPath: m_StaticEditorFlags
+      value: 4
+      objectReference: {fileID: 0}
     m_RemovedComponents: []
     m_RemovedGameObjects: []
     m_AddedGameObjects: []
@@ -8486,6 +8874,10 @@ PrefabInstance:
     - target: {fileID: 919132149155446097, guid: cb4493524fb87f6468470f491090b590, type: 3}
       propertyPath: m_Name
       value: VIZ_FloorB_0006
+      objectReference: {fileID: 0}
+    - target: {fileID: 919132149155446097, guid: cb4493524fb87f6468470f491090b590, type: 3}
+      propertyPath: m_StaticEditorFlags
+      value: 4
       objectReference: {fileID: 0}
     m_RemovedComponents: []
     m_RemovedGameObjects: []
@@ -8548,6 +8940,10 @@ PrefabInstance:
       propertyPath: m_Name
       value: VIZ_SM_Wall_B_146
       objectReference: {fileID: 0}
+    - target: {fileID: 919132149155446097, guid: 7fb1ff1881c87884b9c2021fbaeae10d, type: 3}
+      propertyPath: m_StaticEditorFlags
+      value: 4
+      objectReference: {fileID: 0}
     m_RemovedComponents: []
     m_RemovedGameObjects: []
     m_AddedGameObjects: []
@@ -8604,6 +9000,10 @@ PrefabInstance:
     - target: {fileID: 919132149155446097, guid: cb4493524fb87f6468470f491090b590, type: 3}
       propertyPath: m_Name
       value: VIZ_FloorB_0103
+      objectReference: {fileID: 0}
+    - target: {fileID: 919132149155446097, guid: cb4493524fb87f6468470f491090b590, type: 3}
+      propertyPath: m_StaticEditorFlags
+      value: 4
       objectReference: {fileID: 0}
     m_RemovedComponents: []
     m_RemovedGameObjects: []
@@ -8666,6 +9066,10 @@ PrefabInstance:
       propertyPath: m_Name
       value: VIZ_SM_Wall_A_156
       objectReference: {fileID: 0}
+    - target: {fileID: 919132149155446097, guid: 7c19cc73ac82d2345864e4d684951e75, type: 3}
+      propertyPath: m_StaticEditorFlags
+      value: 4
+      objectReference: {fileID: 0}
     m_RemovedComponents: []
     m_RemovedGameObjects: []
     m_AddedGameObjects: []
@@ -8722,6 +9126,10 @@ PrefabInstance:
     - target: {fileID: 919132149155446097, guid: cb4493524fb87f6468470f491090b590, type: 3}
       propertyPath: m_Name
       value: VIZ_FloorA_0600
+      objectReference: {fileID: 0}
+    - target: {fileID: 919132149155446097, guid: cb4493524fb87f6468470f491090b590, type: 3}
+      propertyPath: m_StaticEditorFlags
+      value: 4
       objectReference: {fileID: 0}
     m_RemovedComponents: []
     m_RemovedGameObjects: []
@@ -8780,6 +9188,10 @@ PrefabInstance:
       propertyPath: m_Name
       value: VIZ_FloorA_0607
       objectReference: {fileID: 0}
+    - target: {fileID: 919132149155446097, guid: 48405bf537dde7248add1d42f9636953, type: 3}
+      propertyPath: m_StaticEditorFlags
+      value: 4
+      objectReference: {fileID: 0}
     m_RemovedComponents: []
     m_RemovedGameObjects: []
     m_AddedGameObjects: []
@@ -8836,6 +9248,10 @@ PrefabInstance:
     - target: {fileID: 919132149155446097, guid: cb4493524fb87f6468470f491090b590, type: 3}
       propertyPath: m_Name
       value: VIZ_FloorA_0602
+      objectReference: {fileID: 0}
+    - target: {fileID: 919132149155446097, guid: cb4493524fb87f6468470f491090b590, type: 3}
+      propertyPath: m_StaticEditorFlags
+      value: 4
       objectReference: {fileID: 0}
     m_RemovedComponents: []
     m_RemovedGameObjects: []
@@ -8894,6 +9310,10 @@ PrefabInstance:
       propertyPath: m_Name
       value: VIZ_FloorA_0007
       objectReference: {fileID: 0}
+    - target: {fileID: 919132149155446097, guid: 48405bf537dde7248add1d42f9636953, type: 3}
+      propertyPath: m_StaticEditorFlags
+      value: 4
+      objectReference: {fileID: 0}
     m_RemovedComponents: []
     m_RemovedGameObjects: []
     m_AddedGameObjects: []
@@ -8916,7 +9336,7 @@ GameObject:
   m_TagString: Untagged
   m_Icon: {fileID: 0}
   m_NavMeshLayer: 0
-  m_StaticEditorFlags: 0
+  m_StaticEditorFlags: 4
   m_IsActive: 1
 --- !u!23 &1109577183
 MeshRenderer:
@@ -9067,6 +9487,10 @@ PrefabInstance:
       propertyPath: m_Name
       value: VIZ_SM_Wall_B_143
       objectReference: {fileID: 0}
+    - target: {fileID: 919132149155446097, guid: 7fb1ff1881c87884b9c2021fbaeae10d, type: 3}
+      propertyPath: m_StaticEditorFlags
+      value: 4
+      objectReference: {fileID: 0}
     m_RemovedComponents: []
     m_RemovedGameObjects: []
     m_AddedGameObjects: []
@@ -9123,6 +9547,10 @@ PrefabInstance:
     - target: {fileID: 919132149155446097, guid: cb4493524fb87f6468470f491090b590, type: 3}
       propertyPath: m_Name
       value: VIZ_SM_FloorTile_A_216
+      objectReference: {fileID: 0}
+    - target: {fileID: 919132149155446097, guid: cb4493524fb87f6468470f491090b590, type: 3}
+      propertyPath: m_StaticEditorFlags
+      value: 4
       objectReference: {fileID: 0}
     m_RemovedComponents: []
     m_RemovedGameObjects: []
@@ -9185,6 +9613,10 @@ PrefabInstance:
       propertyPath: m_Name
       value: VIZ_SM_Wall_A_187
       objectReference: {fileID: 0}
+    - target: {fileID: 919132149155446097, guid: 7c19cc73ac82d2345864e4d684951e75, type: 3}
+      propertyPath: m_StaticEditorFlags
+      value: 4
+      objectReference: {fileID: 0}
     m_RemovedComponents: []
     m_RemovedGameObjects: []
     m_AddedGameObjects: []
@@ -9241,6 +9673,10 @@ PrefabInstance:
     - target: {fileID: 919132149155446097, guid: cb4493524fb87f6468470f491090b590, type: 3}
       propertyPath: m_Name
       value: VIZ_FloorB_0004
+      objectReference: {fileID: 0}
+    - target: {fileID: 919132149155446097, guid: cb4493524fb87f6468470f491090b590, type: 3}
+      propertyPath: m_StaticEditorFlags
+      value: 4
       objectReference: {fileID: 0}
     m_RemovedComponents: []
     m_RemovedGameObjects: []
@@ -9299,6 +9735,10 @@ PrefabInstance:
       propertyPath: m_Name
       value: VIZ_FloorB_0205
       objectReference: {fileID: 0}
+    - target: {fileID: 919132149155446097, guid: 48405bf537dde7248add1d42f9636953, type: 3}
+      propertyPath: m_StaticEditorFlags
+      value: 4
+      objectReference: {fileID: 0}
     m_RemovedComponents: []
     m_RemovedGameObjects: []
     m_AddedGameObjects: []
@@ -9355,6 +9795,10 @@ PrefabInstance:
     - target: {fileID: 919132149155446097, guid: cb4493524fb87f6468470f491090b590, type: 3}
       propertyPath: m_Name
       value: VIZ_SM_FloorTile_A_213
+      objectReference: {fileID: 0}
+    - target: {fileID: 919132149155446097, guid: cb4493524fb87f6468470f491090b590, type: 3}
+      propertyPath: m_StaticEditorFlags
+      value: 4
       objectReference: {fileID: 0}
     m_RemovedComponents: []
     m_RemovedGameObjects: []
@@ -9417,6 +9861,10 @@ PrefabInstance:
       propertyPath: m_Name
       value: VIZ_SM_Wall_C_191
       objectReference: {fileID: 0}
+    - target: {fileID: 919132149155446097, guid: 6b421c2786f962b4fa7bcf99677a8595, type: 3}
+      propertyPath: m_StaticEditorFlags
+      value: 4
+      objectReference: {fileID: 0}
     m_RemovedComponents: []
     m_RemovedGameObjects: []
     m_AddedGameObjects: []
@@ -9473,6 +9921,10 @@ PrefabInstance:
     - target: {fileID: 919132149155446097, guid: cb4493524fb87f6468470f491090b590, type: 3}
       propertyPath: m_Name
       value: VIZ_FloorB_0204
+      objectReference: {fileID: 0}
+    - target: {fileID: 919132149155446097, guid: cb4493524fb87f6468470f491090b590, type: 3}
+      propertyPath: m_StaticEditorFlags
+      value: 4
       objectReference: {fileID: 0}
     m_RemovedComponents: []
     m_RemovedGameObjects: []
@@ -9535,6 +9987,10 @@ PrefabInstance:
       propertyPath: m_Name
       value: VIZ_SM_Wall_B_165
       objectReference: {fileID: 0}
+    - target: {fileID: 919132149155446097, guid: 7fb1ff1881c87884b9c2021fbaeae10d, type: 3}
+      propertyPath: m_StaticEditorFlags
+      value: 4
+      objectReference: {fileID: 0}
     m_RemovedComponents: []
     m_RemovedGameObjects: []
     m_AddedGameObjects: []
@@ -9591,6 +10047,10 @@ PrefabInstance:
     - target: {fileID: 919132149155446097, guid: 48405bf537dde7248add1d42f9636953, type: 3}
       propertyPath: m_Name
       value: VIZ_FloorA_0401
+      objectReference: {fileID: 0}
+    - target: {fileID: 919132149155446097, guid: 48405bf537dde7248add1d42f9636953, type: 3}
+      propertyPath: m_StaticEditorFlags
+      value: 4
       objectReference: {fileID: 0}
     m_RemovedComponents: []
     m_RemovedGameObjects: []
@@ -9649,6 +10109,10 @@ PrefabInstance:
       propertyPath: m_Name
       value: VIZ_FloorB_0606
       objectReference: {fileID: 0}
+    - target: {fileID: 919132149155446097, guid: cb4493524fb87f6468470f491090b590, type: 3}
+      propertyPath: m_StaticEditorFlags
+      value: 4
+      objectReference: {fileID: 0}
     m_RemovedComponents: []
     m_RemovedGameObjects: []
     m_AddedGameObjects: []
@@ -9705,6 +10169,10 @@ PrefabInstance:
     - target: {fileID: 919132149155446097, guid: 48405bf537dde7248add1d42f9636953, type: 3}
       propertyPath: m_Name
       value: VIZ_FloorB_0504
+      objectReference: {fileID: 0}
+    - target: {fileID: 919132149155446097, guid: 48405bf537dde7248add1d42f9636953, type: 3}
+      propertyPath: m_StaticEditorFlags
+      value: 4
       objectReference: {fileID: 0}
     m_RemovedComponents: []
     m_RemovedGameObjects: []
@@ -9763,6 +10231,10 @@ PrefabInstance:
       propertyPath: m_Name
       value: VIZ_FloorB_0002
       objectReference: {fileID: 0}
+    - target: {fileID: 919132149155446097, guid: cb4493524fb87f6468470f491090b590, type: 3}
+      propertyPath: m_StaticEditorFlags
+      value: 4
+      objectReference: {fileID: 0}
     m_RemovedComponents: []
     m_RemovedGameObjects: []
     m_AddedGameObjects: []
@@ -9819,6 +10291,10 @@ PrefabInstance:
     - target: {fileID: 919132149155446097, guid: effdb0017d22f064da1697b9e59ec8a2, type: 3}
       propertyPath: m_Name
       value: VIZ_SM_Treasure_204
+      objectReference: {fileID: 0}
+    - target: {fileID: 919132149155446097, guid: effdb0017d22f064da1697b9e59ec8a2, type: 3}
+      propertyPath: m_StaticEditorFlags
+      value: 4
       objectReference: {fileID: 0}
     m_RemovedComponents: []
     m_RemovedGameObjects: []
@@ -9882,6 +10358,10 @@ PrefabInstance:
       propertyPath: m_Name
       value: VIZ_FloorA_0004
       objectReference: {fileID: 0}
+    - target: {fileID: 919132149155446097, guid: cb4493524fb87f6468470f491090b590, type: 3}
+      propertyPath: m_StaticEditorFlags
+      value: 4
+      objectReference: {fileID: 0}
     m_RemovedComponents: []
     m_RemovedGameObjects: []
     m_AddedGameObjects: []
@@ -9938,6 +10418,10 @@ PrefabInstance:
     - target: {fileID: 919132149155446097, guid: cb4493524fb87f6468470f491090b590, type: 3}
       propertyPath: m_Name
       value: VIZ_FloorA_0903
+      objectReference: {fileID: 0}
+    - target: {fileID: 919132149155446097, guid: cb4493524fb87f6468470f491090b590, type: 3}
+      propertyPath: m_StaticEditorFlags
+      value: 4
       objectReference: {fileID: 0}
     m_RemovedComponents: []
     m_RemovedGameObjects: []
@@ -9999,6 +10483,10 @@ PrefabInstance:
     - target: {fileID: 919132149155446097, guid: 4a5724f55cb6c344bbf3658f11c11fcb, type: 3}
       propertyPath: m_Name
       value: VIZ_SM_Wall_D_153
+      objectReference: {fileID: 0}
+    - target: {fileID: 919132149155446097, guid: 4a5724f55cb6c344bbf3658f11c11fcb, type: 3}
+      propertyPath: m_StaticEditorFlags
+      value: 4
       objectReference: {fileID: 0}
     m_RemovedComponents: []
     m_RemovedGameObjects: []
@@ -10065,6 +10553,10 @@ PrefabInstance:
       propertyPath: m_Name
       value: VIZ_SM_Wall_D_212
       objectReference: {fileID: 0}
+    - target: {fileID: 919132149155446097, guid: 4a5724f55cb6c344bbf3658f11c11fcb, type: 3}
+      propertyPath: m_StaticEditorFlags
+      value: 4
+      objectReference: {fileID: 0}
     m_RemovedComponents: []
     m_RemovedGameObjects: []
     m_AddedGameObjects: []
@@ -10121,6 +10613,10 @@ PrefabInstance:
     - target: {fileID: 919132149155446097, guid: cb4493524fb87f6468470f491090b590, type: 3}
       propertyPath: m_Name
       value: VIZ_FloorA_0501
+      objectReference: {fileID: 0}
+    - target: {fileID: 919132149155446097, guid: cb4493524fb87f6468470f491090b590, type: 3}
+      propertyPath: m_StaticEditorFlags
+      value: 4
       objectReference: {fileID: 0}
     m_RemovedComponents: []
     m_RemovedGameObjects: []
@@ -10179,6 +10675,10 @@ PrefabInstance:
       propertyPath: m_Name
       value: VIZ_FloorA_0104
       objectReference: {fileID: 0}
+    - target: {fileID: 919132149155446097, guid: 48405bf537dde7248add1d42f9636953, type: 3}
+      propertyPath: m_StaticEditorFlags
+      value: 4
+      objectReference: {fileID: 0}
     m_RemovedComponents: []
     m_RemovedGameObjects: []
     m_AddedGameObjects: []
@@ -10201,7 +10701,7 @@ GameObject:
   m_TagString: Untagged
   m_Icon: {fileID: 0}
   m_NavMeshLayer: 0
-  m_StaticEditorFlags: 0
+  m_StaticEditorFlags: 4
   m_IsActive: 1
 --- !u!23 &1233941961
 MeshRenderer:
@@ -10396,6 +10896,10 @@ PrefabInstance:
       propertyPath: m_Name
       value: VIZ_SM_Wall_A_182
       objectReference: {fileID: 0}
+    - target: {fileID: 919132149155446097, guid: 7c19cc73ac82d2345864e4d684951e75, type: 3}
+      propertyPath: m_StaticEditorFlags
+      value: 4
+      objectReference: {fileID: 0}
     m_RemovedComponents: []
     m_RemovedGameObjects: []
     m_AddedGameObjects: []
@@ -10457,6 +10961,10 @@ PrefabInstance:
       propertyPath: m_Name
       value: VIZ_SM_Wall_A_140
       objectReference: {fileID: 0}
+    - target: {fileID: 919132149155446097, guid: 7c19cc73ac82d2345864e4d684951e75, type: 3}
+      propertyPath: m_StaticEditorFlags
+      value: 4
+      objectReference: {fileID: 0}
     m_RemovedComponents: []
     m_RemovedGameObjects: []
     m_AddedGameObjects: []
@@ -10514,6 +11022,10 @@ PrefabInstance:
       propertyPath: m_Name
       value: VIZ_FloorA_0902
       objectReference: {fileID: 0}
+    - target: {fileID: 919132149155446097, guid: 48405bf537dde7248add1d42f9636953, type: 3}
+      propertyPath: m_StaticEditorFlags
+      value: 4
+      objectReference: {fileID: 0}
     m_RemovedComponents: []
     m_RemovedGameObjects: []
     m_AddedGameObjects: []
@@ -10570,6 +11082,10 @@ PrefabInstance:
     - target: {fileID: 919132149155446097, guid: 109646f347600694ca1fab7f93719c2c, type: 3}
       propertyPath: m_Name
       value: VIZ_SM_DoorFrame_199
+      objectReference: {fileID: 0}
+    - target: {fileID: 919132149155446097, guid: 109646f347600694ca1fab7f93719c2c, type: 3}
+      propertyPath: m_StaticEditorFlags
+      value: 4
       objectReference: {fileID: 0}
     m_RemovedComponents: []
     m_RemovedGameObjects: []
@@ -10662,6 +11178,10 @@ PrefabInstance:
       propertyPath: m_Name
       value: VIZ_SM_Wall_B_173
       objectReference: {fileID: 0}
+    - target: {fileID: 919132149155446097, guid: 7fb1ff1881c87884b9c2021fbaeae10d, type: 3}
+      propertyPath: m_StaticEditorFlags
+      value: 4
+      objectReference: {fileID: 0}
     m_RemovedComponents: []
     m_RemovedGameObjects: []
     m_AddedGameObjects: []
@@ -10719,6 +11239,10 @@ PrefabInstance:
       propertyPath: m_Name
       value: VIZ_SM_FloorTile_B_218
       objectReference: {fileID: 0}
+    - target: {fileID: 919132149155446097, guid: 48405bf537dde7248add1d42f9636953, type: 3}
+      propertyPath: m_StaticEditorFlags
+      value: 4
+      objectReference: {fileID: 0}
     m_RemovedComponents: []
     m_RemovedGameObjects: []
     m_AddedGameObjects: []
@@ -10775,6 +11299,10 @@ PrefabInstance:
     - target: {fileID: 919132149155446097, guid: 48405bf537dde7248add1d42f9636953, type: 3}
       propertyPath: m_Name
       value: VIZ_FloorB_0306
+      objectReference: {fileID: 0}
+    - target: {fileID: 919132149155446097, guid: 48405bf537dde7248add1d42f9636953, type: 3}
+      propertyPath: m_StaticEditorFlags
+      value: 4
       objectReference: {fileID: 0}
     m_RemovedComponents: []
     m_RemovedGameObjects: []
@@ -10837,6 +11365,10 @@ PrefabInstance:
       propertyPath: m_Name
       value: VIZ_SM_Wall_C_161
       objectReference: {fileID: 0}
+    - target: {fileID: 919132149155446097, guid: 6b421c2786f962b4fa7bcf99677a8595, type: 3}
+      propertyPath: m_StaticEditorFlags
+      value: 4
+      objectReference: {fileID: 0}
     m_RemovedComponents: []
     m_RemovedGameObjects: []
     m_AddedGameObjects: []
@@ -10893,6 +11425,10 @@ PrefabInstance:
     - target: {fileID: 919132149155446097, guid: 48405bf537dde7248add1d42f9636953, type: 3}
       propertyPath: m_Name
       value: VIZ_FloorB_0304
+      objectReference: {fileID: 0}
+    - target: {fileID: 919132149155446097, guid: 48405bf537dde7248add1d42f9636953, type: 3}
+      propertyPath: m_StaticEditorFlags
+      value: 4
       objectReference: {fileID: 0}
     m_RemovedComponents: []
     m_RemovedGameObjects: []
@@ -10951,6 +11487,10 @@ PrefabInstance:
       propertyPath: m_Name
       value: VIZ_FloorB_0404
       objectReference: {fileID: 0}
+    - target: {fileID: 919132149155446097, guid: cb4493524fb87f6468470f491090b590, type: 3}
+      propertyPath: m_StaticEditorFlags
+      value: 4
+      objectReference: {fileID: 0}
     m_RemovedComponents: []
     m_RemovedGameObjects: []
     m_AddedGameObjects: []
@@ -11008,6 +11548,10 @@ PrefabInstance:
       propertyPath: m_Name
       value: VIZ_FloorA_0302
       objectReference: {fileID: 0}
+    - target: {fileID: 919132149155446097, guid: 48405bf537dde7248add1d42f9636953, type: 3}
+      propertyPath: m_StaticEditorFlags
+      value: 4
+      objectReference: {fileID: 0}
     m_RemovedComponents: []
     m_RemovedGameObjects: []
     m_AddedGameObjects: []
@@ -11064,6 +11608,10 @@ PrefabInstance:
     - target: {fileID: 919132149155446097, guid: 48405bf537dde7248add1d42f9636953, type: 3}
       propertyPath: m_Name
       value: VIZ_SM_FloorTile_B_215
+      objectReference: {fileID: 0}
+    - target: {fileID: 919132149155446097, guid: 48405bf537dde7248add1d42f9636953, type: 3}
+      propertyPath: m_StaticEditorFlags
+      value: 4
       objectReference: {fileID: 0}
     m_RemovedComponents: []
     m_RemovedGameObjects: []
@@ -11126,6 +11674,10 @@ PrefabInstance:
       propertyPath: m_Name
       value: VIZ_SM_Wall_B_148
       objectReference: {fileID: 0}
+    - target: {fileID: 919132149155446097, guid: 7fb1ff1881c87884b9c2021fbaeae10d, type: 3}
+      propertyPath: m_StaticEditorFlags
+      value: 4
+      objectReference: {fileID: 0}
     m_RemovedComponents: []
     m_RemovedGameObjects: []
     m_AddedGameObjects: []
@@ -11183,6 +11735,10 @@ PrefabInstance:
       propertyPath: m_Name
       value: VIZ_FloorB_0406
       objectReference: {fileID: 0}
+    - target: {fileID: 919132149155446097, guid: cb4493524fb87f6468470f491090b590, type: 3}
+      propertyPath: m_StaticEditorFlags
+      value: 4
+      objectReference: {fileID: 0}
     m_RemovedComponents: []
     m_RemovedGameObjects: []
     m_AddedGameObjects: []
@@ -11239,6 +11795,10 @@ PrefabInstance:
     - target: {fileID: 919132149155446097, guid: c6ea4c80976a649429c74983a57e33b5, type: 3}
       propertyPath: m_Name
       value: VIZ_SM_Arch_200
+      objectReference: {fileID: 0}
+    - target: {fileID: 919132149155446097, guid: c6ea4c80976a649429c74983a57e33b5, type: 3}
+      propertyPath: m_StaticEditorFlags
+      value: 4
       objectReference: {fileID: 0}
     m_RemovedComponents: []
     m_RemovedGameObjects: []
@@ -11327,6 +11887,10 @@ PrefabInstance:
       propertyPath: m_Name
       value: VIZ_FloorB_0104
       objectReference: {fileID: 0}
+    - target: {fileID: 919132149155446097, guid: 48405bf537dde7248add1d42f9636953, type: 3}
+      propertyPath: m_StaticEditorFlags
+      value: 4
+      objectReference: {fileID: 0}
     m_RemovedComponents: []
     m_RemovedGameObjects: []
     m_AddedGameObjects: []
@@ -11388,6 +11952,10 @@ PrefabInstance:
       propertyPath: m_Name
       value: VIZ_SM_Wall_C_183
       objectReference: {fileID: 0}
+    - target: {fileID: 919132149155446097, guid: 6b421c2786f962b4fa7bcf99677a8595, type: 3}
+      propertyPath: m_StaticEditorFlags
+      value: 4
+      objectReference: {fileID: 0}
     m_RemovedComponents: []
     m_RemovedGameObjects: []
     m_AddedGameObjects: []
@@ -11445,6 +12013,10 @@ PrefabInstance:
       propertyPath: m_Name
       value: VIZ_FloorA_0704
       objectReference: {fileID: 0}
+    - target: {fileID: 919132149155446097, guid: 48405bf537dde7248add1d42f9636953, type: 3}
+      propertyPath: m_StaticEditorFlags
+      value: 4
+      objectReference: {fileID: 0}
     m_RemovedComponents: []
     m_RemovedGameObjects: []
     m_AddedGameObjects: []
@@ -11501,6 +12073,10 @@ PrefabInstance:
     - target: {fileID: 919132149155446097, guid: c364435f72897f647bcce5954e0ef083, type: 3}
       propertyPath: m_Name
       value: VIZ_SM_Pillar_Broken_223
+      objectReference: {fileID: 0}
+    - target: {fileID: 919132149155446097, guid: c364435f72897f647bcce5954e0ef083, type: 3}
+      propertyPath: m_StaticEditorFlags
+      value: 4
       objectReference: {fileID: 0}
     m_RemovedComponents: []
     m_RemovedGameObjects: []
@@ -11593,6 +12169,10 @@ PrefabInstance:
       propertyPath: m_Name
       value: VIZ_SM_Wall_C_185
       objectReference: {fileID: 0}
+    - target: {fileID: 919132149155446097, guid: 6b421c2786f962b4fa7bcf99677a8595, type: 3}
+      propertyPath: m_StaticEditorFlags
+      value: 4
+      objectReference: {fileID: 0}
     m_RemovedComponents: []
     m_RemovedGameObjects: []
     m_AddedGameObjects: []
@@ -11649,6 +12229,10 @@ PrefabInstance:
     - target: {fileID: 919132149155446097, guid: cb4493524fb87f6468470f491090b590, type: 3}
       propertyPath: m_Name
       value: VIZ_FloorB_0305
+      objectReference: {fileID: 0}
+    - target: {fileID: 919132149155446097, guid: cb4493524fb87f6468470f491090b590, type: 3}
+      propertyPath: m_StaticEditorFlags
+      value: 4
       objectReference: {fileID: 0}
     m_RemovedComponents: []
     m_RemovedGameObjects: []
@@ -11797,6 +12381,10 @@ PrefabInstance:
       propertyPath: m_Name
       value: VIZ_FloorB_0503
       objectReference: {fileID: 0}
+    - target: {fileID: 919132149155446097, guid: cb4493524fb87f6468470f491090b590, type: 3}
+      propertyPath: m_StaticEditorFlags
+      value: 4
+      objectReference: {fileID: 0}
     m_RemovedComponents: []
     m_RemovedGameObjects: []
     m_AddedGameObjects: []
@@ -11858,6 +12446,10 @@ PrefabInstance:
       propertyPath: m_Name
       value: VIZ_SM_Wall_A_178
       objectReference: {fileID: 0}
+    - target: {fileID: 919132149155446097, guid: 7c19cc73ac82d2345864e4d684951e75, type: 3}
+      propertyPath: m_StaticEditorFlags
+      value: 4
+      objectReference: {fileID: 0}
     m_RemovedComponents: []
     m_RemovedGameObjects: []
     m_AddedGameObjects: []
@@ -11915,6 +12507,10 @@ PrefabInstance:
       propertyPath: m_Name
       value: VIZ_FloorB_0505
       objectReference: {fileID: 0}
+    - target: {fileID: 919132149155446097, guid: cb4493524fb87f6468470f491090b590, type: 3}
+      propertyPath: m_StaticEditorFlags
+      value: 4
+      objectReference: {fileID: 0}
     m_RemovedComponents: []
     m_RemovedGameObjects: []
     m_AddedGameObjects: []
@@ -11937,7 +12533,7 @@ GameObject:
   m_TagString: Untagged
   m_Icon: {fileID: 0}
   m_NavMeshLayer: 0
-  m_StaticEditorFlags: 0
+  m_StaticEditorFlags: 4
   m_IsActive: 1
 --- !u!23 &1439603673
 MeshRenderer:
@@ -12087,6 +12683,10 @@ PrefabInstance:
     - target: {fileID: 919132149155446097, guid: 7fb1ff1881c87884b9c2021fbaeae10d, type: 3}
       propertyPath: m_Name
       value: VIZ_SM_Wall_B_194
+      objectReference: {fileID: 0}
+    - target: {fileID: 919132149155446097, guid: 7fb1ff1881c87884b9c2021fbaeae10d, type: 3}
+      propertyPath: m_StaticEditorFlags
+      value: 4
       objectReference: {fileID: 0}
     m_RemovedComponents: []
     m_RemovedGameObjects: []
@@ -12387,6 +12987,10 @@ PrefabInstance:
       propertyPath: m_Name
       value: VIZ_FloorB_0201
       objectReference: {fileID: 0}
+    - target: {fileID: 919132149155446097, guid: 48405bf537dde7248add1d42f9636953, type: 3}
+      propertyPath: m_StaticEditorFlags
+      value: 4
+      objectReference: {fileID: 0}
     m_RemovedComponents: []
     m_RemovedGameObjects: []
     m_AddedGameObjects: []
@@ -12448,6 +13052,10 @@ PrefabInstance:
       propertyPath: m_Name
       value: VIZ_SM_Wall_B_168
       objectReference: {fileID: 0}
+    - target: {fileID: 919132149155446097, guid: 7fb1ff1881c87884b9c2021fbaeae10d, type: 3}
+      propertyPath: m_StaticEditorFlags
+      value: 4
+      objectReference: {fileID: 0}
     m_RemovedComponents: []
     m_RemovedGameObjects: []
     m_AddedGameObjects: []
@@ -12504,6 +13112,10 @@ PrefabInstance:
     - target: {fileID: 919132149155446097, guid: cb4493524fb87f6468470f491090b590, type: 3}
       propertyPath: m_Name
       value: VIZ_FloorA_0002
+      objectReference: {fileID: 0}
+    - target: {fileID: 919132149155446097, guid: cb4493524fb87f6468470f491090b590, type: 3}
+      propertyPath: m_StaticEditorFlags
+      value: 4
       objectReference: {fileID: 0}
     m_RemovedComponents: []
     m_RemovedGameObjects: []
@@ -12562,6 +13174,10 @@ PrefabInstance:
       propertyPath: m_Name
       value: VIZ_FloorA_0103
       objectReference: {fileID: 0}
+    - target: {fileID: 919132149155446097, guid: cb4493524fb87f6468470f491090b590, type: 3}
+      propertyPath: m_StaticEditorFlags
+      value: 4
+      objectReference: {fileID: 0}
     m_RemovedComponents: []
     m_RemovedGameObjects: []
     m_AddedGameObjects: []
@@ -12619,6 +13235,10 @@ PrefabInstance:
       propertyPath: m_Name
       value: VIZ_FloorB_0303
       objectReference: {fileID: 0}
+    - target: {fileID: 919132149155446097, guid: cb4493524fb87f6468470f491090b590, type: 3}
+      propertyPath: m_StaticEditorFlags
+      value: 4
+      objectReference: {fileID: 0}
     m_RemovedComponents: []
     m_RemovedGameObjects: []
     m_AddedGameObjects: []
@@ -12675,6 +13295,10 @@ PrefabInstance:
     - target: {fileID: 919132149155446097, guid: 48405bf537dde7248add1d42f9636953, type: 3}
       propertyPath: m_Name
       value: VIZ_FloorA_0102
+      objectReference: {fileID: 0}
+    - target: {fileID: 919132149155446097, guid: 48405bf537dde7248add1d42f9636953, type: 3}
+      propertyPath: m_StaticEditorFlags
+      value: 4
       objectReference: {fileID: 0}
     m_RemovedComponents: []
     m_RemovedGameObjects: []
@@ -12737,6 +13361,10 @@ PrefabInstance:
       propertyPath: m_Name
       value: VIZ_SM_Wall_B_151
       objectReference: {fileID: 0}
+    - target: {fileID: 919132149155446097, guid: 7fb1ff1881c87884b9c2021fbaeae10d, type: 3}
+      propertyPath: m_StaticEditorFlags
+      value: 4
+      objectReference: {fileID: 0}
     m_RemovedComponents: []
     m_RemovedGameObjects: []
     m_AddedGameObjects: []
@@ -12793,6 +13421,10 @@ PrefabInstance:
     - target: {fileID: 919132149155446097, guid: 48405bf537dde7248add1d42f9636953, type: 3}
       propertyPath: m_Name
       value: VIZ_FloorA_0906
+      objectReference: {fileID: 0}
+    - target: {fileID: 919132149155446097, guid: 48405bf537dde7248add1d42f9636953, type: 3}
+      propertyPath: m_StaticEditorFlags
+      value: 4
       objectReference: {fileID: 0}
     m_RemovedComponents: []
     m_RemovedGameObjects: []
@@ -12851,6 +13483,10 @@ PrefabInstance:
       propertyPath: m_Name
       value: VIZ_FloorB_0200
       objectReference: {fileID: 0}
+    - target: {fileID: 919132149155446097, guid: cb4493524fb87f6468470f491090b590, type: 3}
+      propertyPath: m_StaticEditorFlags
+      value: 4
+      objectReference: {fileID: 0}
     m_RemovedComponents: []
     m_RemovedGameObjects: []
     m_AddedGameObjects: []
@@ -12908,6 +13544,10 @@ PrefabInstance:
       propertyPath: m_Name
       value: VIZ_FloorA_0603
       objectReference: {fileID: 0}
+    - target: {fileID: 919132149155446097, guid: 48405bf537dde7248add1d42f9636953, type: 3}
+      propertyPath: m_StaticEditorFlags
+      value: 4
+      objectReference: {fileID: 0}
     m_RemovedComponents: []
     m_RemovedGameObjects: []
     m_AddedGameObjects: []
@@ -12964,6 +13604,10 @@ PrefabInstance:
     - target: {fileID: 919132149155446097, guid: 48405bf537dde7248add1d42f9636953, type: 3}
       propertyPath: m_Name
       value: VIZ_FloorA_0700
+      objectReference: {fileID: 0}
+    - target: {fileID: 919132149155446097, guid: 48405bf537dde7248add1d42f9636953, type: 3}
+      propertyPath: m_StaticEditorFlags
+      value: 4
       objectReference: {fileID: 0}
     m_RemovedComponents: []
     m_RemovedGameObjects: []
@@ -13026,6 +13670,10 @@ PrefabInstance:
       propertyPath: m_Name
       value: VIZ_SM_Wall_B_155
       objectReference: {fileID: 0}
+    - target: {fileID: 919132149155446097, guid: 7fb1ff1881c87884b9c2021fbaeae10d, type: 3}
+      propertyPath: m_StaticEditorFlags
+      value: 4
+      objectReference: {fileID: 0}
     m_RemovedComponents: []
     m_RemovedGameObjects: []
     m_AddedGameObjects: []
@@ -13082,6 +13730,10 @@ PrefabInstance:
     - target: {fileID: 919132149155446097, guid: 48405bf537dde7248add1d42f9636953, type: 3}
       propertyPath: m_Name
       value: VIZ_FloorB_0500
+      objectReference: {fileID: 0}
+    - target: {fileID: 919132149155446097, guid: 48405bf537dde7248add1d42f9636953, type: 3}
+      propertyPath: m_StaticEditorFlags
+      value: 4
       objectReference: {fileID: 0}
     m_RemovedComponents: []
     m_RemovedGameObjects: []
@@ -13147,6 +13799,10 @@ PrefabInstance:
     - target: {fileID: 919132149155446097, guid: 6934e06691d74af4d87689250ba09532, type: 3}
       propertyPath: m_Name
       value: VIZ_SM_Brazier_228
+      objectReference: {fileID: 0}
+    - target: {fileID: 919132149155446097, guid: 6934e06691d74af4d87689250ba09532, type: 3}
+      propertyPath: m_StaticEditorFlags
+      value: 4
       objectReference: {fileID: 0}
     m_RemovedComponents: []
     m_RemovedGameObjects: []
@@ -13481,6 +14137,10 @@ PrefabInstance:
       propertyPath: m_Name
       value: VIZ_SM_Wall_A_181
       objectReference: {fileID: 0}
+    - target: {fileID: 919132149155446097, guid: 7c19cc73ac82d2345864e4d684951e75, type: 3}
+      propertyPath: m_StaticEditorFlags
+      value: 4
+      objectReference: {fileID: 0}
     m_RemovedComponents: []
     m_RemovedGameObjects: []
     m_AddedGameObjects: []
@@ -13542,6 +14202,10 @@ PrefabInstance:
       propertyPath: m_Name
       value: VIZ_SM_Wall_A_149
       objectReference: {fileID: 0}
+    - target: {fileID: 919132149155446097, guid: 7c19cc73ac82d2345864e4d684951e75, type: 3}
+      propertyPath: m_StaticEditorFlags
+      value: 4
+      objectReference: {fileID: 0}
     m_RemovedComponents: []
     m_RemovedGameObjects: []
     m_AddedGameObjects: []
@@ -13598,6 +14262,10 @@ PrefabInstance:
     - target: {fileID: 919132149155446097, guid: 48405bf537dde7248add1d42f9636953, type: 3}
       propertyPath: m_Name
       value: VIZ_FloorA_0502
+      objectReference: {fileID: 0}
+    - target: {fileID: 919132149155446097, guid: 48405bf537dde7248add1d42f9636953, type: 3}
+      propertyPath: m_StaticEditorFlags
+      value: 4
       objectReference: {fileID: 0}
     m_RemovedComponents: []
     m_RemovedGameObjects: []
@@ -13796,6 +14464,10 @@ PrefabInstance:
       propertyPath: m_Name
       value: VIZ_SM_Debris_B_233
       objectReference: {fileID: 0}
+    - target: {fileID: 919132149155446097, guid: dfe77f0421f353343a0dabca476d4d6d, type: 3}
+      propertyPath: m_StaticEditorFlags
+      value: 4
+      objectReference: {fileID: 0}
     m_RemovedComponents: []
     m_RemovedGameObjects: []
     m_AddedGameObjects: []
@@ -13883,6 +14555,10 @@ PrefabInstance:
       propertyPath: m_Name
       value: VIZ_FloorA_0403
       objectReference: {fileID: 0}
+    - target: {fileID: 919132149155446097, guid: 48405bf537dde7248add1d42f9636953, type: 3}
+      propertyPath: m_StaticEditorFlags
+      value: 4
+      objectReference: {fileID: 0}
     m_RemovedComponents: []
     m_RemovedGameObjects: []
     m_AddedGameObjects: []
@@ -13944,6 +14620,10 @@ PrefabInstance:
       propertyPath: m_Name
       value: VIZ_SM_Wall_C_144
       objectReference: {fileID: 0}
+    - target: {fileID: 919132149155446097, guid: 6b421c2786f962b4fa7bcf99677a8595, type: 3}
+      propertyPath: m_StaticEditorFlags
+      value: 4
+      objectReference: {fileID: 0}
     m_RemovedComponents: []
     m_RemovedGameObjects: []
     m_AddedGameObjects: []
@@ -14000,6 +14680,10 @@ PrefabInstance:
     - target: {fileID: 919132149155446097, guid: cb4493524fb87f6468470f491090b590, type: 3}
       propertyPath: m_Name
       value: VIZ_FloorA_0806
+      objectReference: {fileID: 0}
+    - target: {fileID: 919132149155446097, guid: cb4493524fb87f6468470f491090b590, type: 3}
+      propertyPath: m_StaticEditorFlags
+      value: 4
       objectReference: {fileID: 0}
     m_RemovedComponents: []
     m_RemovedGameObjects: []
@@ -14062,6 +14746,10 @@ PrefabInstance:
       propertyPath: m_Name
       value: VIZ_SM_Wall_B_171
       objectReference: {fileID: 0}
+    - target: {fileID: 919132149155446097, guid: 7fb1ff1881c87884b9c2021fbaeae10d, type: 3}
+      propertyPath: m_StaticEditorFlags
+      value: 4
+      objectReference: {fileID: 0}
     m_RemovedComponents: []
     m_RemovedGameObjects: []
     m_AddedGameObjects: []
@@ -14118,6 +14806,10 @@ PrefabInstance:
     - target: {fileID: 919132149155446097, guid: 48405bf537dde7248add1d42f9636953, type: 3}
       propertyPath: m_Name
       value: VIZ_FloorB_0704
+      objectReference: {fileID: 0}
+    - target: {fileID: 919132149155446097, guid: 48405bf537dde7248add1d42f9636953, type: 3}
+      propertyPath: m_StaticEditorFlags
+      value: 4
       objectReference: {fileID: 0}
     m_RemovedComponents: []
     m_RemovedGameObjects: []
@@ -14176,6 +14868,10 @@ PrefabInstance:
       propertyPath: m_Name
       value: VIZ_FloorB_0701
       objectReference: {fileID: 0}
+    - target: {fileID: 919132149155446097, guid: cb4493524fb87f6468470f491090b590, type: 3}
+      propertyPath: m_StaticEditorFlags
+      value: 4
+      objectReference: {fileID: 0}
     m_RemovedComponents: []
     m_RemovedGameObjects: []
     m_AddedGameObjects: []
@@ -14232,6 +14928,10 @@ PrefabInstance:
     - target: {fileID: 919132149155446097, guid: cb4493524fb87f6468470f491090b590, type: 3}
       propertyPath: m_Name
       value: VIZ_FloorA_0107
+      objectReference: {fileID: 0}
+    - target: {fileID: 919132149155446097, guid: cb4493524fb87f6468470f491090b590, type: 3}
+      propertyPath: m_StaticEditorFlags
+      value: 4
       objectReference: {fileID: 0}
     m_RemovedComponents: []
     m_RemovedGameObjects: []
@@ -14290,6 +14990,10 @@ PrefabInstance:
       propertyPath: m_Name
       value: VIZ_FloorA_0201
       objectReference: {fileID: 0}
+    - target: {fileID: 919132149155446097, guid: 48405bf537dde7248add1d42f9636953, type: 3}
+      propertyPath: m_StaticEditorFlags
+      value: 4
+      objectReference: {fileID: 0}
     m_RemovedComponents: []
     m_RemovedGameObjects: []
     m_AddedGameObjects: []
@@ -14312,7 +15016,7 @@ GameObject:
   m_TagString: Untagged
   m_Icon: {fileID: 0}
   m_NavMeshLayer: 0
-  m_StaticEditorFlags: 0
+  m_StaticEditorFlags: 4
   m_IsActive: 1
 --- !u!23 &1657456220
 MeshRenderer:
@@ -14459,6 +15163,10 @@ PrefabInstance:
       propertyPath: m_Name
       value: VIZ_FloorA_0805
       objectReference: {fileID: 0}
+    - target: {fileID: 919132149155446097, guid: 48405bf537dde7248add1d42f9636953, type: 3}
+      propertyPath: m_StaticEditorFlags
+      value: 4
+      objectReference: {fileID: 0}
     m_RemovedComponents: []
     m_RemovedGameObjects: []
     m_AddedGameObjects: []
@@ -14516,6 +15224,10 @@ PrefabInstance:
       propertyPath: m_Name
       value: VIZ_FloorB_0401
       objectReference: {fileID: 0}
+    - target: {fileID: 919132149155446097, guid: 48405bf537dde7248add1d42f9636953, type: 3}
+      propertyPath: m_StaticEditorFlags
+      value: 4
+      objectReference: {fileID: 0}
     m_RemovedComponents: []
     m_RemovedGameObjects: []
     m_AddedGameObjects: []
@@ -14572,6 +15284,10 @@ PrefabInstance:
     - target: {fileID: 919132149155446097, guid: cb4493524fb87f6468470f491090b590, type: 3}
       propertyPath: m_Name
       value: VIZ_FloorA_0006
+      objectReference: {fileID: 0}
+    - target: {fileID: 919132149155446097, guid: cb4493524fb87f6468470f491090b590, type: 3}
+      propertyPath: m_StaticEditorFlags
+      value: 4
       objectReference: {fileID: 0}
     m_RemovedComponents: []
     m_RemovedGameObjects: []
@@ -14637,6 +15353,10 @@ PrefabInstance:
     - target: {fileID: 919132149155446097, guid: 6934e06691d74af4d87689250ba09532, type: 3}
       propertyPath: m_Name
       value: VIZ_SM_Brazier_226
+      objectReference: {fileID: 0}
+    - target: {fileID: 919132149155446097, guid: 6934e06691d74af4d87689250ba09532, type: 3}
+      propertyPath: m_StaticEditorFlags
+      value: 4
       objectReference: {fileID: 0}
     m_RemovedComponents: []
     m_RemovedGameObjects: []
@@ -14725,6 +15445,10 @@ PrefabInstance:
       propertyPath: m_Name
       value: VIZ_FloorB_0101
       objectReference: {fileID: 0}
+    - target: {fileID: 919132149155446097, guid: cb4493524fb87f6468470f491090b590, type: 3}
+      propertyPath: m_StaticEditorFlags
+      value: 4
+      objectReference: {fileID: 0}
     m_RemovedComponents: []
     m_RemovedGameObjects: []
     m_AddedGameObjects: []
@@ -14747,7 +15471,7 @@ GameObject:
   m_TagString: Untagged
   m_Icon: {fileID: 0}
   m_NavMeshLayer: 0
-  m_StaticEditorFlags: 0
+  m_StaticEditorFlags: 4
   m_IsActive: 1
 --- !u!23 &1696142165
 MeshRenderer:
@@ -14902,6 +15626,10 @@ PrefabInstance:
       propertyPath: m_Name
       value: VIZ_SM_Wall_C_206
       objectReference: {fileID: 0}
+    - target: {fileID: 919132149155446097, guid: 6b421c2786f962b4fa7bcf99677a8595, type: 3}
+      propertyPath: m_StaticEditorFlags
+      value: 4
+      objectReference: {fileID: 0}
     m_RemovedComponents: []
     m_RemovedGameObjects: []
     m_AddedGameObjects: []
@@ -14962,6 +15690,10 @@ PrefabInstance:
     - target: {fileID: 919132149155446097, guid: 7c19cc73ac82d2345864e4d684951e75, type: 3}
       propertyPath: m_Name
       value: VIZ_SM_Wall_A_145
+      objectReference: {fileID: 0}
+    - target: {fileID: 919132149155446097, guid: 7c19cc73ac82d2345864e4d684951e75, type: 3}
+      propertyPath: m_StaticEditorFlags
+      value: 4
       objectReference: {fileID: 0}
     m_RemovedComponents: []
     m_RemovedGameObjects: []
@@ -15024,6 +15756,10 @@ PrefabInstance:
       propertyPath: m_Name
       value: VIZ_SM_Wall_B_177
       objectReference: {fileID: 0}
+    - target: {fileID: 919132149155446097, guid: 7fb1ff1881c87884b9c2021fbaeae10d, type: 3}
+      propertyPath: m_StaticEditorFlags
+      value: 4
+      objectReference: {fileID: 0}
     m_RemovedComponents: []
     m_RemovedGameObjects: []
     m_AddedGameObjects: []
@@ -15080,6 +15816,10 @@ PrefabInstance:
     - target: {fileID: 919132149155446097, guid: 48405bf537dde7248add1d42f9636953, type: 3}
       propertyPath: m_Name
       value: VIZ_FloorB_0100
+      objectReference: {fileID: 0}
+    - target: {fileID: 919132149155446097, guid: 48405bf537dde7248add1d42f9636953, type: 3}
+      propertyPath: m_StaticEditorFlags
+      value: 4
       objectReference: {fileID: 0}
     m_RemovedComponents: []
     m_RemovedGameObjects: []
@@ -15142,6 +15882,10 @@ PrefabInstance:
       propertyPath: m_Name
       value: VIZ_SM_Wall_D_174
       objectReference: {fileID: 0}
+    - target: {fileID: 919132149155446097, guid: 4a5724f55cb6c344bbf3658f11c11fcb, type: 3}
+      propertyPath: m_StaticEditorFlags
+      value: 4
+      objectReference: {fileID: 0}
     m_RemovedComponents: []
     m_RemovedGameObjects: []
     m_AddedGameObjects: []
@@ -15198,6 +15942,10 @@ PrefabInstance:
     - target: {fileID: 919132149155446097, guid: cb4493524fb87f6468470f491090b590, type: 3}
       propertyPath: m_Name
       value: VIZ_FloorA_0406
+      objectReference: {fileID: 0}
+    - target: {fileID: 919132149155446097, guid: cb4493524fb87f6468470f491090b590, type: 3}
+      propertyPath: m_StaticEditorFlags
+      value: 4
       objectReference: {fileID: 0}
     m_RemovedComponents: []
     m_RemovedGameObjects: []
@@ -15260,6 +16008,10 @@ PrefabInstance:
       propertyPath: m_Name
       value: VIZ_SM_Wall_A_196
       objectReference: {fileID: 0}
+    - target: {fileID: 919132149155446097, guid: 7c19cc73ac82d2345864e4d684951e75, type: 3}
+      propertyPath: m_StaticEditorFlags
+      value: 4
+      objectReference: {fileID: 0}
     m_RemovedComponents: []
     m_RemovedGameObjects: []
     m_AddedGameObjects: []
@@ -15317,6 +16069,10 @@ PrefabInstance:
       propertyPath: m_Name
       value: VIZ_FloorB_0302
       objectReference: {fileID: 0}
+    - target: {fileID: 919132149155446097, guid: 48405bf537dde7248add1d42f9636953, type: 3}
+      propertyPath: m_StaticEditorFlags
+      value: 4
+      objectReference: {fileID: 0}
     m_RemovedComponents: []
     m_RemovedGameObjects: []
     m_AddedGameObjects: []
@@ -15373,6 +16129,10 @@ PrefabInstance:
     - target: {fileID: 919132149155446097, guid: 48405bf537dde7248add1d42f9636953, type: 3}
       propertyPath: m_Name
       value: VIZ_FloorA_0500
+      objectReference: {fileID: 0}
+    - target: {fileID: 919132149155446097, guid: 48405bf537dde7248add1d42f9636953, type: 3}
+      propertyPath: m_StaticEditorFlags
+      value: 4
       objectReference: {fileID: 0}
     m_RemovedComponents: []
     m_RemovedGameObjects: []
@@ -15435,6 +16195,10 @@ PrefabInstance:
       propertyPath: m_Name
       value: VIZ_SM_Wall_D_159
       objectReference: {fileID: 0}
+    - target: {fileID: 919132149155446097, guid: 4a5724f55cb6c344bbf3658f11c11fcb, type: 3}
+      propertyPath: m_StaticEditorFlags
+      value: 4
+      objectReference: {fileID: 0}
     m_RemovedComponents: []
     m_RemovedGameObjects: []
     m_AddedGameObjects: []
@@ -15492,6 +16256,10 @@ PrefabInstance:
       propertyPath: m_Name
       value: VIZ_FloorA_0703
       objectReference: {fileID: 0}
+    - target: {fileID: 919132149155446097, guid: cb4493524fb87f6468470f491090b590, type: 3}
+      propertyPath: m_StaticEditorFlags
+      value: 4
+      objectReference: {fileID: 0}
     m_RemovedComponents: []
     m_RemovedGameObjects: []
     m_AddedGameObjects: []
@@ -15548,6 +16316,10 @@ PrefabInstance:
     - target: {fileID: 919132149155446097, guid: 48405bf537dde7248add1d42f9636953, type: 3}
       propertyPath: m_Name
       value: VIZ_FloorB_0106
+      objectReference: {fileID: 0}
+    - target: {fileID: 919132149155446097, guid: 48405bf537dde7248add1d42f9636953, type: 3}
+      propertyPath: m_StaticEditorFlags
+      value: 4
       objectReference: {fileID: 0}
     m_RemovedComponents: []
     m_RemovedGameObjects: []
@@ -15793,6 +16565,10 @@ PrefabInstance:
       propertyPath: m_Name
       value: VIZ_SM_Wall_A_189
       objectReference: {fileID: 0}
+    - target: {fileID: 919132149155446097, guid: 7c19cc73ac82d2345864e4d684951e75, type: 3}
+      propertyPath: m_StaticEditorFlags
+      value: 4
+      objectReference: {fileID: 0}
     m_RemovedComponents: []
     m_RemovedGameObjects: []
     m_AddedGameObjects: []
@@ -15850,6 +16626,10 @@ PrefabInstance:
       propertyPath: m_Name
       value: VIZ_FloorA_0705
       objectReference: {fileID: 0}
+    - target: {fileID: 919132149155446097, guid: cb4493524fb87f6468470f491090b590, type: 3}
+      propertyPath: m_StaticEditorFlags
+      value: 4
+      objectReference: {fileID: 0}
     m_RemovedComponents: []
     m_RemovedGameObjects: []
     m_AddedGameObjects: []
@@ -15906,6 +16686,10 @@ PrefabInstance:
     - target: {fileID: 919132149155446097, guid: bded0c7f9ca88b34e80dde336436b75f, type: 3}
       propertyPath: m_Name
       value: VIZ_SM_Pillar_Whole_219
+      objectReference: {fileID: 0}
+    - target: {fileID: 919132149155446097, guid: bded0c7f9ca88b34e80dde336436b75f, type: 3}
+      propertyPath: m_StaticEditorFlags
+      value: 4
       objectReference: {fileID: 0}
     m_RemovedComponents: []
     m_RemovedGameObjects: []
@@ -15998,6 +16782,10 @@ PrefabInstance:
       propertyPath: m_Name
       value: VIZ_SM_Wall_A_167
       objectReference: {fileID: 0}
+    - target: {fileID: 919132149155446097, guid: 7c19cc73ac82d2345864e4d684951e75, type: 3}
+      propertyPath: m_StaticEditorFlags
+      value: 4
+      objectReference: {fileID: 0}
     m_RemovedComponents: []
     m_RemovedGameObjects: []
     m_AddedGameObjects: []
@@ -16054,6 +16842,10 @@ PrefabInstance:
     - target: {fileID: 919132149155446097, guid: 48405bf537dde7248add1d42f9636953, type: 3}
       propertyPath: m_Name
       value: VIZ_SM_FloorTile_B_214
+      objectReference: {fileID: 0}
+    - target: {fileID: 919132149155446097, guid: 48405bf537dde7248add1d42f9636953, type: 3}
+      propertyPath: m_StaticEditorFlags
+      value: 4
       objectReference: {fileID: 0}
     m_RemovedComponents: []
     m_RemovedGameObjects: []
@@ -16112,6 +16904,10 @@ PrefabInstance:
       propertyPath: m_Name
       value: VIZ_FloorB_0202
       objectReference: {fileID: 0}
+    - target: {fileID: 919132149155446097, guid: cb4493524fb87f6468470f491090b590, type: 3}
+      propertyPath: m_StaticEditorFlags
+      value: 4
+      objectReference: {fileID: 0}
     m_RemovedComponents: []
     m_RemovedGameObjects: []
     m_AddedGameObjects: []
@@ -16168,6 +16964,10 @@ PrefabInstance:
     - target: {fileID: 919132149155446097, guid: 48405bf537dde7248add1d42f9636953, type: 3}
       propertyPath: m_Name
       value: VIZ_FloorA_0801
+      objectReference: {fileID: 0}
+    - target: {fileID: 919132149155446097, guid: 48405bf537dde7248add1d42f9636953, type: 3}
+      propertyPath: m_StaticEditorFlags
+      value: 4
       objectReference: {fileID: 0}
     m_RemovedComponents: []
     m_RemovedGameObjects: []
@@ -16226,6 +17026,10 @@ PrefabInstance:
       propertyPath: m_Name
       value: VIZ_FloorA_0604
       objectReference: {fileID: 0}
+    - target: {fileID: 919132149155446097, guid: cb4493524fb87f6468470f491090b590, type: 3}
+      propertyPath: m_StaticEditorFlags
+      value: 4
+      objectReference: {fileID: 0}
     m_RemovedComponents: []
     m_RemovedGameObjects: []
     m_AddedGameObjects: []
@@ -16282,6 +17086,10 @@ PrefabInstance:
     - target: {fileID: 919132149155446097, guid: cb4493524fb87f6468470f491090b590, type: 3}
       propertyPath: m_Name
       value: VIZ_FloorA_0204
+      objectReference: {fileID: 0}
+    - target: {fileID: 919132149155446097, guid: cb4493524fb87f6468470f491090b590, type: 3}
+      propertyPath: m_StaticEditorFlags
+      value: 4
       objectReference: {fileID: 0}
     m_RemovedComponents: []
     m_RemovedGameObjects: []
@@ -16340,6 +17148,10 @@ PrefabInstance:
       propertyPath: m_Name
       value: VIZ_FloorA_0203
       objectReference: {fileID: 0}
+    - target: {fileID: 919132149155446097, guid: 48405bf537dde7248add1d42f9636953, type: 3}
+      propertyPath: m_StaticEditorFlags
+      value: 4
+      objectReference: {fileID: 0}
     m_RemovedComponents: []
     m_RemovedGameObjects: []
     m_AddedGameObjects: []
@@ -16396,6 +17208,10 @@ PrefabInstance:
     - target: {fileID: 919132149155446097, guid: cb4493524fb87f6468470f491090b590, type: 3}
       propertyPath: m_Name
       value: VIZ_FloorA_0303
+      objectReference: {fileID: 0}
+    - target: {fileID: 919132149155446097, guid: cb4493524fb87f6468470f491090b590, type: 3}
+      propertyPath: m_StaticEditorFlags
+      value: 4
       objectReference: {fileID: 0}
     m_RemovedComponents: []
     m_RemovedGameObjects: []
@@ -16454,6 +17270,10 @@ PrefabInstance:
       propertyPath: m_Name
       value: VIZ_FloorA_0105
       objectReference: {fileID: 0}
+    - target: {fileID: 919132149155446097, guid: cb4493524fb87f6468470f491090b590, type: 3}
+      propertyPath: m_StaticEditorFlags
+      value: 4
+      objectReference: {fileID: 0}
     m_RemovedComponents: []
     m_RemovedGameObjects: []
     m_AddedGameObjects: []
@@ -16476,7 +17296,7 @@ GameObject:
   m_TagString: Untagged
   m_Icon: {fileID: 0}
   m_NavMeshLayer: 0
-  m_StaticEditorFlags: 0
+  m_StaticEditorFlags: 4
   m_IsActive: 1
 --- !u!23 &1924237303
 MeshRenderer:
@@ -16635,6 +17455,10 @@ PrefabInstance:
       propertyPath: m_Name
       value: VIZ_SM_Debris_B_231
       objectReference: {fileID: 0}
+    - target: {fileID: 919132149155446097, guid: dfe77f0421f353343a0dabca476d4d6d, type: 3}
+      propertyPath: m_StaticEditorFlags
+      value: 4
+      objectReference: {fileID: 0}
     m_RemovedComponents: []
     m_RemovedGameObjects: []
     m_AddedGameObjects: []
@@ -16726,6 +17550,10 @@ PrefabInstance:
       propertyPath: m_Name
       value: VIZ_SM_Wall_A_154
       objectReference: {fileID: 0}
+    - target: {fileID: 919132149155446097, guid: 7c19cc73ac82d2345864e4d684951e75, type: 3}
+      propertyPath: m_StaticEditorFlags
+      value: 4
+      objectReference: {fileID: 0}
     m_RemovedComponents: []
     m_RemovedGameObjects: []
     m_AddedGameObjects: []
@@ -16786,6 +17614,10 @@ PrefabInstance:
     - target: {fileID: 919132149155446097, guid: 7fb1ff1881c87884b9c2021fbaeae10d, type: 3}
       propertyPath: m_Name
       value: VIZ_SM_Wall_B_162
+      objectReference: {fileID: 0}
+    - target: {fileID: 919132149155446097, guid: 7fb1ff1881c87884b9c2021fbaeae10d, type: 3}
+      propertyPath: m_StaticEditorFlags
+      value: 4
       objectReference: {fileID: 0}
     m_RemovedComponents: []
     m_RemovedGameObjects: []
@@ -16852,6 +17684,10 @@ PrefabInstance:
       propertyPath: m_Name
       value: VIZ_SM_Wall_C_211
       objectReference: {fileID: 0}
+    - target: {fileID: 919132149155446097, guid: 6b421c2786f962b4fa7bcf99677a8595, type: 3}
+      propertyPath: m_StaticEditorFlags
+      value: 4
+      objectReference: {fileID: 0}
     m_RemovedComponents: []
     m_RemovedGameObjects: []
     m_AddedGameObjects: []
@@ -16908,6 +17744,10 @@ PrefabInstance:
     - target: {fileID: 919132149155446097, guid: 48405bf537dde7248add1d42f9636953, type: 3}
       propertyPath: m_Name
       value: VIZ_FloorA_0106
+      objectReference: {fileID: 0}
+    - target: {fileID: 919132149155446097, guid: 48405bf537dde7248add1d42f9636953, type: 3}
+      propertyPath: m_StaticEditorFlags
+      value: 4
       objectReference: {fileID: 0}
     m_RemovedComponents: []
     m_RemovedGameObjects: []
@@ -17060,6 +17900,10 @@ PrefabInstance:
       propertyPath: m_Name
       value: VIZ_SM_Wall_B_192
       objectReference: {fileID: 0}
+    - target: {fileID: 919132149155446097, guid: 7fb1ff1881c87884b9c2021fbaeae10d, type: 3}
+      propertyPath: m_StaticEditorFlags
+      value: 4
+      objectReference: {fileID: 0}
     m_RemovedComponents: []
     m_RemovedGameObjects: []
     m_AddedGameObjects: []
@@ -17180,7 +18024,7 @@ GameObject:
   m_TagString: Untagged
   m_Icon: {fileID: 0}
   m_NavMeshLayer: 0
-  m_StaticEditorFlags: 0
+  m_StaticEditorFlags: 4
   m_IsActive: 1
 --- !u!23 &1974727519
 MeshRenderer:
@@ -17327,6 +18171,10 @@ PrefabInstance:
       propertyPath: m_Name
       value: VIZ_SM_StoneDoor_201
       objectReference: {fileID: 0}
+    - target: {fileID: 919132149155446097, guid: 4db5b53286d2071448864450d643ecc7, type: 3}
+      propertyPath: m_StaticEditorFlags
+      value: 4
+      objectReference: {fileID: 0}
     m_RemovedComponents: []
     m_RemovedGameObjects: []
     m_AddedGameObjects: []
@@ -17393,6 +18241,10 @@ PrefabInstance:
       propertyPath: m_Name
       value: VIZ_SM_Wall_B_160
       objectReference: {fileID: 0}
+    - target: {fileID: 919132149155446097, guid: 7fb1ff1881c87884b9c2021fbaeae10d, type: 3}
+      propertyPath: m_StaticEditorFlags
+      value: 4
+      objectReference: {fileID: 0}
     m_RemovedComponents: []
     m_RemovedGameObjects: []
     m_AddedGameObjects: []
@@ -17449,6 +18301,10 @@ PrefabInstance:
     - target: {fileID: 919132149155446097, guid: d74ebe84a88e55c4cb6eafa79adb4f00, type: 3}
       propertyPath: m_Name
       value: VIZ_SM_PushBlock_203
+      objectReference: {fileID: 0}
+    - target: {fileID: 919132149155446097, guid: d74ebe84a88e55c4cb6eafa79adb4f00, type: 3}
+      propertyPath: m_StaticEditorFlags
+      value: 4
       objectReference: {fileID: 0}
     m_RemovedComponents: []
     m_RemovedGameObjects: []
@@ -17511,6 +18367,10 @@ PrefabInstance:
     - target: {fileID: 919132149155446097, guid: a285e30f47c2e6c49b19ff2d8b3e821a, type: 3}
       propertyPath: m_Name
       value: VIZ_SM_Stairs_229
+      objectReference: {fileID: 0}
+    - target: {fileID: 919132149155446097, guid: a285e30f47c2e6c49b19ff2d8b3e821a, type: 3}
+      propertyPath: m_StaticEditorFlags
+      value: 4
       objectReference: {fileID: 0}
     m_RemovedComponents: []
     m_RemovedGameObjects: []
@@ -17599,6 +18459,10 @@ PrefabInstance:
       propertyPath: m_Name
       value: VIZ_FloorA_0606
       objectReference: {fileID: 0}
+    - target: {fileID: 919132149155446097, guid: cb4493524fb87f6468470f491090b590, type: 3}
+      propertyPath: m_StaticEditorFlags
+      value: 4
+      objectReference: {fileID: 0}
     m_RemovedComponents: []
     m_RemovedGameObjects: []
     m_AddedGameObjects: []
@@ -17655,6 +18519,10 @@ PrefabInstance:
     - target: {fileID: 919132149155446097, guid: cb4493524fb87f6468470f491090b590, type: 3}
       propertyPath: m_Name
       value: VIZ_FloorA_0307
+      objectReference: {fileID: 0}
+    - target: {fileID: 919132149155446097, guid: cb4493524fb87f6468470f491090b590, type: 3}
+      propertyPath: m_StaticEditorFlags
+      value: 4
       objectReference: {fileID: 0}
     m_RemovedComponents: []
     m_RemovedGameObjects: []
@@ -17713,6 +18581,10 @@ PrefabInstance:
       propertyPath: m_Name
       value: VIZ_FloorB_0600
       objectReference: {fileID: 0}
+    - target: {fileID: 919132149155446097, guid: cb4493524fb87f6468470f491090b590, type: 3}
+      propertyPath: m_StaticEditorFlags
+      value: 4
+      objectReference: {fileID: 0}
     m_RemovedComponents: []
     m_RemovedGameObjects: []
     m_AddedGameObjects: []
@@ -17769,6 +18641,10 @@ PrefabInstance:
     - target: {fileID: 919132149155446097, guid: 48405bf537dde7248add1d42f9636953, type: 3}
       propertyPath: m_Name
       value: VIZ_FloorB_0506
+      objectReference: {fileID: 0}
+    - target: {fileID: 919132149155446097, guid: 48405bf537dde7248add1d42f9636953, type: 3}
+      propertyPath: m_StaticEditorFlags
+      value: 4
       objectReference: {fileID: 0}
     m_RemovedComponents: []
     m_RemovedGameObjects: []
@@ -17827,6 +18703,10 @@ PrefabInstance:
       propertyPath: m_Name
       value: VIZ_FloorA_0506
       objectReference: {fileID: 0}
+    - target: {fileID: 919132149155446097, guid: 48405bf537dde7248add1d42f9636953, type: 3}
+      propertyPath: m_StaticEditorFlags
+      value: 4
+      objectReference: {fileID: 0}
     m_RemovedComponents: []
     m_RemovedGameObjects: []
     m_AddedGameObjects: []
@@ -17884,6 +18764,10 @@ PrefabInstance:
       propertyPath: m_Name
       value: VIZ_FloorB_0501
       objectReference: {fileID: 0}
+    - target: {fileID: 919132149155446097, guid: cb4493524fb87f6468470f491090b590, type: 3}
+      propertyPath: m_StaticEditorFlags
+      value: 4
+      objectReference: {fileID: 0}
     m_RemovedComponents: []
     m_RemovedGameObjects: []
     m_AddedGameObjects: []
@@ -17940,6 +18824,10 @@ PrefabInstance:
     - target: {fileID: 919132149155446097, guid: 48405bf537dde7248add1d42f9636953, type: 3}
       propertyPath: m_Name
       value: VIZ_FloorB_0003
+      objectReference: {fileID: 0}
+    - target: {fileID: 919132149155446097, guid: 48405bf537dde7248add1d42f9636953, type: 3}
+      propertyPath: m_StaticEditorFlags
+      value: 4
       objectReference: {fileID: 0}
     m_RemovedComponents: []
     m_RemovedGameObjects: []
@@ -18058,6 +18946,10 @@ PrefabInstance:
       propertyPath: m_Name
       value: VIZ_SM_Wall_A_190
       objectReference: {fileID: 0}
+    - target: {fileID: 919132149155446097, guid: 7c19cc73ac82d2345864e4d684951e75, type: 3}
+      propertyPath: m_StaticEditorFlags
+      value: 4
+      objectReference: {fileID: 0}
     m_RemovedComponents: []
     m_RemovedGameObjects: []
     m_AddedGameObjects: []
@@ -18119,6 +19011,10 @@ PrefabInstance:
       propertyPath: m_Name
       value: VIZ_SM_Wall_C_169
       objectReference: {fileID: 0}
+    - target: {fileID: 919132149155446097, guid: 6b421c2786f962b4fa7bcf99677a8595, type: 3}
+      propertyPath: m_StaticEditorFlags
+      value: 4
+      objectReference: {fileID: 0}
     m_RemovedComponents: []
     m_RemovedGameObjects: []
     m_AddedGameObjects: []
@@ -18176,6 +19072,10 @@ PrefabInstance:
       propertyPath: m_Name
       value: VIZ_FloorA_0003
       objectReference: {fileID: 0}
+    - target: {fileID: 919132149155446097, guid: 48405bf537dde7248add1d42f9636953, type: 3}
+      propertyPath: m_StaticEditorFlags
+      value: 4
+      objectReference: {fileID: 0}
     m_RemovedComponents: []
     m_RemovedGameObjects: []
     m_AddedGameObjects: []
@@ -18232,6 +19132,10 @@ PrefabInstance:
     - target: {fileID: 919132149155446097, guid: cb4493524fb87f6468470f491090b590, type: 3}
       propertyPath: m_Name
       value: VIZ_FloorA_0402
+      objectReference: {fileID: 0}
+    - target: {fileID: 919132149155446097, guid: cb4493524fb87f6468470f491090b590, type: 3}
+      propertyPath: m_StaticEditorFlags
+      value: 4
       objectReference: {fileID: 0}
     m_RemovedComponents: []
     m_RemovedGameObjects: []
@@ -18294,6 +19198,10 @@ PrefabInstance:
       propertyPath: m_Name
       value: VIZ_SM_Wall_A_142
       objectReference: {fileID: 0}
+    - target: {fileID: 919132149155446097, guid: 7c19cc73ac82d2345864e4d684951e75, type: 3}
+      propertyPath: m_StaticEditorFlags
+      value: 4
+      objectReference: {fileID: 0}
     m_RemovedComponents: []
     m_RemovedGameObjects: []
     m_AddedGameObjects: []
@@ -18351,6 +19259,10 @@ PrefabInstance:
       propertyPath: m_Name
       value: VIZ_FloorA_0202
       objectReference: {fileID: 0}
+    - target: {fileID: 919132149155446097, guid: cb4493524fb87f6468470f491090b590, type: 3}
+      propertyPath: m_StaticEditorFlags
+      value: 4
+      objectReference: {fileID: 0}
     m_RemovedComponents: []
     m_RemovedGameObjects: []
     m_AddedGameObjects: []
@@ -18373,7 +19285,7 @@ GameObject:
   m_TagString: Untagged
   m_Icon: {fileID: 0}
   m_NavMeshLayer: 0
-  m_StaticEditorFlags: 0
+  m_StaticEditorFlags: 4
   m_IsActive: 1
 --- !u!23 &2093616764
 MeshRenderer:
@@ -18520,6 +19432,10 @@ PrefabInstance:
       propertyPath: m_Name
       value: VIZ_FloorA_0300
       objectReference: {fileID: 0}
+    - target: {fileID: 919132149155446097, guid: 48405bf537dde7248add1d42f9636953, type: 3}
+      propertyPath: m_StaticEditorFlags
+      value: 4
+      objectReference: {fileID: 0}
     m_RemovedComponents: []
     m_RemovedGameObjects: []
     m_AddedGameObjects: []
@@ -18580,6 +19496,10 @@ PrefabInstance:
     - target: {fileID: 919132149155446097, guid: 7fb1ff1881c87884b9c2021fbaeae10d, type: 3}
       propertyPath: m_Name
       value: VIZ_SM_Wall_B_180
+      objectReference: {fileID: 0}
+    - target: {fileID: 919132149155446097, guid: 7fb1ff1881c87884b9c2021fbaeae10d, type: 3}
+      propertyPath: m_StaticEditorFlags
+      value: 4
       objectReference: {fileID: 0}
     m_RemovedComponents: []
     m_RemovedGameObjects: []
@@ -18642,6 +19562,10 @@ PrefabInstance:
       propertyPath: m_Name
       value: VIZ_SM_Wall_A_163
       objectReference: {fileID: 0}
+    - target: {fileID: 919132149155446097, guid: 7c19cc73ac82d2345864e4d684951e75, type: 3}
+      propertyPath: m_StaticEditorFlags
+      value: 4
+      objectReference: {fileID: 0}
     m_RemovedComponents: []
     m_RemovedGameObjects: []
     m_AddedGameObjects: []
@@ -18698,6 +19622,10 @@ PrefabInstance:
     - target: {fileID: 919132149155446097, guid: cb4493524fb87f6468470f491090b590, type: 3}
       propertyPath: m_Name
       value: VIZ_FloorB_0402
+      objectReference: {fileID: 0}
+    - target: {fileID: 919132149155446097, guid: cb4493524fb87f6468470f491090b590, type: 3}
+      propertyPath: m_StaticEditorFlags
+      value: 4
       objectReference: {fileID: 0}
     m_RemovedComponents: []
     m_RemovedGameObjects: []
@@ -18760,6 +19688,10 @@ PrefabInstance:
       propertyPath: m_Name
       value: VIZ_SM_Wall_D_141
       objectReference: {fileID: 0}
+    - target: {fileID: 919132149155446097, guid: 4a5724f55cb6c344bbf3658f11c11fcb, type: 3}
+      propertyPath: m_StaticEditorFlags
+      value: 4
+      objectReference: {fileID: 0}
     m_RemovedComponents: []
     m_RemovedGameObjects: []
     m_AddedGameObjects: []
@@ -18816,6 +19748,10 @@ PrefabInstance:
     - target: {fileID: 919132149155446097, guid: 48405bf537dde7248add1d42f9636953, type: 3}
       propertyPath: m_Name
       value: VIZ_FloorA_0803
+      objectReference: {fileID: 0}
+    - target: {fileID: 919132149155446097, guid: 48405bf537dde7248add1d42f9636953, type: 3}
+      propertyPath: m_StaticEditorFlags
+      value: 4
       objectReference: {fileID: 0}
     m_RemovedComponents: []
     m_RemovedGameObjects: []
@@ -18878,6 +19814,10 @@ PrefabInstance:
       propertyPath: m_Name
       value: VIZ_SM_Wall_D_150
       objectReference: {fileID: 0}
+    - target: {fileID: 919132149155446097, guid: 4a5724f55cb6c344bbf3658f11c11fcb, type: 3}
+      propertyPath: m_StaticEditorFlags
+      value: 4
+      objectReference: {fileID: 0}
     m_RemovedComponents: []
     m_RemovedGameObjects: []
     m_AddedGameObjects: []
@@ -18934,6 +19874,10 @@ PrefabInstance:
     - target: {fileID: 919132149155446097, guid: 48405bf537dde7248add1d42f9636953, type: 3}
       propertyPath: m_Name
       value: VIZ_FloorB_0706
+      objectReference: {fileID: 0}
+    - target: {fileID: 919132149155446097, guid: 48405bf537dde7248add1d42f9636953, type: 3}
+      propertyPath: m_StaticEditorFlags
+      value: 4
       objectReference: {fileID: 0}
     m_RemovedComponents: []
     m_RemovedGameObjects: []
