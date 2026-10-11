@@ -1119,10 +1119,11 @@ git commit -m "feat(M6-4): 游泳状态（固定浮水面+划水+自动上岸）
 
 **Files:**
 - Modify: `blender_assets/scripts/outdoor_props.py`（新增 `SM_Rope` / `SM_Stake`）
-- Modify: `game/3D-Demo/Assets/Editor/OutdoorBuilder.cs`（追加 `BuildRope()`）
+- Modify: `game/3D-Demo/Assets/Editor/OutdoorBuilder.cs`（追加 `BuildRope()` / `BuildAbyssMist()`）
+- Create: `game/3D-Demo/Assets/Scripts/MistDrift.cs`（深渊雾层浮动）
 
 **Interfaces:**
-- Produces: `SM_Rope`（长 22.7m 直绳，**原点在绳底端**，几何沿本地 +Y 延伸；φ 6cm + 三段螺旋纹）；`SM_Stake`（锚桩，原点=桩底，高 0.5m）；`OUT_Rope_1`（斜跨深渊：南端 `(0, -1.0, 193.5)` → 北端 `(0, 3.4, 215.8)`，对象位置=南端、旋转 `FromToRotation(up, 北-南)`）
+- Produces: `SM_Rope`（长 22.7m 直绳，**原点在绳底端**，几何沿本地 +Y 延伸；φ 6cm + 三段螺旋纹）；`SM_Stake`（锚桩，原点=桩底，高 0.5m）；`OUT_Rope_1`（斜跨深渊：南端 `(0, -1.0, 193.5)` → 北端 `(0, 3.4, 215.8)`，对象位置=南端、旋转 `FromToRotation(up, 北-南)`）；`M_Mist`（URP Unlit 透明深灰蓝，资产化）+ `OUT_Mist_1~4`（深渊雾层薄板 y -3/-10/-17/-24，alpha 0.25→0.8 渐没入黑暗）+ `MistDrift`（雾层浮动/呼吸）
 - Consumes: Task 1 深渊几何（南岸高台 -1.5 至 z=194、深渊底 -32、崖顶 y=3 起于 z≈216）
 
 - [ ] **Step 1: outdoor_props.py 追加两件**
@@ -1148,15 +1149,83 @@ static void BuildRope()
 
 （`InstantiateFbxNoCollider`=Task 2 的 `InstantiateFbx` 去掉 MeshCollider 与静态标记的变体——追加助手。）
 
+**深渊雾层（同 Step 追加）**：`Build()` 中在 `BuildRope()` 后调用 `BuildAbyssMist()`——4 层水平薄雾板让深渊“看不见底”（从崖边俯瞰：雾渐没入黑暗）。雾板会动 → **不标静态、关阴影**（M5 静态批处理教训）。
+
+```csharp
+// 深渊雾层：4 层水平薄雾板（Cube 薄板 36×0.06×14）从上到下渐浓没入黑暗——“看不见底”。
+// 透明材质共享 M_Mist；雾板会动（MistDrift 浮动）→ 不标静态、关阴影。
+static void BuildAbyssMist()
+{
+    var mat = GetOrCreateMistMat();
+    float[] ys = { -3f, -10f, -17f, -24f };
+    float[] alphas = { 0.25f, 0.45f, 0.62f, 0.8f };
+    for (int i = 0; i < ys.Length; i++)
+    {
+        var go = GameObject.CreatePrimitive(PrimitiveType.Cube);
+        go.name = "OUT_Mist_" + (i + 1);
+        Object.DestroyImmediate(go.GetComponent<BoxCollider>());                 // 不参与碰撞
+        go.transform.position = new Vector3(0f, ys[i], 201f);                   // 深渊带 z 194-208 中心
+        go.transform.localScale = new Vector3(36f, 0.06f, 14f);
+        var r = go.GetComponent<MeshRenderer>();
+        r.sharedMaterial = mat;
+        r.shadowCastingMode = UnityEngine.Rendering.ShadowCastingMode.Off;
+        r.receiveShadows = false;
+        go.AddComponent<MistDrift>().alphaBase = alphas[i];
+    }
+}
+
+static Material GetOrCreateMistMat()   // 仿 M_Flame 的资产化模式
+{
+    const string path = "Assets/Art/Static/outdoor/M_Mist.mat";
+    var m = AssetDatabase.LoadAssetAtPath<Material>(path);
+    if (m != null) return m;
+    m = new Material(Shader.Find("Universal Render Pipeline/Unlit"));
+    m.SetFloat("_Surface", 1f); m.SetFloat("_Blend", 0f);                       // 透明/Alpha
+    m.SetFloat("_SrcBlend", (float)UnityEngine.Rendering.BlendMode.SrcAlpha);
+    m.SetFloat("_DstBlend", (float)UnityEngine.Rendering.BlendMode.OneMinusSrcAlpha);
+    m.SetFloat("_ZWrite", 0f); m.renderQueue = 3000;
+    m.EnableKeyword("_SURFACE_TYPE_TRANSPARENT");
+    m.SetColor("_BaseColor", new Color(0.08f, 0.09f, 0.12f, 0.5f));            // 深灰蓝（MPB 覆写 alpha）
+    AssetDatabase.CreateAsset(m, path);
+    return m;
+}
+```
+
+**MistDrift.cs**（新建，仿 FireFlicker 的极简结构）：
+
+```csharp
+using UnityEngine;
+// M6-5: 深渊雾层漂移——慢速上下浮动 + alpha 呼吸（相位随实例错开）。
+public class MistDrift : MonoBehaviour
+{
+    public float bobAmp = 0.4f, bobSpeed = 0.15f, alphaBase = 0.5f, alphaAmp = 0.12f;
+    Vector3 basePos; Color baseCol; float phase;
+    Renderer r; MaterialPropertyBlock mpb;
+    void Start()
+    {
+        basePos = transform.position; phase = Random.value * 6.28f;
+        r = GetComponent<Renderer>(); mpb = new MaterialPropertyBlock();
+        baseCol = r.sharedMaterial.GetColor("_BaseColor");      // 共享材质取底色
+    }
+    void Update()
+    {
+        transform.position = basePos + Vector3.up * (Mathf.Sin(Time.time * bobSpeed + phase) * bobAmp);
+        var c = baseCol;
+        c.a = Mathf.Clamp01(alphaBase + Mathf.Sin(Time.time * bobSpeed * 0.7f + phase) * alphaAmp);
+        r.GetPropertyBlock(mpb); mpb.SetColor("_BaseColor", c); r.SetPropertyBlock(mpb);
+    }
+}
+```
+
 - [ ] **Step 3: 跑菜单 + 截图验证**
 
-重跑 `Demo/构建户外场景`；Play 传送南岸高台 `(0,-1.4,188)` 向北：截图（崖边双桩+斜绳横跨全黑深渊+对岸崖壁）存 `docs/milestones/M6/rope_abyss.png`。
+重跑 `Demo/构建户外场景`；Play 传送南岸高台 `(0,-1.4,188)` 向北：截图（崖边双桩+斜绳横跨全黑深渊+对岸崖壁）存 `docs/milestones/M6/rope_abyss.png`；再从崖边俯视深渊：截图（4 层漂浮雾渐没入黑暗、“看不见底”）存 `docs/milestones/M6/abyss_mist.png`。
 
 - [ ] **Step 4: Commit**
 
 ```bash
-git add blender_assets/scripts/outdoor_props.py game/3D-Demo/Assets/Editor/OutdoorBuilder.cs game/3D-Demo/Assets/Art/Static/outdoor/ docs/milestones/M6/rope.png docs/milestones/M6/rope_abyss.png
-git commit -m "feat(M6-5): 绳索与锚桩资产 + 崖壁摆放"
+git add blender_assets/scripts/outdoor_props.py game/3D-Demo/Assets/Editor/OutdoorBuilder.cs game/3D-Demo/Assets/Scripts/MistDrift.cs game/3D-Demo/Assets/Art/Static/outdoor/ docs/milestones/M6/rope.png docs/milestones/M6/rope_abyss.png docs/milestones/M6/abyss_mist.png
+git commit -m "feat(M6-5): 绳索/锚桩资产 + 崖壁摆放 + 深渊漂浮雾层"
 ```
 
 ### Task 16: RopeSystem（抓绳/攀爬/顶翻越）
