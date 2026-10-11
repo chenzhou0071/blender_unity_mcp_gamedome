@@ -1474,7 +1474,7 @@ git commit -m "feat(M6-6): 火盆检查点×3（走近记录+Flash 提示）+ �
 - Modify: `game/3D-Demo/Assets/Editor/OutdoorBuilder.cs`（接线 PlayerHealth 进 Player——或并入 Task 2 的 `InstantiateFbx` 段落的接线函数 `WirePlayerAddons()`）
 
 **Interfaces:**
-- Produces: `PlayerHealth.Hp / Damage(float) / Die()`；`SimpleUI.SetHealth(float01) / ShowDeath(string) / HideDeath()`；`AudioManager.Damage()`
+- Produces: `PlayerHealth.Hp / Damage(float) / Die()`；`SimpleUI.SetHealth(float01) / ShowDeath() / HideDeath()`（死亡黑幕=只狼风朱红双行大字“失足迷途／归火重启”）；`AudioManager.Damage()`
 - Consumes: `CheckpointSystem.Respawn/HasCheckpoint`（Task 18）、`ThirdPersonController.Swimming`（Task 14）
 
 - [ ] **Step 1: 写 PlayerHealth.cs**
@@ -1483,7 +1483,7 @@ git commit -m "feat(M6-6): 火盆检查点×3（走近记录+Flash 提示）+ �
 using System.Collections;
 using UnityEngine;
 // M6-7: 血量/摔落伤害/死亡重生。伤害面板=摔落（apex 落差>4.5m 起算，14 HP/m）；
-// 死亡：禁控→黑幕→1.8s 后回最近检查点（无检查点则出生点）→回满血。
+// 死亡：禁控→只狼风黑幕（朱红楷体大字“失足迷途／归火重启”渐入）→2.4s 后回最近检查点（无检查点则出生点）→回满血。
 public class PlayerHealth : MonoBehaviour
 {
     public float max = 100f;
@@ -1528,8 +1528,8 @@ public class PlayerHealth : MonoBehaviour
     void Die()
     {
         if (tpc) tpc.enabled = false;
-        SimpleUI.Instance?.ShowDeath("你死了");
-        Invoke(nameof(Respawn), 1.8f);
+        SimpleUI.Instance?.ShowDeath();
+        Invoke(nameof(Respawn), 2.4f);
     }
 
     void Respawn()
@@ -1561,10 +1561,58 @@ public void SetHealth(float k)
     hpFill.fillAmount = Mathf.Clamp01(k);
     hpFill.color = k > 0.3f ? new Color(0.72f, 0.18f, 0.16f) : new Color(0.85f, 0.5f, 0.12f);   // 低血变橙
 }
-// 死亡黑幕：全屏 Image（0 alpha→0.85 渐入）+ 居中红字。
-Image deathVeil; Text deathText;
-public void ShowDeath(string s) { /* 建 veil（全屏拉伸）+ deathText；协程 0.6s 渐入 */ }
-public void HideDeath() { /* veil alpha=0；deathText 隐藏 */ }
+// 死亡黑幕（只狼风）：全屏黑幕 0.7s 渐入 → 两行朱红书法大字 0.5s 随后浮现——
+// 上行“失足迷途”/ 下行“归火重启”（用户定稿文案），楷体优先逐级回退（KaiTi→STKaiti→SimSun→默认雅黑）；
+// 全流程用 unscaledDeltaTime（与血条/Flash 同一节奏，不受 timeScale 影响）。
+Image deathVeil; Text deathL1, deathL2; bool deathUIBuilt;
+public void ShowDeath()
+{
+    EnsureDeathUI();
+    deathVeil.gameObject.SetActive(true);
+    StartCoroutine(DeathFade());
+}
+void EnsureDeathUI()
+{
+    if (deathUIBuilt) return;
+    deathUIBuilt = true;
+    var kai = Font.CreateDynamicFontFromOSFont(new[] { "KaiTi", "STKaiti", "SimSun" }, 80);
+    if (!kai) kai = font;   // 回退默认雅黑
+    deathVeil = MakeImage(hudRoot, Vector2.zero, Vector2.zero, new Color(0, 0, 0, 0));
+    var vrt = deathVeil.rectTransform;
+    vrt.anchorMin = Vector2.zero; vrt.anchorMax = Vector2.one;   // 全屏拉伸
+    vrt.offsetMin = vrt.offsetMax = Vector2.zero;
+    deathL1 = MakeBigText(kai, "失足迷途", new Vector2(0, 70));
+    deathL2 = MakeBigText(kai, "归火重启", new Vector2(0, -50));
+    deathVeil.gameObject.SetActive(false);
+}
+Text MakeBigText(Font f, string s, Vector2 pos)
+{
+    var t = MakeText(deathVeil.transform, Vector2.zero, TextAnchor.MiddleCenter, s, 80);
+    t.font = f; t.color = new Color(0.62f, 0.14f, 0.12f, 0f);    // 朱红（只狼“死”字同系色）
+    var rt = t.rectTransform;
+    rt.anchorMin = rt.anchorMax = new Vector2(0.5f, 0.5f); rt.pivot = new Vector2(0.5f, 0.5f);
+    rt.anchoredPosition = pos; rt.sizeDelta = new Vector2(700, 110);
+    return t;
+}
+System.Collections.IEnumerator DeathFade()
+{
+    for (float t = 0; t < 1f; t += Time.unscaledDeltaTime / 0.7f)          // 黑幕 0.7s
+    { deathVeil.color = new Color(0, 0, 0, 0.9f * Mathf.SmoothStep(0f, 1f, t)); yield return null; }
+    deathVeil.color = new Color(0, 0, 0, 0.9f);
+    for (float t = 0; t < 1f; t += Time.unscaledDeltaTime / 0.5f)          // 文字 0.5s 随后浮现
+    {
+        float a = Mathf.SmoothStep(0f, 1f, t);
+        deathL1.color = deathL2.color = new Color(0.62f, 0.14f, 0.12f, a);
+        yield return null;
+    }
+}
+public void HideDeath()
+{
+    if (!deathUIBuilt) return;
+    deathVeil.gameObject.SetActive(false);
+    deathVeil.color = new Color(0, 0, 0, 0);
+    deathL1.color = deathL2.color = new Color(0.62f, 0.14f, 0.12f, 0f);
+}
 // MakeImage 助手：new GameObject(name, typeof(Image)) + SetParent + RectTransform 配置（anchoredPosition/sizeDelta）
 ```
 
@@ -1592,7 +1640,7 @@ static void WirePlayerAddons()
 
 - [ ] **Step 5: Play 验证（先败后成）**
 
-① 跳下 3m 高台：断言无伤（落差 3m<4.5m，Hp=100）；② 传送 `(0, 8, 70)` 自由落体到草原（落差≈9.5m）：断言 Hp=100-(9.5-4.5)×14=30、血条变短、Flash"-70"；③ 再摔一次到死：断言黑幕出现→1.8s 后回到 Cp1 附近且 Hp=100（截重生后画面）；④ 截图：血条（满/低血）与死亡黑幕各 1 张。
+① 跳下 3m 高台：断言无伤（落差 3m<4.5m，Hp=100）；② 传送 `(0, 8, 70)` 自由落体到草原（落差≈9.5m）：断言 Hp=100-(9.5-4.5)×14=30、血条变短、Flash"-70"；③ 再摔到死：断言黑幕渐入→朱红双行大字“失足迷途／归火重启”浮现（楷体）——**截死亡画面 1 张**；2.4s 后回到 Cp1 附近且 Hp=100。④ **一期死地复验**：从崖顶 `(0, 3.2, 218)` 向南跑出边缘坠入深谷（3→-9 落差 12m → 105 伤害一击死），确认“一期唯一死地=高处坠落”成立；⑤ 截图：血条（满/低血）1 张。
 
 - [ ] **Step 6: Commit**
 
