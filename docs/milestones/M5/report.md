@@ -28,10 +28,11 @@
 
 ### 3. 静态批处理标记
 
-- 对 **250 个静止环境网格**标记 `BatchingStatic` 并保存场景：
-  - VIZ_ 程序化资产 236 个（墙/柱/地板/藤蔓/火盆底座等）
+- 对 **246 个静止环境网格**标记 `BatchingStatic` 并保存场景：
+  - VIZ_ 程序化资产 232 个（墙/柱/地板/藤蔓/火盆底座等）
   - 灰盒对象：FloorA/FloorB/GroundOutside、WallA_*/WallB_*/WallAB_*、ClimbableLedge、Altar
 - 排除会动/透明对象：StoneDoor、PushBlock、PressurePlate、Treasure、Flame_*（火焰光团）。
+- **修正记录**：初版按“VIZ_”前缀标记 250 个，其中 4 个会动对象的视觉子网格（VIZ_SM_StoneDoor_201 / VIZ_SM_PushBlock_203 / VIZ_SM_PressurePlate_202 / VIZ_SM_Treasure_204）被误标——静态批处理仅在打包版本生效，会导致“模型与碰撞体分离”，打包验证时发现并已剔除。
 - 说明：低模场景 draw call 压力本就很小，标记属"交付规范预留"——后续继续加资产时静态批处理自动生效。
 
 ### 4. 测试方法（可复现）
