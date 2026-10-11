@@ -88,7 +88,9 @@ headless 用法: blender.exe --background --factory-startup --python canyon_terr
   z  46- 96  草原缓起伏 y≈-1.5±0.6
   z  96-126  岩缝段 y=-1.5 平底（|x|>1.4 升壁 3m，缝顶另摆横石）
   z 126-176  河谷下切（河床 y=-3.5，水面 y=-2.6，宽 18m）
-  z 176-216  深谷崖壁（谷底 y=-9；对岸 z≥208 升至崖顶 y=3）
+  z 176-194  南岸高台 y=-1.5（深渊边缘可走行；爬绳段起点）
+  z 194-208  深渊带（底 y=-32 全黑不可达，坠入即死；斜绳横越其上）
+  z 208-216  对岸崖壁（35m 升至崖顶 y=3）
   z 216-254  崖顶平台 y=3（30×30 平坦，smoothstep 收边）
 两侧崖壁：|x|>20 渐升 +15~+35（各段参数略不同）；噪声三频叠加（路径带 |x|<3 减半保可走性）。
 """
@@ -116,8 +118,9 @@ def path_height(z):
     if z < 176:                                                  # 河谷下切
         k = sstep(126, 140, z) * (1 - sstep(164, 176, z))
         return -1.5 - 2.0 * k                                     # 河床 -3.5 → 回 -1.5
-    if z < 208:  return -1.5 - 7.5 * sstep(176, 196, z)           # 深谷下到 -9
-    return -9.0 + 12.0 * sstep(208, 216, z)                       # 对岸升到 +3
+    if z < 194:  return -1.5                                      # 南岸高台（深渊边缘）
+    if z < 208:  return -1.5 - 30.5 * sstep(194, 206, z)          # 断崖直落：深渊底 -32（全黑不可达）
+    return -32.0 + 35.0 * sstep(208, 216, z)                      # 对岸崖壁 35m 升至崖顶 +3
 
 def wall_height(x, z):
     """两侧崖壁抬升（|x|>20 渐升）。"""
@@ -1110,7 +1113,7 @@ git commit -m "feat(M6-4): 游泳状态（固定浮水面+划水+自动上岸）
 
 ## Milestone M6-5：爬绳上崖
 
-> 里程碑目标：深谷对岸崖壁垂绳；谷底按 W 抓绳、上爬到顶自动翻上崖顶。**完成后停下汇报等待确认。**
+> 里程碑目标：**斜绳横跨深渊**——南岸崖边按 W 抓绳、沿绳爬升横越到对岸崖顶；**绳下即深渊，松手坠入即死**（死亡判定 M6-7 接入）。**完成后停下汇报等待确认。**
 
 ### Task 15: 绳索资产 + 崖壁摆放
 
@@ -1119,23 +1122,27 @@ git commit -m "feat(M6-4): 游泳状态（固定浮水面+划水+自动上岸）
 - Modify: `game/3D-Demo/Assets/Editor/OutdoorBuilder.cs`（追加 `BuildRope()`）
 
 **Interfaces:**
-- Produces: `SM_Rope`（长 12.2m 竖直绳，**原点在绳顶**，几何向下延伸；φ 6cm + 三段螺旋纹）；`SM_Stake`（锚桩）；`OUT_Rope_1`（位置 `(0, 3.0, 215.5)`，绳底垂到 y≈-9.2）
-- Consumes: Task 1 深谷几何（谷底 -9、崖顶 y=3 起于 z≈216）
+- Produces: `SM_Rope`（长 22.7m 直绳，**原点在绳底端**，几何沿本地 +Y 延伸；φ 6cm + 三段螺旋纹）；`SM_Stake`（锚桩，原点=桩底，高 0.5m）；`OUT_Rope_1`（斜跨深渊：南端 `(0, -1.0, 193.5)` → 北端 `(0, 3.4, 215.8)`，对象位置=南端、旋转 `FromToRotation(up, 北-南)`）
+- Consumes: Task 1 深渊几何（南岸高台 -1.5 至 z=194、深渊底 -32、崖顶 y=3 起于 z≈216）
 
 - [ ] **Step 1: outdoor_props.py 追加两件**
 
-SM_Rope：主体圆柱（r 0.030，沿高 40 段）+ 三股螺旋细棱（每段螺旋半径 0.036/管径 0.011，~1200 tris）；`M_Rope`（(0.45,0.36,0.22) rough 0.95）。原点=绳顶（对象位置即锚点）。SM_Stake：圆柱 r0.05 h0.5 + 顶环（~400 tris），`M_Metal_Dark`。导出 + 渲染绳特写到 `docs/milestones/M6/rope.png` → 拷贝 FBX。
+SM_Rope：主体圆柱（r 0.030，**长 22.7m 沿本地 +Y、40 段**）+ 三股螺旋细棱（每段螺旋半径 0.036/管径 0.011，~1200 tris）；`M_Rope`（(0.45,0.36,0.22) rough 0.95）。**原点=绳南底端**（对象位置即南端锚点，斜向由旋转给出）。SM_Stake：圆柱 r0.05 h0.5（**原点=桩底**）+ 顶环（~400 tris），`M_Metal_Dark`。导出 + 渲染绳特写到 `docs/milestones/M6/rope.png` → 拷贝 FBX。
 
 - [ ] **Step 2: OutdoorBuilder 追加 BuildRope()**
 
 ```csharp
-// 深谷对岸崖沿：绳顶挂在 (0, 3.0, 215.5)（崖壁 smoothstep z 208→216，215.5 处地形 ≈2.93≈崖顶）；
-// 锚桩放 (0, 3.25, 215.0)；绳 12.2m 垂下到 y≈-9.2（谷底 -9 上方 0.2m）。
+// 斜绳横跨深渊：南端锚点 (0, -1.0, 193.5)（南岸高台 -1.5 的崖边；桩底着地、桩顶 -1.0 即绳南端）；
+// 北端锚点 (0, 3.4, 215.8)（崖顶 y=3 起于 z≈216，215.8 处地形 ≈2.94；北桩底 2.94、桩顶 3.44）。
+// SM_Rope 原点在南底端、几何沿本地 +Y 长 22.7m；旋转 FromToRotation(up, 北-南) 即斜跨深渊。
 static void BuildRope()
 {
-    InstantiateFbxNoCollider("SM_Stake", new Vector3(0f, 3.25f, 215.0f));
-    var rope = InstantiateFbxNoCollider("SM_Rope", new Vector3(0f, 3.0f, 215.5f));
+    InstantiateFbxNoCollider("SM_Stake", new Vector3(0f, -1.5f, 193.5f));    // 南端桩（崖边）
+    InstantiateFbxNoCollider("SM_Stake", new Vector3(0f, 2.94f, 215.8f));    // 北端桩（崖顶）
+    var rope = InstantiateFbxNoCollider("SM_Rope", new Vector3(0f, -1.0f, 193.5f));
     rope.name = "OUT_Rope_1";                 // 绳本体不加碰撞（爬绳走 RopeSystem 状态判定）
+    Vector3 north = new Vector3(0f, 3.4f, 215.8f) - rope.transform.position;   // 南→北斜向
+    rope.transform.rotation = Quaternion.FromToRotation(Vector3.up, north.normalized);
 }
 ```
 
@@ -1143,12 +1150,12 @@ static void BuildRope()
 
 - [ ] **Step 3: 跑菜单 + 截图验证**
 
-重跑 `Demo/构建户外场景`；Play 传送谷底 `(0,-8.6,205)` 向北：截图（仰视绳+崖壁）存 `docs/milestones/M6/rope_bottom.png`。
+重跑 `Demo/构建户外场景`；Play 传送南岸高台 `(0,-1.4,188)` 向北：截图（崖边双桩+斜绳横跨全黑深渊+对岸崖壁）存 `docs/milestones/M6/rope_abyss.png`。
 
 - [ ] **Step 4: Commit**
 
 ```bash
-git add blender_assets/scripts/outdoor_props.py game/3D-Demo/Assets/Editor/OutdoorBuilder.cs game/3D-Demo/Assets/Art/Static/outdoor/ docs/milestones/M6/rope.png docs/milestones/M6/rope_bottom.png
+git add blender_assets/scripts/outdoor_props.py game/3D-Demo/Assets/Editor/OutdoorBuilder.cs game/3D-Demo/Assets/Art/Static/outdoor/ docs/milestones/M6/rope.png docs/milestones/M6/rope_abyss.png
 git commit -m "feat(M6-5): 绳索与锚桩资产 + 崖壁摆放"
 ```
 
@@ -1161,34 +1168,31 @@ git commit -m "feat(M6-5): 绳索与锚桩资产 + 崖壁摆放"
 
 **Interfaces:**
 - Produces: `RopeSystem.IsRoping`（public 只读）；攀爬时复用 `climbing` Animator 参数（与 ClimbSystem 共用 A_Climb 动画）
-- Consumes: Task 15 的 `OUT_Rope_1`（Transform 原点=绳顶）；现有 `ClimbSystem` 的接管写法
+- Consumes: Task 15 的 `OUT_Rope_1`（Transform 原点=绳南底端，本地 up=斜绳轴向）；现有 `ClimbSystem` 的接管写法
 
 - [ ] **Step 1: 写 RopeSystem.cs**
 
 ```csharp
 using UnityEngine;
-// M6-5: 爬绳——靠近+按W+面向绳→抓绳（吸附绳轴旁）→W/S 上下→头顶及顶自动翻越/到底与空格松手。
-// 结构仿 ClimbSystem；挂在绳对象上（本物体原点=绳顶）。
+// M6-5: 爬绳（斜绳横跨深渊版）——靠近绳南端+按 W+面向绳 → 抓绳（投影吸附到绳轴）。
+// 轴=本地 up（对象已旋转，即南→北斜向）；W/S 沿轴上下；到北端自动顶翻越上崖顶；
+// 空格=松手坠落（绳下即深渊，坠入由 M6-7 的 AbyssVolume 判死）；S 回到南端落地。
+// 结构仿 ClimbSystem；挂在绳对象上（对象原点=绳南底端；本组件不在玩家上，运行时查 Player）。
 public class RopeSystem : MonoBehaviour
 {
-    public float ropeLength = 12.2f;                       // 自原点向下
-    public float grabRadius = 0.85f, climbSpeed = 1.2f, topOutSpeed = 2.0f;
-    public float topOutRise = 0.55f, topOutForward = 1.1f; // 翻越：升 0.55+前移 1.1 → 站上崖顶
+    public float ropeLength = 22.7f;                       // 南端原点沿 +up（斜向）全长
+    public float grabRadius = 0.85f, climbSpeed = 2.0f, topOutSpeed = 2.0f;
+    public float hangOffset = 0.9f, sideOffset = 0.25f;    // 吊挂姿态：身体在轴点下 0.9m、侧偏 0.25m（渲染后校准）
     public bool IsRoping { get; private set; }
+    public static RopeSystem Active;                       // TPC 分支用（组件在绳上而非玩家）
 
     CharacterController cc;
     Transform playerT;
+    float ropeT;                                           // 攀爬进度（沿轴米数）
     bool topping; float topT; Vector3 topFrom, topTo;
 
-    void Awake() { cc = GetComponent<CharacterController>(); }
-    // 说明：RopeSystem 与 ClimbSystem 同挂 Player？——不：本组件挂在绳上，需要拿到玩家 CC。
-    // 采用与 GoalTrigger 相同的模式：运行时查 Player。
-}
-```
+    Vector3 Axis => transform.up;                          // 斜绳轴（南→北向上）
 
-**修正**：绳上组件拿玩家引用——`void Update()` 开头 `if (!playerT) { var p = GameObject.FindGameObjectWithTag("Player"); if (p) { playerT = p.transform; cc = p.GetComponent<CharacterController>(); } }`。完整逻辑：
-
-```csharp
     void Update()
     {
         if (!playerT)
@@ -1199,56 +1203,61 @@ public class RopeSystem : MonoBehaviour
         }
         if (IsRoping) { TickRope(); return; }
 
-        // 抓绳条件：水平距绳 < grabRadius；在绳段落内；按 W；面向绳（点积>0.4）
-        Vector3 ropeTop = transform.position;
-        Vector3 toRope = ropeTop - playerT.position; toRope.y = 0f;
-        float horiz = toRope.magnitude;
-        float bottomY = ropeTop.y - ropeLength;
-        if (horiz > grabRadius) return;
-        if (playerT.position.y > ropeTop.y + 0.3f || playerT.position.y < bottomY - 0.5f) return;
+        // 抓绳条件：离绳轴最近点 < grabRadius；处于绳底段（t<3，只能从南端上绳）；按 W；面向绳
+        Vector3 rel = playerT.position - transform.position;
+        float t = Mathf.Clamp(Vector3.Dot(rel, Axis), 0f, ropeLength);
+        Vector3 near = transform.position + Axis * t;
+        if ((playerT.position - near).magnitude > grabRadius || t > 3f) return;
         if (Input.GetAxisRaw("Vertical") <= 0.1f) return;
-        if (Vector3.Dot(playerT.forward, toRope.normalized) < 0.4f) return;
-        BeginRope(toRope.normalized);
+        Vector3 face = near - playerT.position; face.y = 0f;
+        if (face.sqrMagnitude < 0.001f) return;
+        face.Normalize();
+        if (Vector3.Dot(playerT.forward, face) < 0.4f) return;
+        IsRoping = true; Active = this; ropeT = t;
+        SnapToRope(face);
     }
 
-    void BeginRope(Vector3 face)
+    void SnapToRope(Vector3 face)
     {
-        IsRoping = true;
-        // 吸附：站到绳轴旁 0.28m（面朝绳→玩家在绳的来侧）
-        Vector3 snap = transform.position; snap.y = playerT.position.y;
-        cc.Move(new Vector3(snap.x - playerT.position.x, 0f, snap.z - playerT.position.z) - face * 0.28f);
-        playerT.rotation = Quaternion.LookRotation(face, Vector3.up);   // 面朝绳/崖壁
+        Vector3 target = RopePoint(ropeT) - face * sideOffset;   // 站在绳的来侧 0.25m
+        target.y -= hangOffset;                                  // 吊挂：身体在轴点下 0.9m
+        cc.Move(target - playerT.position);
+        Vector3 f = Axis; f.y = 0f;
+        playerT.rotation = Quaternion.LookRotation(f.normalized, Vector3.up);   // 面朝行进方向（北）
     }
+
+    Vector3 RopePoint(float t) => transform.position + Axis * t;
 
     void TickRope()
     {
-        Vector3 ropeTop = transform.position;
-        float bottomY = ropeTop.y - ropeLength;
-
         if (topping)
         {
             topT += Time.deltaTime * topOutSpeed;
             float k = Mathf.SmoothStep(0f, 1f, Mathf.Clamp01(topT));
-            Vector3 p = Vector3.Lerp(topFrom, topTo, k);
-            cc.Move(p - playerT.position);
-            if (topT >= 1f) { topping = false; IsRoping = false; }
+            cc.Move(Vector3.Lerp(topFrom, topTo, k) - playerT.position);
+            if (topT >= 1f) { topping = false; IsRoping = false; Active = null; }
             return;
         }
 
-        if (Input.GetButtonDown("Jump")) { IsRoping = false; return; }   // 空格松手
+        if (Input.GetButtonDown("Jump")) { IsRoping = false; Active = null; return; }   // 空格松手坠落
         float v = Input.GetAxisRaw("Vertical");
-        if (v < -0.1f && playerT.position.y <= bottomY + 0.2f) { IsRoping = false; return; }  // 到底松手
 
-        // 顶部触发：头顶（+1.7）接近绳顶
-        if (v > 0.1f && playerT.position.y + 1.7f >= ropeTop.y - 0.25f)
+        // 北端到顶：进度达全长 → 翻越上崖顶（崖顶地面 y=3，落点 z≈216.3）
+        if (v > 0.1f && ropeT >= ropeLength - 0.4f)
         {
             topping = true; topT = 0f;
             topFrom = playerT.position;
-            topTo = new Vector3(ropeTop.x, ropeTop.y + topOutRise, ropeTop.z + topOutForward);
+            topTo = new Vector3(transform.position.x, 3.05f, 216.3f);
             return;
         }
-        cc.Move(Vector3.up * (v * climbSpeed) * Time.deltaTime);
+        // 南端到底：S 持续 → 落地松手（站回南岸崖边）
+        if (v < -0.1f && ropeT <= 0.15f) { IsRoping = false; Active = null; return; }
+
+        ropeT = Mathf.Clamp(ropeT + v * climbSpeed * Time.deltaTime, 0f, ropeLength);
+        Vector3 face = Axis; face.y = 0f;
+        SnapToRope(face.normalized);
     }
+}
 ```
 
 - [ ] **Step 2: ThirdPersonController 集成**
@@ -1267,15 +1276,15 @@ if ((climb && climb.IsClimbing) || (rope && rope.IsRoping)) { velocityY = 0f; ai
 
 SyncAnimator：`anim.SetBool("climbing", (climb && climb.IsClimbing) || (RopeSystem.Active && RopeSystem.Active.IsRoping));`
 
-其余 TPC 改动为两行替换（climb 分支条件 + SyncAnimator）。RopeSystem 中补 `public static RopeSystem Active;`（BeginRope 设 Active=this；两处松手/完成处置 null）。
+其余 TPC 改动为两行替换（climb 分支条件 + SyncAnimator）。`public static RopeSystem Active` 已在 Step 1 代码内置（抓绳设 this；两处松手/翻越完成置 null）。
 
 - [ ] **Step 3: OutdoorBuilder：绳对象挂 RopeSystem**
 
-`BuildRope()` 中绳对象附加：`rope.AddComponent<RopeSystem>();`（绳长 12.2 默认值即可）。重跑菜单保存。
+`BuildRope()` 中绳对象附加：`rope.AddComponent<RopeSystem>();`（`ropeLength=22.7` / `climbSpeed=2.0` 均为组件默认值，无需额外赋值）。重跑菜单保存。
 
 - [ ] **Step 4: Play 验证（先败后成）**
 
-① 传送谷底 `(0,-8.6,210)` 朝北近崖壁：断言 `RopeSystem.Active==null`（未抓）；② 按 W 走近绳：断言抓绳（`Active.IsRoping==true`）；③ 持续 W 上升：断言 y 递增至 ≈3.55（绳顶+翻越）后 `IsRoping==false`、位置 z>215（站上崖顶）；④ 截图：抓绳中 / 半空攀爬 / 登顶远眺各 1 张。
+① 传送南岸高台 `(0,-1.4,188)` 朝北：断言 `RopeSystem.Active==null`（未抓）；② 按 W 走近崖边绳南端：断言抓绳（`Active.IsRoping==true`）；③ 持续 W：断言沿轴爬升：z 从 ≈193.5 递增至 ≈215.8、y 从 ≈-0.6 递增至 ≈2.5，到北端自动翻越后 `IsRoping==false`、站上崖顶（y≈3.05、z≈216.3）；④ **松手验证**：爬至中段（`ropeT`≈11）按空格 → 断言坠落开始（`IsRoping==false`、y 递减；坠入深渊即死由 M6-7 的 AbyssVolume 接管——到时此步升级为死亡断言）；⑤ 截图：抓绳中 / 半空横越（俯视下方深渊）/ 登顶远眺各 1 张。
 
 - [ ] **Step 5: Commit**
 
@@ -1463,18 +1472,19 @@ git commit -m "feat(M6-6): 火盆检查点×3（走近记录+Flash 提示）+ �
 
 ## Milestone M6-7：血条 / 摔伤 / 死亡重生 / ESC 菜单
 
-> 里程碑目标：血条 HUD；摔落伤害+死亡黑屏+检查点重生；ESC 暂停菜单（继续/退出生效，保存与回档灰置）。**完成后停下汇报等待确认。**
+> 里程碑目标：血条 HUD；摔落伤害 + 深渊即死 + 只狼风死亡黑屏 + 检查点重生；ESC 暂停菜单（继续/退出生效，保存与回档灰置）。**完成后停下汇报等待确认。**
 
 ### Task 19: 血条 + 摔落伤害 + 死亡重生
 
 **Files:**
 - Create: `game/3D-Demo/Assets/Scripts/PlayerHealth.cs`
+- Create: `game/3D-Demo/Assets/Scripts/AbyssVolume.cs`（深渊即死区）
 - Modify: `game/3D-Demo/Assets/Scripts/SimpleUI.cs`（+血条 +死亡黑幕）
 - Modify: `game/3D-Demo/Assets/Scripts/AudioManager.cs`（+`Damage()`）
 - Modify: `game/3D-Demo/Assets/Editor/OutdoorBuilder.cs`（接线 PlayerHealth 进 Player——或并入 Task 2 的 `InstantiateFbx` 段落的接线函数 `WirePlayerAddons()`）
 
 **Interfaces:**
-- Produces: `PlayerHealth.Hp / Damage(float) / Die()`；`SimpleUI.SetHealth(float01) / ShowDeath() / HideDeath()`（死亡黑幕=只狼风朱红双行大字“失足迷途／归火重启”）；`AudioManager.Damage()`
+- Produces: `PlayerHealth.Hp / Damage(float) / Kill()`（深渊等无条件即死）；`AbyssVolume`（盒区判定：y<-4 且 z 194-208 坠入即死）；`SimpleUI.SetHealth(float01) / ShowDeath() / HideDeath()`（死亡黑幕=只狼风朱红双行大字“失足迷途／归火重启”）；`AudioManager.Damage()`
 - Consumes: `CheckpointSystem.Respawn/HasCheckpoint`（Task 18）、`ThirdPersonController.Swimming`（Task 14）
 
 - [ ] **Step 1: 写 PlayerHealth.cs**
@@ -1523,6 +1533,14 @@ public class PlayerHealth : MonoBehaviour
         SimpleUI.Instance?.Flash("-" + Mathf.RoundToInt(d));
         AudioManager.Instance?.Damage();
         if (Hp <= 0f) Die();
+    }
+
+    public void Kill()          // 坠入深渊等无条件即死（不按摔落落差，直接进入死亡流程）
+    {
+        if (Hp <= 0f) return;
+        Hp = 0f;
+        SimpleUI.Instance?.SetHealth(0f);
+        Die();
     }
 
     void Die()
@@ -1622,7 +1640,31 @@ public void HideDeath()
 public void Damage() => OneShot(land, 0.5f);   // 复用落地实录音低音量（过渡方案，M6-8 打磨可换）
 ```
 
-- [ ] **Step 4: OutdoorBuilder 接线（`WirePlayerAddons()`，在 Build 末尾调用）**
+- [ ] **Step 4: AbyssVolume.cs + OutdoorBuilder 接线（`WirePlayerAddons()`，在 Build 末尾调用）**
+
+**AbyssVolume.cs**（深渊即死区：盒心 (0,-20,201)、尺寸 (80,32,14) → z 194-208、|x|<40、y -36~-4）：
+
+```csharp
+using UnityEngine;
+// M6-7: 深渊即死区——玩家进入盒区（坠入 y<-4）立即死亡，不等落地。
+public class AbyssVolume : MonoBehaviour
+{
+    public Bounds box = new Bounds(new Vector3(0f, -20f, 201f), new Vector3(80f, 32f, 14f));
+    PlayerHealth ph; Transform playerT;
+    void Update()
+    {
+        if (!playerT)
+        {
+            var p = GameObject.FindGameObjectWithTag("Player");
+            if (!p) return;
+            playerT = p.transform; ph = p.GetComponent<PlayerHealth>();
+        }
+        if (ph && box.Contains(playerT.position)) ph.Kill();
+    }
+}
+```
+
+`WirePlayerAddons()` 追加建区（幂等）：
 
 ```csharp
 static void WirePlayerAddons()
@@ -1635,17 +1677,19 @@ static void WirePlayerAddons()
         var atk = player.AddComponent<Attack>();
         atk.knifePrefab = AssetDatabase.LoadAssetAtPath<GameObject>("Assets/Art/Static/hero_props/SM_Knife.fbx");
     }
+    if (!GameObject.Find("OUT_AbyssVolume"))
+        new GameObject("OUT_AbyssVolume").AddComponent<AbyssVolume>();   // 默认盒=深渊带
 }
 ```
 
 - [ ] **Step 5: Play 验证（先败后成）**
 
-① 跳下 3m 高台：断言无伤（落差 3m<4.5m，Hp=100）；② 传送 `(0, 8, 70)` 自由落体到草原（落差≈9.5m）：断言 Hp=100-(9.5-4.5)×14=30、血条变短、Flash"-70"；③ 再摔到死：断言黑幕渐入→朱红双行大字“失足迷途／归火重启”浮现（楷体）——**截死亡画面 1 张**；2.4s 后回到 Cp1 附近且 Hp=100。④ **一期死地复验**：从崖顶 `(0, 3.2, 218)` 向南跑出边缘坠入深谷（3→-9 落差 12m → 105 伤害一击死），确认“一期唯一死地=高处坠落”成立；⑤ 截图：血条（满/低血）1 张。
+① 跳下 3m 高台：断言无伤（落差 3m<4.5m，Hp=100）；② 传送 `(0, 8, 70)` 自由落体到草原（落差≈9.5m）：断言 Hp=100-(9.5-4.5)×14=30、血条变短、Flash"-70"；③ 再摔到死：断言黑幕渐入→朱红双行大字“失足迷途／归火重启”浮现（楷体）——**截死亡画面 1 张**；2.4s 后回到 Cp1 附近且 Hp=100。④ **深渊即死复验**：传送南岸高台 `(0, -1.4, 192)` 朝北走出崖边——断言坠入深渊带（y<-4）**瞬间**死亡（不等落地、不按落差）→“失足迷途／归火重启”黑幕 → 重生回 Cp2 `(-3,-1.5,180)` 附近；再验爬绳中段松手同样坠渊即死；⑤ 截图：血条（满/低血）1 张。
 
 - [ ] **Step 6: Commit**
 
 ```bash
-git add game/3D-Demo/Assets/Scripts/PlayerHealth.cs game/3D-Demo/Assets/Scripts/SimpleUI.cs game/3D-Demo/Assets/Scripts/AudioManager.cs game/3D-Demo/Assets/Editor/OutdoorBuilder.cs docs/milestones/M6/
+git add game/3D-Demo/Assets/Scripts/PlayerHealth.cs game/3D-Demo/Assets/Scripts/AbyssVolume.cs game/3D-Demo/Assets/Scripts/SimpleUI.cs game/3D-Demo/Assets/Scripts/AudioManager.cs game/3D-Demo/Assets/Editor/OutdoorBuilder.cs docs/milestones/M6/
 git commit -m "feat(M6-7): 血条+摔落伤害+死亡重生（接检查点）"
 ```
 
@@ -1802,7 +1846,7 @@ git commit -m "docs(M6-8): 一期验收报告 + README 更新"
 **1. Spec 覆盖检查**
 | Spec 要求 | 对应任务 |
 |---|---|
-| 七段关卡（出口楼梯/草原/岩缝/藤/河谷/深谷绳/崖顶遗迹） | T1-T3 / T5-T6 / T9 / T12 / T13 / T15-T16 / T17 |
+| 七段关卡（出口楼梯/草原/岩缝/藤/河谷/深渊斜绳/崖顶遗迹） | T1-T3 / T5-T6 / T9 / T12 / T13 / T15-T16 / T17 |
 | 蹲行（C，头顶净空限制） | T7-T8 |
 | 挥刀（左键、前方判定、砍藤） | T10-T12 |
 | 游泳（固定浮水面、划水、上岸、无消耗） | T13-T14 |
