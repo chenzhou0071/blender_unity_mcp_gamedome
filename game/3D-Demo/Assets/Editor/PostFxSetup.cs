@@ -73,7 +73,43 @@ public static class PostFxSetup
             AssetDatabase.CreateAsset(flameMat, flameMatPath);
         }
         flameMat.shader = Shader.Find("Universal Render Pipeline/Unlit");   // 兼容旧 Lit 资产迁移
-        flameMat.SetColor("_BaseColor", new Color(4.5f, 1.9f, 0.35f, 1f));  // HDR ×4.5 橙（值>1 直出过曝；实测定档）
+        flameMat.SetColor("_BaseColor", new Color(4.5f, 1.9f, 0.35f, 0.5f));  // HDR ×4.5 半透明橙（alpha 0.5；实测定档）
+        // 半透明直出：Unlit 透明混合（Blend 由属性直控，无 keyword 依赖）；关 ZWrite、进透明队列
+        flameMat.SetFloat("_Surface", 1f);
+        flameMat.SetFloat("_Blend", 0f);
+        flameMat.SetFloat("_SrcBlend", 5f);    // SrcAlpha
+        flameMat.SetFloat("_DstBlend", 10f);   // OneMinusSrcAlpha
+        flameMat.SetFloat("_ZWrite", 0f);
+        flameMat.EnableKeyword("_SURFACE_TYPE_TRANSPARENT");
+        flameMat.renderQueue = 3000;
+        // 径向渐变遮罩：中心实、向外渐透——火焰边缘半透明（生成一次后复用）
+        const string flameTexPath = "Assets/Settings/T_FlameFalloff.png";
+        var flameTex = AssetDatabase.LoadAssetAtPath<Texture2D>(flameTexPath);
+        if (flameTex == null)
+        {
+            int size = 128;
+            var tex = new Texture2D(size, size, TextureFormat.RGBA32, false);
+            for (int y = 0; y < size; y++)
+            {
+                for (int x = 0; x < size; x++)
+                {
+                    float dx = (x + 0.5f - size / 2f) / (size / 2f);
+                    float dy = (y + 0.5f - size / 2f) / (size / 2f);
+                    float a = Mathf.Clamp01(1f - Mathf.Sqrt(dx * dx + dy * dy));
+                    tex.SetPixel(x, y, new Color(1f, 1f, 1f, a * a));
+                }
+            }
+            tex.Apply();
+            System.IO.File.WriteAllBytes(Application.dataPath + "/Settings/T_FlameFalloff.png", tex.EncodeToPNG());
+            UnityEngine.Object.DestroyImmediate(tex);
+            AssetDatabase.ImportAsset(flameTexPath, ImportAssetOptions.ForceUpdate);
+            var imp = (TextureImporter)AssetImporter.GetAtPath(flameTexPath);
+            imp.alphaIsTransparency = true;
+            imp.wrapMode = TextureWrapMode.Clamp;
+            imp.SaveAndReimport();
+            flameTex = AssetDatabase.LoadAssetAtPath<Texture2D>(flameTexPath);
+        }
+        flameMat.SetTexture("_BaseMap", flameTex);
         EditorUtility.SetDirty(flameMat);
         AssetDatabase.SaveAssetIfDirty(flameMat);
 
@@ -90,8 +126,8 @@ public static class PostFxSetup
                 go.transform.SetParent(l.transform, false);
                 flame = go.transform;
             }
-            flame.localPosition = new Vector3(0f, 0.35f, 0f);    // 盆口上方——球底恰好坐在盆沿（实测定档），盆体轮廓隐约可见
-            flame.localScale = new Vector3(0.7f, 0.95f, 0.7f);   // 椭球
+            flame.localPosition = new Vector3(0f, -0.08f, 0f);   // 光团微沉入碗口（实测定档·三轮）
+            flame.localScale = new Vector3(0.2f, 0.3f, 0.2f);    // 细长椭圆火苗（三轮定档：两轮收敛后的小尺寸）
             var fr = flame.GetComponent<MeshRenderer>();
             fr.sharedMaterial = flameMat;
             fr.shadowCastingMode = UnityEngine.Rendering.ShadowCastingMode.Off;
