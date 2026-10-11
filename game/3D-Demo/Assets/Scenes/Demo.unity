@@ -1281,6 +1281,7 @@ GameObject:
   - component: {fileID: 243768819}
   - component: {fileID: 243768821}
   - component: {fileID: 243768822}
+  - component: {fileID: 243768823}
   m_Layer: 0
   m_Name: TorchB_L
   m_TagString: Untagged
@@ -1494,6 +1495,21 @@ AudioSource:
     m_PreInfinity: 2
     m_PostInfinity: 2
     m_RotationOrder: 4
+--- !u!114 &243768823
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 243768818}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 102714dcec91bc3469d2e07f64acec29, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: Assembly-CSharp::FireFlicker
+  baseIntensity: 2.2
+  amp: 0.5
+  speed: 8
 --- !u!1001 &253833253
 PrefabInstance:
   m_ObjectHideFlags: 0
@@ -5476,6 +5492,7 @@ GameObject:
   - component: {fileID: 689733815}
   - component: {fileID: 689733817}
   - component: {fileID: 689733818}
+  - component: {fileID: 689733819}
   m_Layer: 0
   m_Name: TorchB_R
   m_TagString: Untagged
@@ -5689,6 +5706,21 @@ AudioSource:
     m_PreInfinity: 2
     m_PostInfinity: 2
     m_RotationOrder: 4
+--- !u!114 &689733819
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 689733814}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 102714dcec91bc3469d2e07f64acec29, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: Assembly-CSharp::FireFlicker
+  baseIntensity: 2.2
+  amp: 0.5
+  speed: 8
 --- !u!1001 &691555694
 PrefabInstance:
   m_ObjectHideFlags: 0
@@ -7105,7 +7137,7 @@ MonoBehaviour:
     m_Bits: 1
   m_VolumeTrigger: {fileID: 0}
   m_VolumeFrameworkUpdateModeOption: 2
-  m_RenderPostProcessing: 0
+  m_RenderPostProcessing: 1
   m_Antialiasing: 0
   m_AntialiasingQuality: 2
   m_StopNaN: 0
@@ -7532,6 +7564,55 @@ Transform:
   m_LocalRotation: {x: 0, y: 0, z: 0, w: 1}
   m_LocalPosition: {x: 0, y: 2.8500001, z: 22}
   m_LocalScale: {x: 16, y: 6.3, z: 0.5}
+  m_ConstrainProportionsScale: 0
+  m_Children: []
+  m_Father: {fileID: 0}
+  m_LocalEulerAnglesHint: {x: 0, y: 0, z: 0}
+--- !u!1 &935391802
+GameObject:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  serializedVersion: 6
+  m_Component:
+  - component: {fileID: 935391804}
+  - component: {fileID: 935391803}
+  m_Layer: 0
+  m_Name: Global Volume
+  m_TagString: Untagged
+  m_Icon: {fileID: 0}
+  m_NavMeshLayer: 0
+  m_StaticEditorFlags: 0
+  m_IsActive: 1
+--- !u!114 &935391803
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 935391802}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 172515602e62fb746b5d573b38a5fe58, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: Unity.RenderPipelines.Core.Runtime::UnityEngine.Rendering.Volume
+  m_IsGlobal: 1
+  priority: 0
+  blendDistance: 0
+  weight: 1
+  sharedProfile: {fileID: 11400000, guid: 0d0af6e0040a82342a41fa0453912711, type: 2}
+--- !u!4 &935391804
+Transform:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 935391802}
+  serializedVersion: 2
+  m_LocalRotation: {x: 0, y: 0, z: 0, w: 1}
+  m_LocalPosition: {x: 0, y: 0, z: 0}
+  m_LocalScale: {x: 1, y: 1, z: 1}
   m_ConstrainProportionsScale: 0
   m_Children: []
   m_Father: {fileID: 0}
@@ -11761,6 +11842,7 @@ GameObject:
   - component: {fileID: 1441316760}
   - component: {fileID: 1441316762}
   - component: {fileID: 1441316763}
+  - component: {fileID: 1441316764}
   m_Layer: 0
   m_Name: TorchA_R
   m_TagString: Untagged
@@ -11974,6 +12056,21 @@ AudioSource:
     m_PreInfinity: 2
     m_PostInfinity: 2
     m_RotationOrder: 4
+--- !u!114 &1441316764
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 1441316759}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 102714dcec91bc3469d2e07f64acec29, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: Assembly-CSharp::FireFlicker
+  baseIntensity: 2.2
+  amp: 0.5
+  speed: 8
 --- !u!1001 &1441895715
 PrefabInstance:
   m_ObjectHideFlags: 0
@@ -12834,6 +12931,7 @@ GameObject:
   - component: {fileID: 1567247730}
   - component: {fileID: 1567247732}
   - component: {fileID: 1567247733}
+  - component: {fileID: 1567247734}
   m_Layer: 0
   m_Name: TorchA_L
   m_TagString: Untagged
@@ -13047,6 +13145,21 @@ AudioSource:
     m_PreInfinity: 2
     m_PostInfinity: 2
     m_RotationOrder: 4
+--- !u!114 &1567247734
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 1567247729}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 102714dcec91bc3469d2e07f64acec29, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: Assembly-CSharp::FireFlicker
+  baseIntensity: 2.2
+  amp: 0.5
+  speed: 8
 --- !u!1001 &1575876230
 PrefabInstance:
   m_ObjectHideFlags: 0
@@ -18680,3 +18793,4 @@ SceneRoots:
   - {fileID: 524840733}
   - {fileID: 216804588}
   - {fileID: 1827190608}
+  - {fileID: 935391804}
