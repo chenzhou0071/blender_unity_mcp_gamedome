@@ -87,7 +87,8 @@ headless 用法: blender.exe --background --factory-startup --python canyon_terr
   z  34- 46  下行坡道 y=0 → -1.5（视觉铺 SM_Step 台阶）
   z  46- 96  草原缓起伏 y≈-1.5±0.6
   z  96-126  岩缝段 y=-1.5 平底（|x|>1.4 升壁 3m，缝顶另摆横石）
-  z 126-176  河谷下切（河床 y=-3.5，水面 y=-2.6，宽 18m）
+  z 126-176  河谷段：两岸缓坡河滩 + 横向河身（河床 y=-3.5、水面 y=-2.6；水线宽 ~19m，
+             河道沿 x 横贯峡谷抵两侧崖壁——无路可绕，只能游泳通过）
   z 176-194  南岸高台 y=-1.5（深渊边缘可走行；爬绳段起点）
   z 194-208  深渊带（底 y=-32 全黑不可达，坠入即死；斜绳横越其上）
   z 208-216  对岸崖壁（35m 升至崖顶 y=3）
@@ -115,9 +116,9 @@ def path_height(z):
     if z < 46:   return -1.5 * sstep(34, 46, z)                  # 出口坡道
     if z < 96:   return -1.5                                      # 草原
     if z < 126:  return -1.5                                      # 岩缝平底
-    if z < 176:                                                  # 河谷下切
-        k = sstep(126, 140, z) * (1 - sstep(164, 176, z))
-        return -1.5 - 2.0 * k                                     # 河床 -3.5 → 回 -1.5
+    if z < 176:                                                  # 河谷：横向河身 + 两岸缓坡河滩
+        k = sstep(134, 146, z) * (1 - sstep(154, 166, z))
+        return -1.5 - 2.0 * k                                     # 河床 -3.5（深槽 z 146-154）
     if z < 194:  return -1.5                                      # 南岸高台（深渊边缘）
     if z < 208:  return -1.5 - 30.5 * sstep(194, 206, z)          # 断崖直落：深渊底 -32（全黑不可达）
     return -32.0 + 35.0 * sstep(208, 216, z)                      # 对岸崖壁 35m 升至崖顶 +3
@@ -164,14 +165,14 @@ def build_terrain():
 
 - [ ] **Step 2: 补导出/渲染/断言段并 headless 跑**
 
-（脚本后续段：SM_Step 构建 → 材质 → triangulate → 导出（`axis_forward='-Z', axis_up='Y'`，与 temple_kit 相同）→ assert（顶点数 ≈185×65、FBX >20KB、tris ≤ 30k）→ `--render` 时顶视+两个透视渲染到 `docs/milestones/M6/`）
+（脚本后续段：SM_Step 构建 → 材质 → triangulate → 导出（`axis_forward='-Z', axis_up='Y'`，与 temple_kit 相同）→ assert（顶点数 ≈185×65、FBX >20KB、tris ≤ 30k）→ `--render` 时顶视+两个透视+河谷俯瞰渲染到 `docs/milestones/M6/`）
 
 Run: `blender.exe --background --factory-startup --python blender_assets/scripts/canyon_terrain.py -- --render`
-Expected: 输出 `OK terrain verts=... tris=... fbx=...B`，三张渲染图生成且 >20KB
+Expected: 输出 `OK terrain verts=... tris=... fbx=...B`，四张渲染图生成且 >20KB
 
 - [ ] **Step 3: 人工检查渲染图**
 
-看 `terrain_top.png`（顶视：七段可辨）与透视两张（峡谷两侧壁、河谷下切、对岸崖顶）。**不看图不提交**。
+看 `terrain_top.png`（顶视：七段可辨）、透视两张（峡谷两侧壁、对岸崖顶）与 `terrain_river.png`（河谷俯瞰：横河贯通两岸崖壁、无步行绕行通路）。**不看图不提交**。
 
 - [ ] **Step 4: Commit**
 
@@ -248,8 +249,8 @@ public static class OutdoorBuilder
 先执行菜单 `Demo/构建户外场景`，然后 unityMCP 进 Play，`execute_code` 采样 3 点：
 
 ```csharp
-// 期望: 三点射线命中高度 ≈ { z=30:y≈0±1, z=70:y≈-1.5±1, z=140:y≈-3.2±1 }
-foreach (float z in new float[]{30f, 70f, 140f}) {
+// 期望: 三点射线命中高度 ≈ { z=30:y≈0±1, z=70:y≈-1.5±1, z=150:y≈-3.5±1.5 }
+foreach (float z in new float[]{30f, 70f, 150f}) {
     Physics.Raycast(new Vector3(0, 30f, z), Vector3.down, out var hit, 100f);
     Debug.Log($"[M6-1] z={z} groundY={hit.point.y:F2}");
 }
@@ -409,7 +410,7 @@ git commit -m "feat(M6-1): 植被资产五件（草簇/灌木×2/树×2，程序
 
 ```csharp
 // 规则：射线从 (x, 40, z) 向下；要求命中 OUT_SM_CanyonTerrain；法线 y>0.85（坡度<32°）；
-// 路径带 |x|<4 不撒树（草可）；高程带权重：草原段(z 46-96)最密、河谷(z126-176)只草、崖壁(|x|>20)不撒。
+// 路径带 |x|<4 不撒树（草可）；高程带权重：草原段(z 46-96)最密、河谷(z 126-176)只草（水下 z≈140-160 不撒）、崖壁(|x|>20)不撒。
 // 随机：格点 + 抖动 0-2m；旋转随机 yaw；缩放 0.8-1.3。
 ```
 
@@ -887,7 +888,7 @@ public class CuttableVine : MonoBehaviour, ICuttable
         done = true;
         AudioManager.Instance?.Chop();
         var col = GetComponent<Collider>(); if (col) col.enabled = false;
-        SimpleUI.Instance?.SetObjective("继续向北，穿过河谷");
+        SimpleUI.Instance?.SetObjective("继续向北——游过河谷");
         StartCoroutine(Fall(dir));
     }
 
@@ -937,8 +938,8 @@ git commit -m "feat(M6-3): 藤蔓帘（塌落斩断+提示+Chop 音效）"
 - Modify: `game/3D-Demo/Assets/Editor/OutdoorBuilder.cs`（追加 `BuildWater()`）
 
 **Interfaces:**
-- Produces: `WaterVolume.Instance`（静态单例）；`waterLevel`（水面 y=-2.6）；`Contains(Vector3)`（水平矩形范围判定）；`OUT_Water` 水面对象（45×50m，URP Lit 透明水色）
-- Consumes: Task 1 河谷段（河床 -3.5、水面 -2.6、z 126-176）
+- Produces: `WaterVolume.Instance`（静态单例）；`waterLevel`（水面 y=-2.6）；`Contains(Vector3)`（水平矩形范围判定）；`OUT_Water` 水面对象（48×22m，URP Lit 透明水色）
+- Consumes: Task 1 河谷段（河床 -3.5、水面 -2.6、水线 z≈140-160）
 
 - [ ] **Step 1: 写 WaterVolume.cs（位置判定——CC 不产生 Trigger 事件，沿用 GoalTrigger 经验）**
 
@@ -949,7 +950,7 @@ public class WaterVolume : MonoBehaviour
 {
     public static WaterVolume Instance;
     public float waterLevel = -2.6f;
-    public Vector2 xzMin = new Vector2(-22.5f, 126f), xzMax = new Vector2(22.5f, 176f);
+    public Vector2 xzMin = new Vector2(-24f, 139f), xzMax = new Vector2(24f, 160f);
 
     void Awake() { Instance = this; }
 
@@ -971,8 +972,8 @@ static void BuildWater()
     var go = GameObject.CreatePrimitive(PrimitiveType.Plane);
     go.name = "OUT_Water";
     Object.DestroyImmediate(go.GetComponent<Collider>());          // 水面不参与碰撞（游泳走状态判定）
-    go.transform.position = new Vector3(0, -2.6f, 151f);
-    go.transform.localScale = new Vector3(4.5f, 1, 5f);            // 45m × 50m
+    go.transform.position = new Vector3(0, -2.6f, 149.5f);
+    go.transform.localScale = new Vector3(4.8f, 1, 2.2f);          // 48m × 22m（横向河身）
     var mat = new Material(Shader.Find("Universal Render Pipeline/Lit"));
     mat.SetFloat("_Surface", 1); mat.SetFloat("_Blend", 0);        // Transparent
     mat.SetColor("_BaseColor", new Color(0.10f, 0.30f, 0.36f, 0.72f));
@@ -983,7 +984,7 @@ static void BuildWater()
     AssetDatabase.SaveAssets();
     go.GetComponent<MeshRenderer>().sharedMaterial = AssetDatabase.LoadAssetAtPath<Material>("Assets/Art/Static/outdoor/M_Water.mat");
     var wv = new GameObject("OUT_WaterVolume").AddComponent<WaterVolume>();   // 判定体与水面同坐标
-    wv.transform.position = new Vector3(0, -2.6f, 151f);
+    wv.transform.position = new Vector3(0, -2.6f, 149.5f);
 }
 ```
 

@@ -5,7 +5,8 @@ headless 用法: blender.exe --background --factory-startup --python canyon_terr
   z  34- 46  下行坡道 y=0 → -1.5（视觉铺 SM_Step 台阶）
   z  46- 96  草原缓起伏 y≈-1.5±0.6
   z  96-126  岩缝段 y=-1.5 平底（|x|>1.4 升壁 3m，缝顶另摆横石）
-  z 126-176  河谷下切（河床 y=-3.5，水面 y=-2.6，宽 18m）
+  z 126-176  河谷段：两岸缓坡河滩 + 横向河身（河床 y=-3.5、水面 y=-2.6；水线宽 ~19m，
+             河道沿 x 横贯峡谷抵两侧崖壁——无路可绕，只能游泳通过）
   z 176-194  南岸高台 y=-1.5（深渊边缘可走行；爬绳段起点）
   z 194-208  深渊带（底 y=-32 全黑不可达，坠入即死；斜绳横越其上）
   z 208-216  对岸崖壁（35m 升至崖顶 y=3）
@@ -66,9 +67,9 @@ def path_height(z):
     if z < 46:   return -1.5 * sstep(34, 46, z)                  # 出口坡道
     if z < 96:   return -1.5                                      # 草原
     if z < 126:  return -1.5                                      # 岩缝平底
-    if z < 176:                                                  # 河谷下切
-        k = sstep(126, 140, z) * (1 - sstep(164, 176, z))
-        return -1.5 - 2.0 * k                                     # 河床 -3.5 → 回 -1.5
+    if z < 176:                                                  # 河谷：横向河身 + 两岸缓坡河滩
+        k = sstep(134, 146, z) * (1 - sstep(154, 166, z))
+        return -1.5 - 2.0 * k                                     # 河床 -3.5（深槽 z 146-154）
     if z < 194:  return -1.5                                      # 南岸高台（深渊边缘）
     if z < 208:  return -1.5 - 30.5 * sstep(194, 206, z)          # 断崖直落：深渊底 -32（全黑不可达）
     return -32.0 + 35.0 * sstep(208, 216, z)                      # 对岸崖壁 35m 升至崖顶 +3
@@ -272,15 +273,27 @@ def render_views():
         assert size > 20000, f"渲染图过小: {path} {size}B"
         print(f"RENDER ok {os.path.basename(path)} {size}B engine={scene.render.engine}")
 
-    # 顶视：七段可辨
+    # 顶视：七段可辨（低角度侧光→河谷/岩缝/深渊呈浮雕明暗；渲染后恢复原光照）
+    sun.rotation_euler = (1.15, 0.0, 0.0)
+    fill_data.energy = 0.15
     shoot(os.path.join(RENDER_DIR, "terrain_top.png"),
           (0, -139, 340), (0, -139, 0), 32, 1024, 1536)
-    # 透视 1：河谷中段回望——两侧崖壁夹持的峡谷纵深（草原→岩缝→河谷下切）
+    sun.rotation_euler = (0.75, 0.15, 0.5)
+    fill_data.energy = 1.0
+    # 透视 1：河谷中段回望——两侧崖壁夹持的峡谷纵深（草原→岩缝→横向河谷）
     shoot(os.path.join(RENDER_DIR, "terrain_persp1.png"),
           (6, -60, 5), (-2, -150, -2), 42, 1280, 960)
     # 透视 2：南岸高台边缘俯瞰——深渊断面→对岸崖壁→崖顶平台
     shoot(os.path.join(RENDER_DIR, "terrain_persp2.png"),
           (0, -160, 16), (0, -210, -4), 42, 1280, 960)
+    # 透视 3：河谷瞭望——出岩缝南望：河滩前景 → 横向河槽 → 对岸缓坡（水线宽 ~19m）
+    # 临时低角度侧光：高角度光下 2m 浅槽对比弱，低角度光让南北坡呈浮雕明暗（渲染后恢复）
+    sun.rotation_euler = (1.15, 0.0, 0.0)
+    fill_data.energy = 0.15
+    shoot(os.path.join(RENDER_DIR, "terrain_river.png"),
+          (0, -128, 4), (0, -152, -3.5), 24, 1280, 960)
+    sun.rotation_euler = (0.75, 0.15, 0.5)
+    fill_data.energy = 1.0
 
 
 def main():
