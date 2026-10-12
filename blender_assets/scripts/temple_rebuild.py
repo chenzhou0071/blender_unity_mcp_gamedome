@@ -341,7 +341,7 @@ def build_grand_stair():
 
 
 def build_torch():
-    """壁挂火把：石托+木柄+火盆口（火心 y≈0.95，Unity 侧火焰球摆局部 +1.15 高）；
+    """壁挂火把：石托+木柄+火盆口（盆口 0.15 见方，火心≈0.88；Unity 侧火焰球摆局部 y≈0.9）；
     原点=贴墙点，正面朝 Unity +z 伸出。材质槽 0=石 1=木 2=铁。"""
     wall = ubox("to_wall", (0.4, 0.5, 0.24), (0, 0.25, 0.12))               # 贴墙石托
     # 木柄：长 0.57，绕 x 转 38° 后中心平移到 (0,-0.325,0.525)——两端≈托内 (0,-0.15,0.30) → 碗底 (0,-0.50,0.75)
@@ -350,8 +350,8 @@ def build_torch():
     shaft.rotation_euler = Euler((math.radians(38), 0, 0))
     shaft.location = (0, -0.325, 0.525)
     shaft.data.transform(shaft.matrix_basis); shaft.matrix_basis.identity()
-    bowl = ubox("to_bowl", (0.34, 0.22, 0.34), (0, 0.85, 0.55))             # 火盆口（上开）
-    coal = ubox("to_coal", (0.26, 0.06, 0.26), (0, 0.95, 0.55))             # 炭火面
+    bowl = ubox("to_bowl", (0.15, 0.10, 0.15), (0, 0.79, 0.55))            # 火盆口（上开；盆口 0.15 见方）
+    coal = ubox("to_coal", (0.11, 0.04, 0.11), (0, 0.84, 0.55))            # 炭火面（微凸盆沿 0.02）
     for p in shaft.data.polygons:
         p.material_index = 1
     for ob in (bowl, coal):
