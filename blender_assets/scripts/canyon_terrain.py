@@ -11,7 +11,7 @@ headless 用法: blender.exe --background --factory-startup --python canyon_terr
   z 194-208  深渊带（底 y=-32 全黑不可达，坠入即死；斜绳横越其上）
   z 208-216  对岸崖壁（35m 升至崖顶 y=3）
   z 216-254  崖顶平台 y=3（30×30 平坦，smoothstep 收边）
-两侧崖壁：|x|>20 渐升 +15~+35（各段参数略不同）；噪声三频叠加（路径带 |x|<3 减半保可走性）。
+两侧崖壁：|x|>45 渐升 +15~+50（各段参数略不同）；噪声三频叠加（路径带 |x|<3 减半保可走性）。
 坐标约定：Blender 里几何存 (x, -z, 高度)（Z-up 自然），导出（axis_up='Y'）后即 Unity 的 (x, 高度, z)。
 """
 import bpy, bmesh, random, os, sys, math
@@ -24,7 +24,7 @@ SCENES_DIR = os.path.join(ROOT, "scenes")
 RENDER_DIR = os.path.join(ROOT, "..", "docs", "milestones", "M6")
 DO_RENDER = "--render" in sys.argv
 
-X_MIN, X_MAX, Z_MIN, Z_MAX = -40.0, 40.0, 24.0, 254.0
+X_MIN, X_MAX, Z_MIN, Z_MAX = -80.0, 80.0, 24.0, 254.0
 GRID = 1.25                       # 顶点间距（米）
 
 MATERIALS = {
@@ -88,10 +88,10 @@ def gorge_wall(x, z):
 
 
 def wall_height(x, z):
-    """两侧崖壁抬升（|x|>20 渐升）。"""
+    """两侧崖壁抬升（|x|>45 渐升；谷底开阔带 40m→90m，配合 X±80 加宽）。"""
     ax = abs(x)
-    if ax < 20: return 0.0
-    base = min(35.0, (ax - 20) * 1.4)
+    if ax < 45: return 0.0
+    base = min(50.0, (ax - 45) * 1.4)
     wob = noise.noise(Vector((x * 0.05, z * 0.05, 7.3))) * 6.0    # 崖壁起伏
     return base + wob
 
@@ -107,7 +107,7 @@ def height(x, z):
 
 
 def build_terrain():
-    nx = int((X_MAX - X_MIN) / GRID) + 1        # 65
+    nx = int((X_MAX - X_MIN) / GRID) + 1        # 129
     nz = int((Z_MAX - Z_MIN) / GRID) + 1        # 185
     me = bpy.data.meshes.new("SM_CanyonTerrain")
     verts, faces = [], []
@@ -141,8 +141,9 @@ def add_box(name, size, loc=(0, 0, 0), subdiv_cuts=0):
 
 
 def build_step():
-    """单级台阶：宽 4m × 高 0.2m × 深 0.6m，原点在底面中心（Unity 直接按 z 摆放）。"""
-    o = add_box("SM_Step", (4.0, 0.6, 0.2), loc=(0, 0, 0.1), subdiv_cuts=1)
+    """单级台阶：宽 4m × 深 1.5m × 高 1.2m；顶面仍高出原点 0.2（摆位语义不变）——板体沿步距前后相抵（1.5m 无缝）、
+    加深埋入地形：消除原 0.6×0.2 薄板板间露地 0.9m、板底悬空的"悬浮"观感。"""
+    o = add_box("SM_Step", (4.0, 1.5, 1.2), loc=(0, 0, -0.4), subdiv_cuts=1)
     jitter(o, 0.008, zmin=0.03)
     return o
 
@@ -305,9 +306,9 @@ def main():
     flat(terrain)
     triangulate(terrain)
     verts = len(terrain.data.vertices)
-    assert verts == 185 * 65, f"地形顶点数不符: {verts}"     # 185×65=12025
+    assert verts == 185 * 129, f"地形顶点数不符: {verts}"    # 185×129=23865
     tris_t = tris_of(terrain)
-    assert tris_t <= 30000, f"地形面数超预算: {tris_t}"
+    assert tris_t <= 50000, f"地形面数超预算: {tris_t}"
     p1 = export_obj(terrain)
     s1 = os.path.getsize(p1)
     assert s1 > 20480, f"地形 FBX 过小: {s1}B"

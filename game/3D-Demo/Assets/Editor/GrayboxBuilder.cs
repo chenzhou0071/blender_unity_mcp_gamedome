@@ -2,6 +2,8 @@ using UnityEngine;
 using UnityEditor;
 using UnityEditor.SceneManagement;
 
+// M6-1 弃用说明：正式场景由「Demo/构建户外场景」（OutdoorBuilder）+「Demo/重建神庙」（TempleBuilder）
+// 在本灰盒基线上重建；攀爬台/祭坛/宝物段已删（M6 改为穿越神庙北门出峡谷，无攀爬取宝玩法）。
 public static class GrayboxBuilder
 {
     [MenuItem("Demo/构建灰盒关卡")]
@@ -31,9 +33,7 @@ public static class GrayboxBuilder
         var door = Box("StoneDoor", LevelSpec.DoorPos, new Vector3(3f, 4f, 0.4f));
         door.AddComponent<StoneDoor>();
 
-        // 攀爬石台
-        var ledge = Box("ClimbableLedge", LevelSpec.LedgeCenter, LevelSpec.LedgeSize);
-        ledge.layer = LayerMask.NameToLayer(LevelSpec.LayerClimbable);
+        // 攀爬石台与祭坛/宝物段：M6-1 已删（出口改为穿过神庙北门）
 
         // 压力板 + 推石块
         var plate = Box("PressurePlate", LevelSpec.PlatePos, new Vector3(1.2f, 0.1f, 1.2f));
@@ -47,13 +47,7 @@ public static class GrayboxBuilder
         rb.constraints = RigidbodyConstraints.FreezeRotation | RigidbodyConstraints.FreezePositionY;
         block.AddComponent<PushBlock>();
 
-        // 祭坛 + 宝物 + 终点触发
-        Box("Altar", LevelSpec.AltarPos, new Vector3(2, 1, 1));
-        var treasure = Box("Treasure", LevelSpec.TreasurePos, Vector3.one * 0.4f);
-        var sc = treasure.AddComponent<SphereCollider>(); sc.isTrigger = true; sc.radius = 3.75f; // 世界半径≈1.5（父缩放 0.4）
-        treasure.AddComponent<GoalTrigger>();
-
-        // 玩家（胶囊视觉 + CharacterController + 控制器/攀爬/推挤 + 相机）
+        // 玩家（胶囊视觉 + CharacterController + 控制器/推挤 + 相机）
         var player = new GameObject("Player");
         player.name = "Player"; player.tag = "Player";
         player.transform.position = LevelSpec.PlayerSpawn;

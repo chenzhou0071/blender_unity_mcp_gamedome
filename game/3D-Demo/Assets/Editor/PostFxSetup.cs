@@ -10,6 +10,22 @@ public static class PostFxSetup
     [MenuItem("Tools/M5/Setup Atmosphere")]
     public static void Setup()
     {
+        // 0) 抗锯齿（迭代 4：修"下楼梯台阶边缘蠕动闪烁"）——
+        //    无 AA 时：下楼梯正对密集台阶硬棱线 + 火把发光球高对比边缘，移动中剧烈 crawl；
+        //    MSAA 4x（URP 资产全局）管几何边缘；SMAA（见第 3 步）补半透明/泛光边缘
+        var rp = GraphicsSettings.currentRenderPipeline as UniversalRenderPipelineAsset;
+        if (rp != null)
+        {
+            if (rp.msaaSampleCount < 4)
+            {
+                rp.msaaSampleCount = 4;
+                EditorUtility.SetDirty(rp);
+                AssetDatabase.SaveAssets();
+            }
+            Debug.Log("[PostFxSetup] AA：MSAA=" + rp.msaaSampleCount + "x");
+        }
+        else Debug.LogWarning("[PostFxSetup] URP 资产未找到，MSAA 未设置");
+
         // 1) 火盆闪烁：命名 Torch* 的点光（与 AudioWiring 的火盆识别口径一致）
         int torches = 0;
         foreach (var l in UnityEngine.Object.FindObjectsByType<Light>(FindObjectsSortMode.None))
@@ -18,6 +34,8 @@ public static class PostFxSetup
             var ff = l.gameObject.GetComponent<FireFlicker>();
             if (ff == null) ff = l.gameObject.AddComponent<FireFlicker>();
             ff.baseIntensity = l.intensity;              // 以当前亮度为基准（Edit 模式下为场景原值）
+            ff.amp = 0.12f;                              // 迭代 3/4（用户）：23% → 8% → 6% 柔跳（走动闪烁再压一档）
+            ff.speed = 1.6f;                             // 频率 8 → 2.2 → 1.6：慢速呼吸式波动，保留火苗感
             torches++;
         }
         Debug.Log("[PostFxSetup] FireFlicker: " + torches + " 个火盆");
@@ -53,13 +71,15 @@ public static class PostFxSetup
         }
         tmap.mode.Override(TonemappingMode.ACES);
 
-        // 3) 相机后处理开关（URP 相机默认关闭）
+        // 3) 相机后处理开关 + SMAA（URP 相机默认关闭）
         var cam = Camera.main;
         if (cam != null)
         {
             var data = cam.GetComponent<UniversalAdditionalCameraData>();
             if (data == null) data = cam.gameObject.AddComponent<UniversalAdditionalCameraData>();
             data.renderPostProcessing = true;
+            if (data.antialiasing == AntialiasingMode.None)
+                data.antialiasing = AntialiasingMode.SubpixelMorphologicalAntiAliasing;
         }
         else Debug.LogWarning("[PostFxSetup] Camera.main 未找到，后处理开关未设置");
 

@@ -31,13 +31,21 @@ public static class AudioWiring
         am.goalChime = Load("goal_chime.wav");
 
         // 火盆噼啪：3D 空间源——线性衰减（二轮试听：只有贴近才听清）
+        // 迭代 2（用户定）：壁挂火把不需要声音——噼啪只留给火盆（检查点）：火盆灯名 Torch_Hall/Torch_Court（无后缀）
         var fireClip = Load("fire_crackle.wav");
         if (!fireClip) Debug.LogWarning("[AudioWiring] fire_crackle.wav 未找到");
-        int fireCount = 0;
+        int fireCount = 0, torchMuted = 0;
         foreach (var l in UnityEngine.Object.FindObjectsByType<Light>(FindObjectsSortMode.None))
         {
             if (!l.name.StartsWith("Torch")) continue;
+            bool isBrazier = l.name == "Torch_Hall" || l.name == "Torch_Court";
             var src = l.gameObject.GetComponent<AudioSource>();
+            if (!isBrazier)
+            {
+                // 壁挂火把：静音；幂等清理旧版误挂在火把上的音源
+                if (src != null) { UnityEngine.Object.DestroyImmediate(src); torchMuted++; }
+                continue;
+            }
             if (src == null) src = l.gameObject.AddComponent<AudioSource>();
             src.clip = fireClip;
             src.loop = true;
@@ -49,7 +57,7 @@ public static class AudioWiring
             src.playOnAwake = true;
             fireCount++;
         }
-        Debug.Log("[AudioWiring] 火盆空间音源: " + fireCount + " 个（近响远弱）");
+        Debug.Log("[AudioWiring] 火盆空间音源: " + fireCount + " 个（近响远弱）；壁挂火把静音（清理旧音源 " + torchMuted + " 个）");
 
         // M5-3.1: 音频听者——位置跟随人物（3D 距离衰减按人物算，而非相机；相机会后移 5m，
         // 导致"人物贴着火盆却听不清"）；朝向跟随相机（左右声场与画面一致）。

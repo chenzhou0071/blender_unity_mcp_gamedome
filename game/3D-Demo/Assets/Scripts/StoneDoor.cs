@@ -12,7 +12,7 @@ public class StoneDoor : MonoBehaviour
     {
         if (!open)
         {
-            if (SimpleUI.Instance) SimpleUI.Instance.SetObjective("石门已开——攀上高台，取得圣物！");
+            if (SimpleUI.Instance) SimpleUI.Instance.SetObjective("石门已开——穿过楼梯间，寻找出口！");
             AudioManager.Instance?.Door();                       // M5-2: 开门轰隆（仅状态切换首帧）
         }
         open = true;

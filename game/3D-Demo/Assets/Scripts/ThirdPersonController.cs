@@ -14,7 +14,7 @@ public class ThirdPersonController : MonoBehaviour
     bool jumpPending; float jumpDelayT; bool jumpIsRun;   // M4-9: 起跳前摇（蹲→蹬→离地时序对齐 A_Jump）；M4-11: 起跳档位（跑跳）
     bool airLocked; Vector3 airVel;       // M4-11: 跑跳空中惯性（离地时启用按下瞬间锁定的起跳冲量，松键不空中急停）
     const float runJumpDelay = 0.1f;      // M4-11: 跑跳前摇 0.1s（对齐 A_JumpRun f3 蹬伸；走/立定跳保持 0.26s）
-    bool wasGrounded; float stepDist;     // M5-2: 上帧着地状态（落地检测）/ 脚步位移累计
+    bool wasGrounded; float stepDist; float airPeakY;   // M5-2: 上帧着地状态（落地检测）/ 脚步位移累计；M6-1: 空中峰值高度（落地音落差判定用）
 
     void Awake() { cc = GetComponent<CharacterController>(); climb = GetComponent<ClimbSystem>(); }
 
@@ -24,7 +24,10 @@ public class ThirdPersonController : MonoBehaviour
     {
         if (climb && climb.IsClimbing) { velocityY = 0f; airLocked = false; SyncAnimator(); return; }   // 攀爬期间交出控制权（跑跳扑墙则清除惯性锁）
         bool grounded = cc.isGrounded;
-        if (!wasGrounded && grounded && velocityY < -3f) AudioManager.Instance?.Land();   // M5-2: 落地音（下落足够快才响，轻踩不触发）
+        if (wasGrounded && !grounded) airPeakY = transform.position.y;               // M6-1: 离地帧——记录起点高度
+        else if (!grounded) airPeakY = Mathf.Max(airPeakY, transform.position.y);    // M6-1: 空中——追踪峰值高度
+        if (!wasGrounded && grounded && airPeakY - transform.position.y > 0.9f)      // M6-1: 落地落差 > 半人高（CC 1.8m 的 50%）才播落地音
+            AudioManager.Instance?.Land();
         wasGrounded = grounded;
         if (grounded && velocityY < 0f) velocityY = -2f;
 

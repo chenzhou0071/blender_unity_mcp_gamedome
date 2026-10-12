@@ -11,6 +11,7 @@ game/**/[Bb]uild*/
 game/**/[Mm]emoryCaptures/
 game/**/[Rr]ecordings/
 game/**/Assets/Screenshots/
+game/**/Captures/
 *.csproj
 *.sln
 *.user
