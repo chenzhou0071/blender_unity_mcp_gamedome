@@ -4,7 +4,7 @@
 >
 > **执行规则（用户约定，优先于流程默认）**：里程碑制——**每个里程碑的全部任务完成后停下汇报，等用户确认后再继续下一个里程碑**；用户未下达"开工"指令前不启动任何任务。
 
-**Goal:** 在现有神庙 demo 基础上扩展出一期"最小完整循环"：神庙石门→下行台阶→草原→蹲行岩缝→挥刀砍藤→游泳过河→爬绳上崖→崖顶遗迹终点（含血条/摔伤/检查点重生/ESC 菜单）。
+**Goal:** 在现有神庙 demo 基础上扩展出一期"最小完整循环"：神庙石门→楼梯间下行→前庭→台阶→森林→蹲行岩缝→挥刀砍藤→游泳过河→爬绳上崖→崖顶遗迹终点（含血条/摔伤/检查点重生/ESC 菜单）。
 
 **Architecture:** 户外场景采用"地形高度场 + Kit 复用 + 植被散布"三段式：Blender 程序化生成峡谷地形 FBX（含七段剖面），Unity 侧 `OutdoorBuilder.cs` 作为户外场景唯一构建器（仿 `KitPlacer` 的幂等摆放模式）增量扩展 Demo.unity；移动四能力（蹲/泳/绳/刀）以"独立组件 + ThirdPersonController 状态扩展 + Animator 参数接线"模式实现，复用 ClimbSystem 的接管/吸附写法。
 
@@ -32,6 +32,7 @@
 | 文件 | 职责 |
 |---|---|
 | `blender_assets/scripts/canyon_terrain.py` | 峡谷地形高度场生成 + SM_Step 台阶构件；导出 FBX + 渲染顶视/透视验证图 |
+| `blender_assets/scripts/temple_rebuild.py` | 神庙重做资产：金字塔三层外壳/大楼梯/天花/壁柱/浮雕地板/壁挂火把；FBX + 渲染验证 |
 | `blender_assets/scripts/outdoor_props.py` | 户外构件：SM_GorgeRock_A/B（岩缝巨石）、SM_Vine_Curtain（藤帘）、SM_Rope + SM_Stake（绳与锚桩） |
 | `blender_assets/scripts/hero_props.py` | SM_Knife（主角佩刀） |
 | （改）`blender_assets/scripts/hero_anims.py` | 追加 A_CrouchIdle/A_CrouchWalk/A_Slash/A_Swim 四段动画 + EXPECT/断言扩展 |
@@ -39,7 +40,8 @@
 **新增（Unity 侧）**
 | 文件 | 职责 |
 |---|---|
-| `Assets/Editor/OutdoorBuilder.cs` | 户外场景唯一构建器：地形放置/出口工程/岩缝/藤帘/绳/崖顶遗迹/火盆；菜单 `Demo/构建户外场景`（幂等，先清 `OUT_`） |
+| `Assets/Editor/OutdoorBuilder.cs` | 户外场景唯一构建器：地形放置/岩缝/藤帘/绳/崖顶遗迹/火盆；菜单 `Demo/构建户外场景`（幂等，先清 `OUT_`） |
+| `Assets/Editor/TempleBuilder.cs` | 神庙重做构建器：拆旧建新（金字塔/封顶大房间/楼梯间/前庭/火把照明）+ 出口衔接；菜单 `Demo/重建神庙`（幂等，先清 `Temple_`） |
 | `Assets/Editor/VegetationScatter.cs` | 植被散布器：地形坡度/高程采样 + 抖动格点摆放（草 instancing / 树实体）；菜单 `Demo/散布植被` |
 | `Assets/Editor/OutdoorFxSetup.cs` | 户外氛围：天空/太阳/雾/后处理扩展 + 光照过渡 Zone；菜单 `Demo/户外氛围` |
 | `Assets/Scripts/Attack.cs` | 左键挥刀：动画触发 + 判定窗扇形检测 + 手骨挂刀 |
@@ -65,7 +67,7 @@
 
 ## Milestone M6-1：地形骨架与第一眼
 
-> 里程碑目标：从神庙出门→下行台阶→草原可自由行走；天空/太阳/雾/后处理就位；基础植被铺开。**完成后停下汇报等待确认。**
+> 里程碑目标：金字塔神庙重做就位——出生→解谜→石门→楼梯间下行→前庭→台阶→森林可自由行走；天空/太阳/雾/后处理（白天基调）就位；森林植被铺开。**完成后停下汇报等待确认。**
 
 ### Task 1: 峡谷地形生成脚本（Blender）
 
@@ -77,7 +79,7 @@
 - Produces: `SM_CanyonTerrain`——世界坐标已烘焙的地形网格（z 24→254，x ±40，顶点 1.25m 间距）；`SM_Step`——单级台阶（宽 4m×高 0.2m×深 0.6m，原点在底面中心）；材质 `M_Terrain`（岩土棕）、`M_Step_Stone`（石板灰）
 - 坐标系约定（后续任务依赖）：神庙 B 房北墙 z=22；户外地形起点 z=24；路径中心线 x=0
 
-- [ ] **Step 1: 写地形脚本（含验证断言）**
+- [x] **Step 1: 写地形脚本（含验证断言）**
 
 ```python
 """M6-1: 峡谷地形生成——七段剖面高度场 + 噪声 + FBX 导出。
@@ -163,18 +165,18 @@ def build_terrain():
     return obj
 ```
 
-- [ ] **Step 2: 补导出/渲染/断言段并 headless 跑**
+- [x] **Step 2: 补导出/渲染/断言段并 headless 跑**
 
 （脚本后续段：SM_Step 构建 → 材质 → triangulate → 导出（`axis_forward='-Z', axis_up='Y'`，与 temple_kit 相同）→ assert（顶点数 ≈185×65、FBX >20KB、tris ≤ 30k）→ `--render` 时顶视+两个透视+河谷俯瞰渲染到 `docs/milestones/M6/`）
 
 Run: `blender.exe --background --factory-startup --python blender_assets/scripts/canyon_terrain.py -- --render`
 Expected: 输出 `OK terrain verts=... tris=... fbx=...B`，四张渲染图生成且 >20KB
 
-- [ ] **Step 3: 人工检查渲染图**
+- [x] **Step 3: 人工检查渲染图**
 
 看 `terrain_top.png`（顶视：七段可辨）、透视两张（峡谷两侧壁、对岸崖顶）与 `terrain_river.png`（河谷俯瞰：横河贯通两岸崖壁、无步行绕行通路）。**不看图不提交**。
 
-- [ ] **Step 4: Commit**
+- [x] **Step 4: Commit**
 
 ```bash
 git add blender_assets/scripts/canyon_terrain.py docs/milestones/M6/
@@ -191,7 +193,7 @@ git commit -m "feat(M6-1): 峡谷地形生成脚本（七段剖面+噪声，FBX�
 - Produces: `OutdoorBuilder`（静态类，菜单 `Demo/构建户外场景`）——后续 Task 3/9/12/15/17 全部在此文件追加段落函数；约定：所有生成对象名以 `OUT_` 开头，重跑时先 `CleanupOUT()`
 - Consumes: Task 1 的 FBX（`Assets/Art/Static/outdoor/SM_CanyonTerrain.fbx`）
 
-- [ ] **Step 1: 拷贝 FBX 并确认 Unity 导入**
+- [x] **Step 1: 拷贝 FBX 并确认 Unity 导入**
 
 ```bash
 mkdir -p game/3D-Demo/Assets/Art/Static/outdoor
@@ -199,7 +201,7 @@ cp blender_assets/export/outdoor/SM_CanyonTerrain.fbx game/3D-Demo/Assets/Art/St
 cp blender_assets/export/outdoor/SM_Step.fbx game/3D-Demo/Assets/Art/Static/outdoor/
 ```
 
-- [ ] **Step 2: 写 OutdoorBuilder 骨架 + 地形放置**
+- [x] **Step 2: 写 OutdoorBuilder 骨架 + 地形放置**
 
 ```csharp
 using UnityEngine;
@@ -234,7 +236,11 @@ public static class OutdoorBuilder
     {
         var fbx = AssetDatabase.LoadAssetAtPath<GameObject>($"{FbxDir}/{name}.fbx");
         var go = (GameObject)PrefabUtility.InstantiatePrefab(fbx);
-        go.name = "OUT_" + name; go.transform.SetPositionAndRotation(pos, rot);
+        go.name = "OUT_" + name;
+        // 同 KitPlacer：以 prefab 自带轴向修正（Blender Z-up→Unity Y-up 的 X 旋转）为基准，再叠加摆位旋转。
+        // 注意不能用 SetPositionAndRotation——那会重置 prefab 根上的 270° 轴补偿，导致模型躺平。
+        go.transform.position = pos;
+        go.transform.rotation = rot * fbx.transform.rotation;
         go.AddComponent<MeshCollider>();               // 静态地形：convex=false 默认
         UnityEditor.GameObjectUtility.SetStaticEditorFlags(go, StaticEditorFlags.BatchingStatic);
         return go;
@@ -244,7 +250,7 @@ public static class OutdoorBuilder
 }
 ```
 
-- [ ] **Step 3: 跑菜单 + Play 断言（TDD：先验证失败基线）**
+- [x] **Step 3: 跑菜单 + Play 断言（TDD：先验证失败基线）**
 
 先执行菜单 `Demo/构建户外场景`，然后 unityMCP 进 Play，`execute_code` 采样 3 点：
 
@@ -258,54 +264,115 @@ foreach (float z in new float[]{30f, 70f, 150f}) {
 
 Expected: 三点高度与剖面设计吻合（误差 ±1 内）；**不吻合则回到 Task 1 修高度函数**
 
-- [ ] **Step 4: 走到出口验证衔接**
+- [x] **Step 4: 走到出口验证衔接**
 
 Play 中用 MCP 传送玩家到 `(0, 0.2, 20)`（B 房北墙内侧），向北走应被墙挡住；传送到 `(0, 0.2, 26)`（墙外）应站上出口平台。截图两张存 `docs/milestones/M6/`。
 
-- [ ] **Step 5: Commit**
+- [x] **Step 5: Commit**
 
 ```bash
-git add game/3D-Demo/Assets/Editor/OutdoorBuilder.cs game/3D-Demo/Assets/Art/Static/outdoor/
+git add game/3D-Demo/Assets/Editor/OutdoorBuilder.cs game/3D-Demo/Assets/Art/Static/outdoor/ docs/milestones/M6/
 git commit -m "feat(M6-1): OutdoorBuilder 骨架 + 峡谷地形导入（MeshCollider 静态）"
 ```
 
-### Task 3: 出口工程（北墙门洞 + 下行台阶 + 门厅石块）
+### Task 3A: 神庙重做·资产（金字塔外壳 + 房间内装 + 壁挂火把，Blender）
 
 **Files:**
-- Modify: `game/3D-Demo/Assets/Editor/OutdoorBuilder.cs`（追加 `BuildExitHall()`）
+- Create: `blender_assets/scripts/temple_rebuild.py`
+- 产出: `blender_assets/export/temple/SM_Pyramid.fbx` / `SM_HallFloor.fbx` / `SM_Ceiling_A.fbx` / `SM_Pilaster.fbx` / `SM_FloorInlay.fbx` / `SM_GrandStair.fbx` / `SM_Torch.fbx` + `docs/milestones/M6/temple_pyramid.png`（外观三视）+ `temple_interior.png`（内装件总览）+ `temple_torch.png`（火把特写）
 
 **Interfaces:**
-- Consumes: 关卡坐标（墙 `WallB_N` 位于 z=22、x ±8；`SM_Step`、`SM_Arch/SM_DoorFrame/SM_Wall_*` FBX）；`LevelSpec.DoorPos` 模式
-- Produces: 出口门洞对象组 `OUT_ExitHall_*`——墙洞宽 4m（x ±2）、高 4.5m；台阶 8 级（z 34→46 坡道上，每级下落 0.19m）；`OUT_Exit_Stairs` 组
+- Produces（尺寸规格；坐标系同 temple_kit——Unity Y-up、北面 +z）:
+  - `SM_Pyramid`——三层阶梯收分外壳：底边 30×(z)36、层高 15/6/6（总高 27）、每层上退 5~6m；**层壳法**（每层=四面梯形墙围合+层顶盖板，非实心体——避免 MeshCollider 实心内部穿模）；第 1 层内腔 x±13、z-11~22（容纳放大房间+楼梯间），北墙（z22~24，厚 2m）中央开 4m×4.5m 门洞（出庙门）；北立面中央装饰大台阶（陡、尽端浮雕门，装饰不可上）；原点=底边中心（Unity 摆位放 (0,0,6)）
+  - `SM_HallFloor`——房间大地板 24×20（厚 0.5，顶面 y=0，原点=顶面中心）
+  - `SM_Ceiling_A`——天花梁板件 6×4（含两道横梁；拼铺房间顶 y=14）
+  - `SM_Pilaster`——壁柱 0.8 宽×0.5 凸×6 高（贴壁，原点=底面中心）
+  - `SM_FloorInlay`——中央浮雕地板 4×4（厚 0.06）
+  - `SM_GrandStair`——大楼梯：宽 4、高差 6、30 级×0.3 步深（水平共 9m）、两侧 0.3 石沿；原点=**低端底面中心**、向 -z 爬升（Unity 摆位放 (0,0,19)）
+  - `SM_Torch`——壁挂火把：石托+木柄+火盆口（火心 y≈1.15）；Unity 侧配火焰球+`Torch_*` 点光（→FireFlicker/Bloom 链路）
+  - 材质：沿用 temple_kit 砂岩色系 + `M_TorchWood`；tris 预算：金字塔 ≤25k、其余单件 ≤2k
+- Consumes: `temple_kit.py` 的 MATERIALS 字典风格、导出惯例（`axis_forward='-Z', axis_up='Y'`）、渲染 helper
 
-- [ ] **Step 1: 实现 BuildExitHall**
+- [ ] **Step 1: 写 temple_rebuild.py（金字塔分层 + 内装件 + 火把）**
 
-```csharp
-// —— 出口工程 ——
-// 1) 北墙中央开门洞: 隐藏 WallB_N 灰盒渲染并拆洞——直接在墙北侧新建门洞组件（灰盒碰撞保持完整，
-//    用新增两段墙代替中部阻挡，玩家出口走 z=22 洞口）。
-//    实现：销毁 WallB_N 中央 4m 的 VIZ_ 子对象（KitPlacer 铺的墙段），
-//    新建 OUT_ExitHall_L/R（SM_Wall_A 各一段 2m，位置 x=±3, z=22）
-//    与 OUT_ExitHall_Top（SM_Wall_A 横放封门楣 y=4.2~6）——均带 BoxCollider。
-// 2) 台阶：for i in 0..7，Instantiate SM_Step 于 (0, -0.19*i, 34 + 1.5*i)，含 BoxCollider。
-// 3) 洞口两侧石壁：SM_Wall_C/D 各一竖直贴内墙。
-static void BuildExitHall()
-{
-    // （完整实现按注释顺序：清 WallB_N 中部 VIZ → 摆 8 级台阶 → 两段门洞墙 + 门楣）
-}
+```python
+"""M6-1: 神庙重做资产——金字塔外壳/房间内装/壁挂火把。
+headless: blender.exe --background --factory-startup --python temple_rebuild.py [-- --render]
+图层法：金字塔=每层四面梯形墙（外斜面内收 12%、内侧竖直）+层顶盖板；第1层内腔即神庙空间。
+"""# 层参数表（层号, (底宽, 底深), 高, 上退）——北面 +z 为正面
+TIERS = [
+    (0, (30, 36), 15, 0),      # 基座层：内腔 x±13 z-11~22，北墙开门洞 4m×4.5m
+    (1, (24, 30),  6, 3),      # 中层：层顶平台 y21
+    (2, (18, 24),  6, 3),      # 顶层：总高 y27
+]
+def tier_wall(w, d, h, y0, thick=0.9, door=False):
+    """单层四面收分墙（door=True 时北面中央留 4m×4.5m 门洞，分两段+门楣生成）。"""
+    ...
+def build_pyramid():
+    for i, (w, d), h, shrink in TIERS: ...   # 四面墙 + 层顶盖板 + 北面装饰大台阶（阶梯带沿、尽端浮雕门）
+def build_torch():    ...   # 托架+柄+火盆口（复用 add_flame 双面片技巧做焰位）
+def build_hall():     ...   # HallFloor / Ceiling_A / Pilaster / FloorInlay / GrandStair
 ```
 
-（完整实现按上述注释顺序编写；墙段位置与 `SM_Wall_A` 尺寸（4m 宽）对齐：`OUT_ExitHall_L` 中心 `(-4, 3, 22)`、`R` 在 `(+4, 3, 22)`。）
+- [ ] **Step 2: 断言 + headless 跑 + 渲染检查**
 
-- [ ] **Step 2: 跑菜单 + Play 走通**
+Run: `blender.exe --background --factory-startup --python blender_assets/scripts/temple_rebuild.py -- --render`
+Expected: 7 件 FBX 生成、tris 在预算内（打印 `OK pyramid tris=...`）；三张渲染图生成——金字塔外观三视（北面门洞+大台阶）、内装件总览、火把特写。**看图确认形态（不看图不提交）**：收分比例、层线与檐口、门洞位置、火把可读性。
 
-Play 传送到 `(0, 0.2, 20)`，按 W 向北：应穿过门洞、沿台阶下到 `y≈-1.5` 的草原起点（z≈46）。MCP 断言：`GameObject.Find("Player").transform.position.z > 46` 且 `y <= -1.4`。
-
-- [ ] **Step 3: 截图（门洞内外两张）存 `docs/milestones/M6/exit_*.png`，Commit**
+- [ ] **Step 3: Commit**
 
 ```bash
-git add game/3D-Demo/Assets/Editor/OutdoorBuilder.cs docs/milestones/M6/
-git commit -m "feat(M6-1): 出口工程（北墙门洞+八级下行台阶+门厅墙件）"
+git add blender_assets/scripts/temple_rebuild.py blender_assets/export/temple/ docs/milestones/M6/temple_*.png
+git commit -m "feat(M6-1): 神庙重做资产（金字塔外壳/大楼梯/天花/壁柱/壁挂火把）"
+```
+
+### Task 3B: 神庙重做·重建（Unity）+ 出口衔接
+
+**Files:**
+- Create: `game/3D-Demo/Assets/Editor/TempleBuilder.cs`（菜单 `Demo/重建神庙`，幂等：先清 `Temple_*`）
+- Modify: `game/3D-Demo/Assets/Scripts/Level/LevelSpec.cs`（新布局常量，见 Interfaces）
+- Modify: `game/3D-Demo/Assets/Scripts/StoneDoor.cs`（文案 → "石门已开——穿过楼梯间，寻找出口！"）
+- Modify: `game/3D-Demo/Assets/Editor/GrayboxBuilder.cs`（删攀爬台/祭坛/宝物段 + 头注弃用说明——源码引用 LevelSpec 被删常量处同步）
+- Modify: `game/3D-Demo/Assets/Editor/KitPlacer.cs`（头注弃用：神庙区铺装改由 TempleBuilder 接管，本菜单不再重跑）
+- 产出: 新神庙场景 + `docs/milestones/M6/temple_in_hall.png` / `temple_stair.png` / `temple_court.png` / `temple_gate.png`
+
+**Interfaces:**
+- Consumes: Task 3A 的 7 件 FBX；现有逻辑件（`Player`/`MainCamera`/`StoneDoor`/`PressurePlate`/`PushBlock`/`Sun`/`UI`/`GroundOutside`）；`SM_Step`（前庭北缘 8 级台阶）；`SM_FloorTile_A/B`、`SM_Wall_*`、`SM_Pillar_*`、`SM_Arch`、`SM_Debris_*`（前庭/房间装饰）
+- Produces: `Temple_*` 对象组（幂等前缀）；`LevelSpec` 新值——`PlayerSpawn=(0,6.05,-4.5)`、`DoorPos=(0,8,10)`、`PlatePos=(4,6.05,-2)`、`BlockPos=(-2,6.5,-2)`、新增 `RoomHalfX=12`、`RoomHalfZ=10`、`RoomFloorY=6`、`RoomCeilY=14`；检查点火盆 `Temple_BrazierHall`（初始房间南墙正中=石门对墙）/`Temple_BrazierCourt`（前庭 (0,0.05,28)）——供 Task 18 按名补挂 `CheckpointSystem`
+
+- [ ] **Step 1: 拆旧（TempleBuilder 第一步，幂等）**
+
+销毁清单（按名）：`ClimbableLedge` / `Altar` / `Treasure`（连同 GoalTrigger）/ `WallA_*` / `WallAB_*` / `WallB_*` / `FloorA` / `FloorB`、神庙区（z<24）全部 `VIZ_*`、`TorchA_L/TorchA_R/TorchB_L/TorchB_R` 点光。**保留**：`StoneDoor`（迁位复用，连同视觉重挂）/`PressurePlate`/`PushBlock`/`Player`/`MainCamera`/`Sun`/`GroundOutside`/`UI`。
+
+- [ ] **Step 2: 建新（房间/楼梯间/金字塔/前庭/照明）**
+
+```csharp
+// 顺序：① 金字塔外壳（SM_Pyramid @ (0,0,6)，MeshCollider 静态——同地形惯性）
+// ② 房间内装：HallFloor 顶面 y=6；周墙 SM_Wall_* 沿内腔砌（北墙 z=10 留门洞）；
+//    Ceiling_A 拼铺 y=14（4 列×5 行）；Pilaster 沿墙 4m 间隔；中央 FloorInlay
+// ③ 石门：StoneDoor 灰盒迁 LevelSpec.DoorPos(0,8,10)，视觉件重挂 SM_StoneDoor.fbx
+//    （运行时会位移，禁标 BatchingStatic——灰盒+视觉均不标）
+// ④ 楼梯间：SM_GrandStair @ (0,0,19)（顶 y6 接门后，底 y0 @ z19）+ 两侧内墙 x=±5
+// ⑤ 前庭（z24-34）：SM_FloorTile 拼铺中央 20 宽；两侧 SM_Pillar_Whole/Broken；
+//    Temple_BrazierCourt @ (0,0.05,28)（+火焰球+Torch_Court 点光）
+// ⑥ 北缘台阶：for i in 0..7 → SM_Step 于 (0, -0.19*i, 34 + 1.5*i)（原出口工程参数沿用）
+// ⑦ 火盆：Temple_BrazierHall @ (0,6.05,-9.2)（南墙正中，检查点）+ 火焰球+Torch_Hall
+//    壁挂火把：房间东/西墙各 2（SM_Torch+火焰球+Torch_Hall_A1..B2）、
+//    楼梯间两侧墙各 1（Torch_Stair_L/R）——全部 Torch* 命名 → FireFlicker/Bloom 链路
+// ⑧ 谜题迁移：PressurePlate/PushBlock 置 LevelSpec 新值；玩家出生/相机初始位同步
+```
+
+- [ ] **Step 3: 跑菜单 + Play 走通全流程**
+
+拷贝 3A 的 FBX → 跑 `Demo/重建神庙` → 跑 `Tools/M5/Setup Atmosphere`（新 `Torch_*` 进 Bloom/FireFlicker 链路，幂等）→ Play：出生 (0,6,-4.5) → 推石压板开石门 → 过门 → 下楼（y 6→0）→ 出北门洞 → 前庭 → 北缘台阶 → 森林（z>46、y≤-1.4）。MCP 断言：`GameObject.Find("ClimbableLedge")==null && GameObject.Find("Treasure")==null`；`Temple_BrazierHall/Temple_BrazierCourt` 存在；走通后 `Player.z>46 && Player.y<=-1.4`。
+
+- [ ] **Step 4: 截图 ×4 存 `docs/milestones/M6/temple_*.png`，Commit**
+
+（室内全景：出生点望石门+南墙火盆 / 楼梯间下行 / 前庭回望金字塔北立面 / 门洞外望森林——**不看图不提交**）
+
+```bash
+git add game/3D-Demo/Assets/Editor/TempleBuilder.cs game/3D-Demo/Assets/Scripts/Level/LevelSpec.cs game/3D-Demo/Assets/Scripts/StoneDoor.cs game/3D-Demo/Assets/Editor/GrayboxBuilder.cs game/3D-Demo/Assets/Editor/KitPlacer.cs game/3D-Demo/Assets/Art/Static/temple/ docs/milestones/M6/
+git commit -m "feat(M6-1): 神庙重做（金字塔+封顶大房间+楼梯间+前庭）与出口衔接"
 ```
 
 ### Task 4: 户外氛围（天空/太阳/雾/后处理 + 室内外光照过渡）
@@ -316,7 +383,7 @@ git commit -m "feat(M6-1): 出口工程（北墙门洞+八级下行台阶+门厅
 
 **Interfaces:**
 - Consumes: 现有 `Sun`（Directional Light，室内强度 0.3）、`Global Volume`（M5 的 Bloom+ACES profile，路径 `Assets/Settings/M5_Atmosphere_Volume.asset`）
-- Produces: 户外光照参数——太阳强度 1.5 / 色温 5400K / 角度 (42°, -35°)；雾 线性 start 60 end 240 色 (0.62,0.70,0.78)；Volume 追加 `ColorAdjustments`（饱和度 +8）；`LightZone` 触发器组（`OUT_Zone_Indoor` z 12-24 / `OUT_Zone_Outdoor` z 26-40）过渡时长 1.5s
+- Produces: 户外光照参数（**白天基调**，2026-10-12 设计变更）——太阳强度 1.6 / 色温 5800K / 角度 (52°, -38°)；雾 线性 start 60 end 240 色 (0.66,0.74,0.80)；Volume 追加 `ColorAdjustments`（饱和度 +8）；`LightZone` 触发器组（`OUT_Zone_Indoor` z 12-24 / `OUT_Zone_Outdoor` z 26-40）过渡时长 1.5s
 
 - [ ] **Step 1: 写 LightZone.cs**
 
@@ -331,7 +398,7 @@ public class LightZone : MonoBehaviour
     public float blendSeconds = 1.5f;
 
     static float targetIntensity = 0.3f, targetFogStart = 0f, targetFogEnd = 60f;   // 静态: 两 Zone 共用同一目标
-    static Color targetSunColor = new Color(1f, 0.85f, 0.7f);
+    static Color targetSunColor = new Color(1f, 0.95f, 0.88f);                      // 白天基调（M6-1 变更）
     float t = 1f;
 
     // 初始抓取（室内默认值在场景里保存于 Sun/雾设置，这里只 lerp 到目标）
@@ -358,7 +425,7 @@ public class LightZone : MonoBehaviour
 
 - [ ] **Step 2: 写 OutdoorFxSetup.cs（菜单 `Demo/户外氛围`）**
 
-要点（仿 PostFxSetup 的资产化+幂等写法）：① 打开 profile 资产追加 `ColorAdjustments`（`AddObjectToAsset` 关键——M5-3 的坑）；② `RenderSettings.fog = true; mode = Linear`，初始 start 0/end 60（室内浓雾）；③ 天空：`profile.Add<PhysicallyBasedSky>(true)`（Unity 6 URP 内置；若版本无此类则用 `GradientSky`——代码用 `#if` 或 try 反射，**实现时先查 URP 版本支持**）；④ 创建 `OUT_Zone_Indoor/Outdoor` 两个 Box（isTrigger）+ `LightZone` 组件（Outdoor 的 sun 指向场景 Sun）；⑤ 曝光：`ColorAdjustments.postExposure.Override(0.2f)`。
+要点（仿 PostFxSetup 的资产化+幂等写法）：① 打开 profile 资产追加 `ColorAdjustments`（`AddObjectToAsset` 关键——M5-3 的坑）；② `RenderSettings.fog = true; mode = Linear`，初始 start 0/end 60（室内浓雾）；③ 天空：`profile.Add<PhysicallyBasedSky>(true)`（Unity 6 URP 内置；若版本无此类则用 `GradientSky`——代码用 `#if` 或 try 反射，**实现时先查 URP 版本支持**）——**白天基调**：太阳高角度、色温 ≈5800K、蓝天；④ 创建 `OUT_Zone_Indoor/Outdoor` 两个 Box（isTrigger）+ `LightZone` 组件（Outdoor 的 sun 指向场景 Sun）；⑤ 曝光：`ColorAdjustments.postExposure.Override(0.2f)`。
 
 - [ ] **Step 3: 跑菜单 + Play 过渡验证**
 
@@ -375,10 +442,10 @@ git commit -m "feat(M6-1): 户外氛围（天空/太阳/雾/曝光）+ 室内外
 
 **Files:**
 - Create: `blender_assets/scripts/outdoor_plants.py`
-- 产出: `export/outdoor/SM_GrassTuft.fbx` / `SM_Bush_A.fbx` / `SM_Bush_B.fbx` / `SM_Tree_A.fbx` / `SM_Tree_B.fbx` + 渲染总览图
+- 产出: `export/outdoor/SM_GrassTuft.fbx` / `SM_Bush_A.fbx` / `SM_Bush_B.fbx` / `SM_Tree_A.fbx` / `SM_Tree_B.fbx` / `SM_Tree_C.fbx`（森林化：高冠大乔木 12-16m） + 渲染总览图
 
 **Interfaces:**
-- Produces: 五件植物网格（**写实丛林取向**：草簇=7-9 叶片状面片群、灌木=多层半球叶团、树=锥柱干+3 层不规则叶冠）；材质 `M_Grass`（沿用 temple 的幽暗草绿）、新增 `M_Leaf_Dark`（(0.13,0.22,0.09)）、`M_Trunk`（(0.18,0.13,0.09)）、`M_Leaf_Mid`（(0.18,0.28,0.11)）；tris 预算：草 ≤400 / 灌木 ≤1800 / 树 ≤2800
+- Produces: 六件植物网格（**写实丛林取向**：草簇=7-9 叶片状面片群、灌木=多层半球叶团、树=锥柱干+3 层不规则叶冠、`SM_Tree_C`=高冠大乔木——森林主冠层）；材质 `M_Grass`（沿用 temple 的幽暗草绿）、新增 `M_Leaf_Dark`（(0.13,0.22,0.09)）、`M_Trunk`（(0.18,0.13,0.09)）、`M_Leaf_Mid`（(0.18,0.28,0.11)）；tris 预算：草 ≤400 / 灌木 ≤1800 / 树 ≤2800 / 乔木 ≤3400
 
 - [ ] **Step 1: 写生成脚本**
 
@@ -387,14 +454,14 @@ git commit -m "feat(M6-1): 户外氛围（天空/太阳/雾/曝光）+ 室内外
 - [ ] **Step 2: headless 跑 + 断言 + 渲染检查**
 
 Run: `blender.exe --background --factory-startup --python blender_assets/scripts/outdoor_plants.py -- --render`
-Expected: 五件 FBX 各 >5KB、tris 在预算内；`plants_overview.png` 目视五件形态成立（**不看图不提交**）
+Expected: 六件 FBX 各 >5KB、tris 在预算内；`plants_overview.png` 目视六件形态成立（**不看图不提交**）
 
 - [ ] **Step 3: 拷贝 FBX 到 Unity 并提交**
 
 ```bash
-cp blender_assets/export/outdoor/SM_{GrassTuft,Bush_A,Bush_B,Tree_A,Tree_B}.fbx game/3D-Demo/Assets/Art/Static/outdoor/
+cp blender_assets/export/outdoor/SM_{GrassTuft,Bush_A,Bush_B,Tree_A,Tree_B,Tree_C}.fbx game/3D-Demo/Assets/Art/Static/outdoor/
 git add blender_assets/scripts/outdoor_plants.py game/3D-Demo/Assets/Art/Static/outdoor/ docs/milestones/M6/
-git commit -m "feat(M6-1): 植被资产五件（草簇/灌木×2/树×2，程序化+双面片）"
+git commit -m "feat(M6-1): 植被资产六件（草簇/灌木×2/树×2/高冠乔木，程序化+双面片）"
 ```
 
 ### Task 6: 植被散布器 + M6-1 验收
@@ -403,28 +470,29 @@ git commit -m "feat(M6-1): 植被资产五件（草簇/灌木×2/树×2，程序
 - Create: `game/3D-Demo/Assets/Editor/VegetationScatter.cs`（菜单 `Demo/散布植被`）
 
 **Interfaces:**
-- Consumes: Task 1 地形（射线采样）、Task 5 五件 FBX
-- Produces: `OUT_Veg_*` 分组对象——草：材质 `M_Grass`（**enableInstancing=true**，每簇独立实体但同材质 Instanced）；树/灌木：实体标 `BatchingStatic`（静态——**按父链检查无例外**：植物不会被砍/移动，藤帘除外）；密度常量：草 4m 抖动格、树 12m 抖动格、灌木 8m 格
+- Consumes: Task 1 地形（射线采样）、Task 5 六件 FBX
+- Produces: `OUT_Veg_*` 分组对象——草：材质 `M_Grass`（**enableInstancing=true**，每簇独立实体但同材质 Instanced）；树/灌木：实体标 `BatchingStatic`（静态——**按父链检查无例外**：植物不会被砍/移动，藤帘除外）；密度常量（**森林化变更**）：草 4m 抖动格、树 **7m** 抖动格（门口即林）、灌木 **6m** 格、`SM_Tree_C` 只撒林缘主廊带（z 46-126）
 
 - [ ] **Step 1: 写散布器**
 
 ```csharp
 // 规则：射线从 (x, 40, z) 向下；要求命中 OUT_SM_CanyonTerrain；法线 y>0.85（坡度<32°）；
-// 路径带 |x|<4 不撒树（草可）；高程带权重：草原段(z 46-96)最密、河谷(z 126-176)只草（水下 z≈140-160 不撒）、崖壁(|x|>20)不撒。
+// 路径带 |x|<3 不撒树（草可）；高程带权重：林缘段(z 46-96)最密（门口即林）、岩缝后(z>96)随峡谷渐稀、
+// 河谷(z 126-176)只草（水下 z≈140-160 不撒）、崖壁(|x|>20)不撒；SM_Tree_C 只撒 z 46-126。
 // 随机：格点 + 抖动 0-2m；旋转随机 yaw；缩放 0.8-1.3。
 ```
 
-（含断言：撒完打印 `草/灌木/树` 数量，预期量级 500-700 / 60-100 / 60-120；不符则检查射线条件。）
+（含断言：撒完打印 `草/灌木/树` 数量，预期量级 500-700 / 120-200 / 250-450（森林化后提升）；不符则检查射线条件与密度常量。）
 
 - [ ] **Step 2: 跑菜单 + 帧率抽查（M5-5 采样法）**
 
-Play 草原视点 `(0,0,80)` 朝北：`execute_code` 两次采样 `Time.frameCount/Time.realtimeSinceStartup`，帧率目标 ≥70（编辑器态）。低于则先降密度常数。
+Play 林缘（原草原）视点 `(0,0,80)` 朝北：`execute_code` 两次采样 `Time.frameCount/Time.realtimeSinceStartup`，帧率目标 ≥70（编辑器态）。低于则先降密度常数。
 
-- [ ] **Step 3: 截图三视点（草原/河谷口/回望神庙）存 `docs/milestones/M6/veg_*.png`**
+- [ ] **Step 3: 截图三视点（林缘/河谷口/回望金字塔）存 `docs/milestones/M6/veg_*.png`**
 
 - [ ] **Step 4: M6-1 验收截图集 + 汇报**
 
-出门全流程（门洞→台阶→草原）连续截图 5 张存 `docs/milestones/M6/M6_1_acceptance/`，**停下向用户汇报截图与帧率，等确认后再进 M6-2**。
+出门全流程（楼梯间→北门洞→前庭→台阶→森林）连续截图 5 张存 `docs/milestones/M6/M6_1_acceptance/`，**停下向用户汇报截图与帧率，等确认后再进 M6-2**。
 
 - [ ] **Step 5: Commit**
 
@@ -1437,7 +1505,7 @@ git commit -m "feat(M6-6): 崖顶遗迹（残墙/断柱/拱门）+ 终点触发�
 - Modify: `game/3D-Demo/Assets/Editor/OutdoorBuilder.cs`（追加 `BuildCheckpoints()`）
 
 **Interfaces:**
-- Produces: `CheckpointSystem.Respawn`（static Vector3）/ `HasCheckpoint`（static bool）；`SimpleUI.Flash(string)`（中下小字 2s 淡出）；`OUT_Brazier_Cp1/2/3`（草原 (3.5,-1.5,72) / 河谷北岸 (-3,-1.5,180) / 崖顶遗迹 (4,3,232)）——每座=SM_Brazier + 火焰球（`M_Flame`）+ 点光 `Torch_M6_*`
+- Produces: `CheckpointSystem.Respawn`（static Vector3）/ `HasCheckpoint`（static bool）；`SimpleUI.Flash(string)`（中下小字 2s 淡出）；`OUT_Brazier_Cp1/2/3`（草原 (3.5,-1.5,72) / 河谷北岸 (-3,-1.5,180) / 崖顶遗迹 (4,3,232)）——每座=SM_Brazier + 火焰球（`M_Flame`）+ 点光 `Torch_M6_*`；**神庙内两座**（`Temple_BrazierHall` 初始房间南墙正中 / `Temple_BrazierCourt` 前庭 (0,0.05,28)，由 Task 3B 建成）——本任务按名**补挂** `CheckpointSystem`（不重建网格）
 - Consumes: temple 的 `SM_Brazier` FBX；M5 的 FireFlicker/Bloom 氛围链路（`Torch` 前缀命名即被 `Tools/M5/Setup Atmosphere` 幂等接管）
 
 - [ ] **Step 1: 写 CheckpointSystem.cs**
@@ -1503,6 +1571,14 @@ static void BuildCheckpoints()
     Brazier("OUT_Brazier_Cp1", new Vector3(3.5f, -1.5f, 72f));
     Brazier("OUT_Brazier_Cp2", new Vector3(-3f, -1.5f, 180f));
     Brazier("OUT_Brazier_Cp3", new Vector3(4f, 3f, 232f));
+    AttachTemple("Temple_BrazierHall");     // 神庙内两座：Task 3B 已建成，按名补挂
+    AttachTemple("Temple_BrazierCourt");
+}
+static void AttachTemple(string name)
+{
+    var go = GameObject.Find(name);
+    if (go == null) { Debug.LogWarning("[Checkpoints] 未找到 " + name); return; }
+    if (go.GetComponent<CheckpointSystem>() == null) go.AddComponent<CheckpointSystem>();
 }
 static void Brazier(string name, Vector3 pos)
 {
@@ -1529,13 +1605,13 @@ static void Brazier(string name, Vector3 pos)
 
 - [ ] **Step 4: Play 验证 + 截图**
 
-① 传送 `(0,-1.4,68)` 走向 Cp1：断言 `CheckpointSystem.HasCheckpoint==true` 且 `Respawn≈(3.5,…,72)` 附近；截图 Flash 提示（1 张）；② 再走远再回来：断言不重复触发（Respawn 不变）。
+① 传送 `(0,-1.4,68)` 走向 Cp1：断言 `CheckpointSystem.HasCheckpoint==true` 且 `Respawn≈(3.5,…,72)` 附近；截图 Flash 提示（1 张）；② 再走远再回来：断言不重复触发（Respawn 不变）；③ 传送到初始房间走近 `Temple_BrazierHall`：断言记录触发（Flash 出现）。
 
 - [ ] **Step 5: Commit**
 
 ```bash
 git add game/3D-Demo/Assets/Scripts/CheckpointSystem.cs game/3D-Demo/Assets/Scripts/SimpleUI.cs game/3D-Demo/Assets/Scripts/AudioManager.cs game/3D-Demo/Assets/Editor/OutdoorBuilder.cs game/3D-Demo/Assets/Art/Static/outdoor/M_Flame.mat docs/milestones/M6/
-git commit -m "feat(M6-6): 火盆检查点×3（走近记录+Flash 提示）+ 沿路火光"
+git commit -m "feat(M6-6): 火盆检查点×5（神庙内2座补挂+沿路3座，走近记录+Flash 提示）"
 ```
 
 ---
