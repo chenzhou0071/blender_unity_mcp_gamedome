@@ -5,7 +5,7 @@ using UnityEditor;
 
 // M6-1 Task4: 户外氛围一键配置（幂等）——白天基调（2026-10-12 设计变更）：
 //   · 天空：M_DaySky（Skybox/Procedural 白天蓝天，替代黎明版 M_MorningSky）
-//   · 太阳：Euler (67.5°,57°,61.5°)（2026-10-13 用户定稿光位）；强度/色保存为室内基调（运行时由 LightZone 过渡到户外 1.6 白暖）
+//   · 太阳：Euler (67.5°,57°,61.5°)（2026-10-13 用户定稿光位）；强度/色保存为室内基调（运行时由 LightZone 过渡到户外 1.0 白暖）
 //   · 雾：Linear 室内浓雾 0→60 暗紫灰（运行时过渡到户外 60→240 天光蓝灰）
 //   · Volume：追加 ColorAdjustments（饱和度 +8 / 曝光 +0.2）
 //   · 过渡 Zone：OUT_Zone_Indoor z10-15 / OUT_Zone_Outdoor z16-40（触发器 + LightZone，1.5s）
@@ -16,7 +16,7 @@ public static class OutdoorFxSetup
     static readonly Color IndoorSunColor  = new Color(1f, 0.78f, 0.55f);
     static readonly Color IndoorFogColor  = new Color(0.33f, 0.32f, 0.35f);
     // 户外基调（白天）
-    static readonly Color OutdoorSunColor = new Color(1f, 0.96f, 0.88f);    // ≈5800K 白暖
+    static readonly Color OutdoorSunColor = new Color(1f, 0.93f, 0.82f);    // 白暖（2026-10-13 反馈刺眼：强度 1.6→1.25→1.0，色再压暖一线）
     static readonly Color OutdoorFogColor = new Color(0.66f, 0.74f, 0.80f); // 天光蓝灰
 
     [MenuItem("Demo/户外氛围")]
@@ -101,7 +101,7 @@ public static class OutdoorFxSetup
         MakeZone("OUT_Zone_Indoor", new Vector3(0f, 4f, 12.5f), new Vector3(8f, 12f, 5f), sunLight,
                  0.3f, IndoorSunColor, 0f, 60f, IndoorFogColor);
         MakeZone("OUT_Zone_Outdoor", new Vector3(0f, 4f, 28f), new Vector3(30f, 12f, 24f), sunLight,
-                 1.6f, OutdoorSunColor, 60f, 240f, OutdoorFogColor);
+                 1.0f, OutdoorSunColor, 60f, 240f, OutdoorFogColor);
         Debug.Log("[OutdoorFxSetup] 过渡 Zone：Indoor(z10-15) / Outdoor(z16-40) 已配置");
 
         // 保存
