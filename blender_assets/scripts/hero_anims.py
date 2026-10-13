@@ -1,6 +1,6 @@
-"""主角七段程序化动画：idle/walk/run/jump/jumprun/climb/mantle → Action 推独立 NLA track + 4 帧条图。
+"""主角九段程序化动画：idle/walk/run/jump/jumprun/climb/mantle/crouchidle/crouchwalk → Action 推独立 NLA track + 4 帧条图。
 用法: blender.exe --background --factory-startup --python hero_anims.py
-产出: hero_rigged.blend 增加 7 个 Action（A_Idle 60f / A_Walk 27f / A_Run 20f / A_Jump 27f / A_JumpRun 28f / A_Climb 36f / A_Mantle 30f）
+产出: hero_rigged.blend 增加 9 个 Action（A_Idle 60f / A_Walk 27f / A_Run 20f / A_Jump 27f / A_JumpRun 28f / A_Climb 36f / A_Mantle 30f / A_CrouchIdle 40f / A_CrouchWalk 36f）
       + docs/milestones/M4/anim_sheet_*.png（每动作 1 行 × 4 帧）
 坐标系: 面朝 +X，左=+Y，上=+Z；前后摆=绕世界 Y 轴，侧向摆臂=绕世界 X 轴。
 参数幅度严格按实施计划 M4-3 参数表，不另设。
@@ -29,7 +29,7 @@ for pb in arm.pose.bones:
 ad = arm.animation_data if arm.animation_data else arm.animation_data_create()
 for tr in list(ad.nla_tracks):
     ad.nla_tracks.remove(tr)
-ANAMES = ["A_Idle", "A_Walk", "A_Run", "A_Jump", "A_JumpRun", "A_Climb", "A_Mantle"]
+ANAMES = ["A_Idle", "A_Walk", "A_Run", "A_Jump", "A_JumpRun", "A_Climb", "A_Mantle", "A_CrouchIdle", "A_CrouchWalk"]
 for nm in ANAMES:
     if nm in bpy.data.actions:
         bpy.data.actions.remove(bpy.data.actions[nm])
@@ -295,6 +295,46 @@ def make_mantle():
         key_all(f)
     return act
 
+def make_crouch_idle():
+    """40f 循环蹲姿（M6-2，v2 按骨架几何实测重定参）：Hips 降 0.303m + 躯干前倾（Spine 14°/Spine1 8°）+
+    大腿前抬 70°/小腿深屈 140°（踝上 Z 形折，髋保持在踝正上方：0.23·sin70 ≈ 0.23·sin70 平衡）；
+    脚掌按贴地公式补偿 -80°（=-10°-（膝-腿差）），脚底与站立同高。呼吸微动 ±1°。
+    蹲高约 0.68m（站立 1.006m 的 67%，对齐 Unity crouchHeight 1.15/1.8 比例）。"""
+    act = begin("A_CrouchIdle"); n = 40
+    for f in range(n + 1):
+        ph = 2 * math.pi * f / n
+        wloc("Hips", dz=-0.303)
+        wrot("Spine", "Y", 14); wrot("Spine1", "Y", 8 + 1.0 * math.sin(ph))
+        wrot2("LeftUpLeg", [("X", LEG_IN_L), ("Y", -70)])          # 大腿前抬（蹲）
+        wrot2("RightUpLeg", [("X", LEG_IN_R), ("Y", -70)])
+        wrot("LeftLeg", "Y", 140)                                   # 小腿后折（屈膝）
+        wrot("RightLeg", "Y", 140)
+        wrot2("LeftArm", [("X", ARM_DROP_L), ("Y", 6)])
+        wrot2("RightArm", [("X", ARM_DROP_R), ("Y", 6)])
+        wrot("LeftForeArm", "Z", -22); wrot("RightForeArm", "Z", 22)   # 肘收
+        wrot("LeftFoot", "Y", -80); wrot("RightFoot", "Y", -80)        # 贴地补偿（替代 FOOT_FIX）
+        key_all(f)
+    return act
+
+def make_crouch_walk():
+    """36f 循环蹲行（M6-2，v2 按骨架几何实测重定参）：蹲姿基底（Hips -0.303 / 大腿 70° / 小腿 140°）+
+    大腿摆 ±12° / 小腿 140±8° / 臂微摆 ±8° / Hips 起伏 0.02。"""
+    act = begin("A_CrouchWalk"); n = 36
+    for f in range(n + 1):
+        ph = 2 * math.pi * f / n
+        wloc("Hips", dz=-0.303 + 0.02 * math.sin(2 * ph))
+        wrot("Spine", "Y", 14); wrot("Spine1", "Y", 8)
+        wrot2("LeftUpLeg", [("X", LEG_IN_L), ("Y", -70 - 12 * math.sin(ph))])
+        wrot2("RightUpLeg", [("X", LEG_IN_R), ("Y", -70 - 12 * math.sin(ph + math.pi))])
+        wrot("LeftLeg", "Y", 140 + 8 * max(0.0, math.sin(ph + 0.6)))
+        wrot("RightLeg", "Y", 140 + 8 * max(0.0, math.sin(ph + math.pi + 0.6)))
+        wrot2("LeftArm", [("X", ARM_DROP_L), ("Y", 8 * math.sin(ph))])
+        wrot2("RightArm", [("X", ARM_DROP_R), ("Y", 8 * math.sin(ph + math.pi))])
+        wrot("LeftForeArm", "Z", -22); wrot("RightForeArm", "Z", 22)
+        wrot("LeftFoot", "Y", -80); wrot("RightFoot", "Y", -80)        # 贴地补偿（替代 FOOT_FIX）
+        key_all(f)
+    return act
+
 # —— 制作 + 断言（fcurve 非空 / 帧范围 / 循环闭合）——
 def act_fcurves(act):
     """兼容新旧 Action 数据模型：4.3- legacy fcurves / 4.4+ layered(channelbag)"""
@@ -307,8 +347,10 @@ def act_fcurves(act):
                 out.extend(cb.fcurves)
     return out
 
-acts = [make_idle(), make_walk(), make_run(), make_jump(), make_jump_run(), make_climb(), make_mantle()]
-EXPECT = {"A_Idle": 60, "A_Walk": 27, "A_Run": 20, "A_Jump": 27, "A_JumpRun": 28, "A_Climb": 36, "A_Mantle": 30}
+acts = [make_idle(), make_walk(), make_run(), make_jump(), make_jump_run(), make_climb(), make_mantle(),
+        make_crouch_idle(), make_crouch_walk()]
+EXPECT = {"A_Idle": 60, "A_Walk": 27, "A_Run": 20, "A_Jump": 27, "A_JumpRun": 28, "A_Climb": 36, "A_Mantle": 30,
+          "A_CrouchIdle": 40, "A_CrouchWalk": 36}
 for act in acts:
     fr = act.frame_range
     fcs = act_fcurves(act)
@@ -409,6 +451,8 @@ SHOTS = {
     "A_JumpRun": [0, 8, 14, 22],
     "A_Climb": [0, 9, 18, 27],
     "A_Mantle": [0, 5, 12, 20],
+    "A_CrouchIdle": [0, 10, 20, 30],
+    "A_CrouchWalk": [0, 9, 18, 27],
 }
 CS = (2.3, 0.0, 0.85) if "--front" in sys.argv else (0.0, 2.3, 0.85)   # 默认侧视（前后摆）；--front 正视（腿侧向开合）
 TGT = (0.0, 0.0, 0.05)
