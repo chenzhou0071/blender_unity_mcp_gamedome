@@ -16,6 +16,9 @@ public static class TempleBuilder
     const string FbxDir = "Assets/Art/Static/temple";
     const string OutFbxDir = "Assets/Art/Static/outdoor";
     const string Scene = "Assets/Scenes/Demo.unity";
+    // A/B 两种地砖模型厚度不同（实测顶面 A=pos+0.326 / B=pos+0.300，差 0.026）——
+    // 棋盘交替铺设时须给 A 型下沉 0.026 找平，否则每块砖边界 2.6cm 高差，走路"一震一震"（用户 bug 实锤）
+    const float TileATrim = 0.026f;
 
     static int seq;
 
@@ -78,11 +81,13 @@ public static class TempleBuilder
         // 地板：M5 同款 SM_FloorTile_A/B 2m 遗迹地砖满铺 24×20（A/B 交替 + 随机 90° 转向，顶面 y=6 与 FloorPad 齐平）
         // 物理面统一由 FloorPad（精确平面盒，顶=6.0）承接——地砖纯视觉不挂碰撞，与门/压板/出生点同体系
         //（原 SM_HallFloor 整块 + 中央 SM_FloorInlay 浮雕已弃用：浮雕网格顶面低于名义面，推块零接触会打滑）。
+        // A 型找平（TileATrim）：否则 A 砖顶凸出 FloorPad 4.6cm，视觉上"脚陷进砖里"
         for (int i = 0; i < 12; i++)
             for (int j = 0; j < 10; j++)
             {
-                var tile = Spawn((i + j) % 2 == 0 ? "SM_FloorTile_A" : "SM_FloorTile_B",
-                                 new Vector3(-11f + 2f * i, F - 0.30f, -9f + 2f * j), Random.Range(0, 4) * 90f);
+                bool isA = (i + j) % 2 == 0;
+                var tile = Spawn(isA ? "SM_FloorTile_A" : "SM_FloorTile_B",
+                                 new Vector3(-11f + 2f * i, F - 0.30f - (isA ? TileATrim : 0f), -9f + 2f * j), Random.Range(0, 4) * 90f);
                 if (tile) { tile.name = $"Temple_HallTile_{i:00}{j:00}"; Static(tile); }
             }
         FloorPad();
@@ -160,27 +165,43 @@ public static class TempleBuilder
                 Solid("SM_Ceiling_A", new Vector3(-3f + 6f * i, 10.2f, 12f + 4f * j), 0f);
         // 坡底门厅地砖满铺 3×3（迭代 3 用户：不要偷工减料，可塞进墙里）：
         // x -3..3 两侧塞入内墙；z 18.5..24.5 南端抵楼梯第一级、北端贴门洞
-        // 行 z=23.5 整体沉 1cm（顶 0.01）防门外与前庭地砖（顶 0.02）共面闪烁；其余行顶 y0.02，实体走行面
+        // 行 z=23.5 整体沉 1cm（顶 0.01）防门外与前庭地砖（顶 0.02）共面闪烁；其余行顶 y0.02
+        // A 型找平（TileATrim）：消除 A/B 厚度差 2.6cm（走路颠簸次因）
+        // 物理面由 Temple_StairFloorPad 平面盒承接（同大厅 FloorPad 惯例）：砖模型中央有 5~9cm
+        // 龟裂凹坑，直接挂 MeshCollider 会让玩家每块砖"陷坑-爬沿"——走路一震一震（用户 bug 主因）
         for (int i = 0; i < 3; i++)
             for (int j = 0; j < 3; j++)
             {
-                var tile = Spawn((i + j) % 2 == 0 ? "SM_FloorTile_A" : "SM_FloorTile_B",
-                                 new Vector3(-2f + 2f * i, j == 2 ? -0.29f : -0.28f, 19.5f + 2f * j), Random.Range(0, 4) * 90f);
-                if (tile) { tile.name = $"Temple_StairTile_{i}{j}"; Solidify(tile); Static(tile); }
+                bool isA = (i + j) % 2 == 0;
+                var tile = Spawn(isA ? "SM_FloorTile_A" : "SM_FloorTile_B",
+                                 new Vector3(-2f + 2f * i, (j == 2 ? -0.29f : -0.28f) - (isA ? TileATrim : 0f), 19.5f + 2f * j), Random.Range(0, 4) * 90f);
+                if (tile) { tile.name = $"Temple_StairTile_{i}{j}"; Static(tile); }
             }
+        var stairPad = new GameObject("Temple_StairFloorPad");
+        stairPad.transform.position = new Vector3(0f, -0.08f, 21.5f);   // 盒高 0.2 → 顶面=0.02
+        var sbc = stairPad.AddComponent<BoxCollider>();
+        sbc.size = new Vector3(6f, 0.2f, 6f);   // x±3 × z18.5..24.5
+        Static(stairPad);
     }
 
     // ---------- ⑤ 前庭（z24~34）+ 北缘台阶 ----------
     static void BuildForecourt()
     {
-        // 中央 20 宽 2m 地砖拼铺（顶 y=0.02，与地形面错开防共面）
+        // 中央 20 宽 2m 地砖拼铺（顶 y=0.02，与地形面错开防共面）；A 型找平（TileATrim）同门厅
+        // 物理面由 Temple_CourtFloorPad 平面盒承接（同门厅：砖体龟裂凹坑不能直接当走行碰撞）
         for (int i = 0; i < 10; i++)
             for (int j = 0; j < 5; j++)
             {
-                var go = Spawn((i + j) % 2 == 0 ? "SM_FloorTile_A" : "SM_FloorTile_B",
-                               new Vector3(-9f + 2f * i, -0.28f, 25f + 2f * j), Random.Range(0, 4) * 90f);
-                if (go) { go.name = $"Temple_CourtTile_{i}{j}"; Solidify(go); Static(go); }
+                bool isA = (i + j) % 2 == 0;
+                var go = Spawn(isA ? "SM_FloorTile_A" : "SM_FloorTile_B",
+                               new Vector3(-9f + 2f * i, -0.28f - (isA ? TileATrim : 0f), 25f + 2f * j), Random.Range(0, 4) * 90f);
+                if (go) { go.name = $"Temple_CourtTile_{i}{j}"; Static(go); }
             }
+        var courtPad = new GameObject("Temple_CourtFloorPad");
+        courtPad.transform.position = new Vector3(0f, -0.08f, 29.25f);   // 盒高 0.2 → 顶面=0.02
+        var cbc = courtPad.AddComponent<BoxCollider>();
+        cbc.size = new Vector3(20f, 0.2f, 9.5f);   // x±10 × z24.5..34，北端止于北缘台阶
+        Static(courtPad);
         // 两侧石柱（整/破）与碎石点缀——迭代 5（用户）：门口这几根柱子换灰石（专属材质，不动共享 M_Stone 的墙/砖）
         var pillarMat = PillarGrayMat();
         PaintPillar(Solid("SM_Pillar_Whole", new Vector3(-11.5f, -0.05f, 26.5f), Random.Range(0, 4) * 90f), pillarMat);
