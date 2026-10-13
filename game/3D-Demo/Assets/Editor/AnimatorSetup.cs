@@ -25,6 +25,7 @@ public static class AnimatorSetup
         ctrl.AddParameter("climbing", AnimatorControllerParameterType.Bool);
         ctrl.AddParameter("toppingOut", AnimatorControllerParameterType.Bool);   // M4-8: 爬顶翻越段
         ctrl.AddParameter("jump", AnimatorControllerParameterType.Trigger);
+        ctrl.AddParameter("crouch", AnimatorControllerParameterType.Bool);   // M6-2: 蹲行
 
         var sm = ctrl.layers[0].stateMachine;
         var clips = LoadClips();
@@ -35,11 +36,24 @@ public static class AnimatorSetup
         var jumpRun = sm.AddState("JumpRun"); jumpRun.motion = clips["A_JumpRun"];   // M4-11: 跑跳（跑速档起跳，单脚蹬地跨步式）
         var climb = sm.AddState("Climb"); climb.motion = clips["A_Climb"];
         var mantle = sm.AddState("Mantle"); mantle.motion = clips["A_Mantle"];   // M4-8: 爬顶翻上（一次性）
+        var crouchIdle = sm.AddState("CrouchIdle"); crouchIdle.motion = clips["A_CrouchIdle"];   // M6-2: 蹲姿
+        var crouchWalk = sm.AddState("CrouchWalk"); crouchWalk.motion = clips["A_CrouchWalk"];   // M6-2: 蹲行
         sm.defaultState = idle;
 
         walk.speed = 0.9f;                                           // M4-9: 走路降速 2.5→1.5m/s 散步档（零滑步 0.9，原速以下悠闲步伐）
         run.speed = 1.0f;                                            // M4-9: 跑步 3.5m/s 配 1.0 = 动画零滑步原速点（动画设计节奏直出，不再加速播放）
+        crouchWalk.speed = 1.5f;                                     // M6-2 v4: 播放率 1.2→1.5 配零滑步速度 0.42m/s（周期 0.8s）
 
+        // M6-2: 蹲行转换先于既有 speed 转换添加（Animator 按添加顺序评估，保证优先级）
+        T(idle, crouchIdle, "crouch", AnimatorConditionMode.If, 0f);
+        T(walk, crouchWalk, "crouch", AnimatorConditionMode.If, 0f);
+        T(run, crouchWalk, "crouch", AnimatorConditionMode.If, 0f);
+        T(crouchIdle, crouchWalk, "speed", AnimatorConditionMode.Greater, 0.1f);
+        T(crouchWalk, crouchIdle, "speed", AnimatorConditionMode.Less, 0.1f);
+        T(crouchIdle, idle, "crouch", AnimatorConditionMode.IfNot, 0f);
+        T(crouchWalk, walk, "crouch", AnimatorConditionMode.IfNot, 0f);
+        T(crouchIdle, climb, "climbing", AnimatorConditionMode.If, 0f);
+        T(crouchWalk, climb, "climbing", AnimatorConditionMode.If, 0f);
         T(idle, walk, "speed", AnimatorConditionMode.Greater, 0.1f);
         T(walk, idle, "speed", AnimatorConditionMode.Less, 0.1f);
         T(walk, run, "speed", AnimatorConditionMode.Greater, 2.5f);  // M4-9: 1.5/3.5 的中点（速度分层后重算）

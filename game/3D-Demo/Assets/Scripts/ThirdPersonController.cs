@@ -5,6 +5,8 @@ public class ThirdPersonController : MonoBehaviour
 {
     public float moveSpeed = 1.5f, runSpeed = 3.5f, turnLerp = 12f, gravity = -20f, jumpHeight = 1.2f;  // M4-9: 速度分层——散步 1.5（walk 播放率 0.9）/ 慢跑 3.5（run 播放率 1.0 动画原速零滑步）
     public float standOffsetY = 0.045f;                               // 站立位校准：原点距地面高（脚底贴地+5mm）
+    public float crouchSpeed = 0.42f, crouchHeight = 1.15f;            // M6-2: 蹲行速度/胶囊高（站起需头顶净空）；v4 零滑步 0.42（极差 0.0922 换算）
+    public bool Crouching { get; private set; }                       // M6-2: 蹲行状态（只读）
     public Transform cameraPivot;
 
     CharacterController cc;
@@ -22,6 +24,12 @@ public class ThirdPersonController : MonoBehaviour
 
     void Update()
     {
+        if (climb && climb.IsClimbing && Crouching) SetCrouch(false);   // M6-2: 爬墙强制起身
+        if (Input.GetKeyDown(KeyCode.C))                                // M6-2: C 蹲行切换（站起受头顶净空限制）
+        {
+            if (Crouching) { if (CanStand()) SetCrouch(false); }
+            else SetCrouch(true);
+        }
         if (climb && climb.IsClimbing) { velocityY = 0f; airLocked = false; SyncAnimator(); return; }   // 攀爬期间交出控制权（跑跳扑墙则清除惯性锁）
         bool grounded = cc.isGrounded;
         if (wasGrounded && !grounded) airPeakY = transform.position.y;               // M6-1: 离地帧——记录起点高度
@@ -36,14 +44,14 @@ public class ThirdPersonController : MonoBehaviour
         Vector3 dir = Quaternion.Euler(0, yaw, 0) * new Vector3(h, 0, v);
         if (dir.sqrMagnitude > 1f) dir.Normalize();
 
-        float speed = Input.GetKey(KeyCode.LeftShift) ? runSpeed : moveSpeed;   // 输入档速度（M4-9 分层：走 1.5 / 跑 3.5）
+        float speed = Crouching ? crouchSpeed : (Input.GetKey(KeyCode.LeftShift) ? runSpeed : moveSpeed);   // M6-2: 蹲行 0.85；输入档速度（M4-9 分层：走 1.5 / 跑 3.5）
         bool airRush = airLocked && !grounded;                  // M4-11: 跑跳空中惯性相位
         if (dir.sqrMagnitude > 0.01f && !airRush)               // 锁速期间锁向（速度保持起跳方向，空中转向会与轨迹错位）
         {
             var look = Quaternion.LookRotation(dir);
             transform.rotation = Quaternion.Slerp(transform.rotation, look, turnLerp * Time.deltaTime);
         }
-        if (grounded && Input.GetButtonDown("Jump") && !jumpPending)
+        if (grounded && !Crouching && Input.GetButtonDown("Jump") && !jumpPending)   // M6-2: 蹲行禁止起跳
         {
             // M4-9: 起跳前摇 0.26s —— 先播 A_Jump 下蹲蓄力（f0-f7=0.233s），
             // 到蹬伸段（f7-f10）才给物理速度，"蹲→蹬→离地"与动画同步（原先按下即离地，动画还在蹲）
@@ -100,6 +108,22 @@ public class ThirdPersonController : MonoBehaviour
         }
     }
 
+    // M6-2: 蹲行切换——胶囊高 1.8↔1.15，底部保持 y=0（center 随高度取中，无需位置补偿）
+    void SetCrouch(bool on)
+    {
+        Crouching = on;
+        cc.height = on ? crouchHeight : 1.8f;
+        cc.center = new Vector3(0, cc.height / 2f, 0);
+    }
+
+    // M6-2: 站起净空检测——蹲高之上到站立高再加 2cm 余量，头顶球扫无遮挡才允许站起
+    bool CanStand()
+    {
+        Vector3 o = transform.position + Vector3.up * (crouchHeight + 0.05f);
+        return !Physics.SphereCast(o, 0.25f, Vector3.up, out _, 1.8f - crouchHeight + 0.1f,
+                                   ~0, QueryTriggerInteraction.Ignore);
+    }
+
     // M4-5: 移动状态同步给 Animator（speed/grounded/climbing）
     void SyncAnimator()
     {
@@ -109,6 +133,7 @@ public class ThirdPersonController : MonoBehaviour
         anim.SetBool("grounded", cc.isGrounded);
         anim.SetBool("climbing", climb && climb.IsClimbing);
         anim.SetBool("toppingOut", climb && climb.IsToppingOut);   // M4-8: 爬顶翻越段（Climb→Mantle）
+        anim.SetBool("crouch", Crouching);                         // M6-2: 蹲行（CrouchIdle/CrouchWalk 两状态分流）
     }
 
     void OnControllerColliderHit(ControllerColliderHit hit)

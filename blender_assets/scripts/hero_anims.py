@@ -296,42 +296,45 @@ def make_mantle():
     return act
 
 def make_crouch_idle():
-    """40f 循环蹲姿（M6-2，v2 按骨架几何实测重定参）：Hips 降 0.303m + 躯干前倾（Spine 14°/Spine1 8°）+
-    大腿前抬 70°/小腿深屈 140°（踝上 Z 形折，髋保持在踝正上方：0.23·sin70 ≈ 0.23·sin70 平衡）；
-    脚掌按贴地公式补偿 -80°（=-10°-（膝-腿差）），脚底与站立同高。呼吸微动 ±1°。
-    蹲高约 0.68m（站立 1.006m 的 67%，对齐 Unity crouchHeight 1.15/1.8 比例）。"""
+    """40f 循环蹲姿（M6-2，v4）：Hips 降 0.303m + 躯干前倾（Spine 14°/Spine1 8°）+
+    大腿前抬 80.5°/小腿深屈 139°（踝上 Z 形折）。v4 膝盖抬高修正：深蹲膝区网格离地仅 6.1cm 视觉压地，
+    大腿 70°→80.5° 抬膝 4.1cm（膝区离地→8.2cm）、小腿 140→139 收踝、脚值 -68→-60 重校贴地；
+    髋高/蹲高不变，副作用=脚相对身体前移 3.1cm。小腿折叠补偿 [Y→X±18]（站立内收 8° 经深屈折叠后
+    侧偏反号成外张——实测脚距 0.196→0.086 贴站立站距）；脚底 -0.512 与站立同高。呼吸微动 ±1°。
+    蹲高约 0.67m（站立 67%，对齐 crouchHeight 1.15/1.8）。"""
     act = begin("A_CrouchIdle"); n = 40
     for f in range(n + 1):
         ph = 2 * math.pi * f / n
         wloc("Hips", dz=-0.303)
         wrot("Spine", "Y", 14); wrot("Spine1", "Y", 8 + 1.0 * math.sin(ph))
-        wrot2("LeftUpLeg", [("X", LEG_IN_L), ("Y", -70)])          # 大腿前抬（蹲）
-        wrot2("RightUpLeg", [("X", LEG_IN_R), ("Y", -70)])
-        wrot("LeftLeg", "Y", 140)                                   # 小腿后折（屈膝）
-        wrot("RightLeg", "Y", 140)
+        wrot2("LeftUpLeg", [("X", LEG_IN_L), ("Y", -80.5)])        # 大腿前抬（蹲；v4 70→80.5 抬膝 4.1cm）
+        wrot2("RightUpLeg", [("X", LEG_IN_R), ("Y", -80.5)])
+        wrot2("LeftLeg", [("Y", 139), ("X", 18)])                   # 小腿后折（屈膝；v4 140→139 收踝）+ 折叠收拢补偿（左 +18）
+        wrot2("RightLeg", [("Y", 139), ("X", -18)])                 #    （收踝至站立站距 ≈0.086，踝高不变）
         wrot2("LeftArm", [("X", ARM_DROP_L), ("Y", 6)])
         wrot2("RightArm", [("X", ARM_DROP_R), ("Y", 6)])
         wrot("LeftForeArm", "Z", -22); wrot("RightForeArm", "Z", 22)   # 肘收
-        wrot("LeftFoot", "Y", -80); wrot("RightFoot", "Y", -80)        # 贴地补偿（替代 FOOT_FIX）
+        wrot("LeftFoot", "Y", -60); wrot("RightFoot", "Y", -60)        # 贴地补偿（v4 重校：-68→-60，脚底 -0.512 贴站立）
         key_all(f)
     return act
 
 def make_crouch_walk():
-    """36f 循环蹲行（M6-2，v2 按骨架几何实测重定参）：蹲姿基底（Hips -0.303 / 大腿 70° / 小腿 140°）+
-    大腿摆 ±12° / 小腿 140±8° / 臂微摆 ±8° / Hips 起伏 0.02。"""
+    """36f 循环蹲行（M6-2，v4）：蹲姿基底（Hips -0.303 / 大腿 80.5° / 小腿 139° + 收拢补偿 X±18，
+    与 v4 蹲姿同几何含膝盖抬高修正）+ 大腿摆 ±20°（v3 加大步幅）/ 小腿 139±8° / 臂微摆 ±8° / Hips 起伏 0.02。
+    脚值 -78°（v4 独立重校：支撑相 f9/f27 脚底 -0.511 贴地，一并修正旧版穿地 2.3cm）。"""
     act = begin("A_CrouchWalk"); n = 36
     for f in range(n + 1):
         ph = 2 * math.pi * f / n
         wloc("Hips", dz=-0.303 + 0.02 * math.sin(2 * ph))
         wrot("Spine", "Y", 14); wrot("Spine1", "Y", 8)
-        wrot2("LeftUpLeg", [("X", LEG_IN_L), ("Y", -70 - 12 * math.sin(ph))])
-        wrot2("RightUpLeg", [("X", LEG_IN_R), ("Y", -70 - 12 * math.sin(ph + math.pi))])
-        wrot("LeftLeg", "Y", 140 + 8 * max(0.0, math.sin(ph + 0.6)))
-        wrot("RightLeg", "Y", 140 + 8 * max(0.0, math.sin(ph + math.pi + 0.6)))
+        wrot2("LeftUpLeg", [("X", LEG_IN_L), ("Y", -80.5 - 20 * math.sin(ph))])        # 摆幅 ±20°（v3 加大步幅；v4 中心 70→80.5 抬膝）
+        wrot2("RightUpLeg", [("X", LEG_IN_R), ("Y", -80.5 - 20 * math.sin(ph + math.pi))])
+        wrot2("LeftLeg", [("Y", 139 + 8 * max(0.0, math.sin(ph + 0.6))), ("X", 18)])   # 屈膝+收拢补偿（v4 基底 140→139）
+        wrot2("RightLeg", [("Y", 139 + 8 * max(0.0, math.sin(ph + math.pi + 0.6))), ("X", -18)])
         wrot2("LeftArm", [("X", ARM_DROP_L), ("Y", 8 * math.sin(ph))])
         wrot2("RightArm", [("X", ARM_DROP_R), ("Y", 8 * math.sin(ph + math.pi))])
         wrot("LeftForeArm", "Z", -22); wrot("RightForeArm", "Z", 22)
-        wrot("LeftFoot", "Y", -80); wrot("RightFoot", "Y", -80)        # 贴地补偿（替代 FOOT_FIX）
+        wrot("LeftFoot", "Y", -78); wrot("RightFoot", "Y", -78)        # 贴地补偿（v4 独立重校：支撑相 -0.511 贴地，治旧版穿地 2.3cm）
         key_all(f)
     return act
 
