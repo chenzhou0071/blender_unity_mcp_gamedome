@@ -9,7 +9,8 @@ using UnityEditor;
 //   · 雾：Linear 室内浓雾 0→60 暗紫灰（运行时过渡到户外 60→240 天光蓝灰）
 //   · Volume：追加 ColorAdjustments（饱和度 +8 / 曝光 +0.2）
 //   · 过渡 Zone：OUT_Zone_Indoor z10-15 / OUT_Zone_Outdoor z16-40（触发器 + LightZone，1.5s）
-// 菜单: Demo/户外氛围 —— 注意链路：「构建户外场景」会清 OUT_* 前缀、「重建神庙」会清 Torch_*，重跑后需重跑本菜单。
+// 菜单: Demo/户外氛围 —— 注意链路：「重建神庙」会清 Torch_*，重跑后需重跑本菜单；
+//           「构建户外场景」已排除 OUT_Zone_/OUT_Veg_ 前缀（2026-10-13 修复：不再误清本菜单产物）。
 public static class OutdoorFxSetup
 {
     // 室内基调

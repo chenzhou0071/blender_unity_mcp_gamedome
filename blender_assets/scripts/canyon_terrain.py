@@ -4,7 +4,8 @@ headless 用法: blender.exe --background --factory-startup --python canyon_terr
   z  24- 34  出口平台 y=0（接神庙地台）
   z  34- 46  下行坡道 y=0 → -1.5（视觉铺 SM_Step 台阶）
   z  46- 96  草原缓起伏 y≈-1.5±0.6
-  z  96-126  岩缝段 y=-1.5 平底（|x|>1.4 升壁 3m，缝顶另摆横石）
+  z  92-132  岩缝段「巨石岗」：缝底 y=-1.5 平底（通道带 |x|<3 噪声平滑归零，净空可精算），
+             |x|>1.6 抬升整块岩台（台面 +3.5m、|x|≈6-12，外缘 12→17.5 渐消）；巨石堆叠由 Unity 侧摆放
   z 126-176  河谷段：两岸缓坡河滩 + 横向河身（河床 y=-3.5、水面 y=-2.6；水线宽 ~19m，
              河道沿 x 横贯峡谷抵两侧崖壁——无路可绕，只能游泳通过）
   z 176-194  南岸高台 y=-1.5（深渊边缘可走行；爬绳段起点）
@@ -75,16 +76,19 @@ def path_height(z):
     return -32.0 + 35.0 * sstep(208, 216, z)                      # 对岸崖壁 35m 升至崖顶 +3
 
 
-def gorge_wall(x, z):
-    """岩缝段两侧升壁：缝底 |x|<=1.4 平，向外渐升至 3m（沿 z 出入口 4m 内渐入渐出）。"""
-    kz = sstep(96, 100, z) * (1.0 - sstep(122, 126, z))
+def gorge_mound(x, z):
+    """岩缝段「巨石岗」岩台（2026-10-13 用户反馈重做）：缝底 |x|<=1.6 平，向外整块抬升
+    至台面 +3.5m（|x|≈6-12 为台面），|x|>12 外缘渐消——外缘起伏由 height() 的噪声叠加。
+    沿 z 92-100 渐入、124-132 渐出（岩台从草坡里长出来，一整块突出）。"""
+    kz = sstep(92, 100, z) * (1.0 - sstep(124, 132, z))
     if kz <= 0.0:
         return 0.0
     ax = abs(x)
-    if ax <= 1.4:
+    if ax <= 1.6:
         return 0.0
-    k = min(1.0, (ax - 1.4) / 2.6)
-    return 3.0 * sstep(0.0, 1.0, k) * kz
+    rise = sstep(0.0, 1.0, min(1.0, (ax - 1.6) / 4.4))   # 1.6→6.0 升至台面
+    outer = 1.0 - sstep(12.0, 17.5, ax)                  # 12→17.5 外缘渐消
+    return 3.5 * rise * outer * kz
 
 
 def wall_height(x, z):
@@ -97,9 +101,13 @@ def wall_height(x, z):
 
 
 def height(x, z):
-    h = path_height(z) + gorge_wall(x, z) + wall_height(x, z)
+    h = path_height(z) + gorge_mound(x, z) + wall_height(x, z)
     ax = abs(x)
-    mask = 0.35 if ax < 3.0 else (1.0 if ax > 6.0 else 0.65)      # 路径带噪声减半
+    base = 0.35 if ax < 3.0 else (1.0 if ax > 6.0 else 0.65)      # 路径带噪声减半
+    # 巨石岗通道带：z 88-136 窗口内 |x|<~3 噪声平滑归零 → 缝底精确 -1.5（蹲行净空可精算）
+    gate = sstep(88.0, 94.0, z) * (1.0 - sstep(130.0, 136.0, z))
+    corridor = sstep(2.0, 3.4, ax)                                # 0=通道内 1=通道外（平滑过渡防断层）
+    mask = base * (1.0 - gate * (1.0 - corridor))
     h += noise.noise(Vector((x * 0.02, z * 0.02, 1.1))) * 3.0 * mask
     h += noise.noise(Vector((x * 0.08, z * 0.08, 2.2))) * 0.8 * mask
     h += noise.noise(Vector((x * 0.30, z * 0.30, 3.3))) * 0.15 * mask
@@ -284,6 +292,9 @@ def render_views():
     # 透视 1：河谷中段回望——两侧崖壁夹持的峡谷纵深（草原→岩缝→横向河谷）
     shoot(os.path.join(RENDER_DIR, "terrain_persp1.png"),
           (6, -60, 5), (-2, -150, -2), 42, 1280, 960)
+    # 透视 1b：巨石岗近景——岩台抬升 + 通道带压平（2026-10-13 重做检查图）
+    shoot(os.path.join(RENDER_DIR, "terrain_mound.png"),
+          (12, -80, 8), (0, -112, 0), 35, 1280, 960)
     # 透视 2：南岸高台边缘俯瞰——深渊断面→对岸崖壁→崖顶平台
     shoot(os.path.join(RENDER_DIR, "terrain_persp2.png"),
           (0, -160, 16), (0, -210, -4), 42, 1280, 960)

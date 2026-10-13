@@ -12,6 +12,9 @@ using UnityEditor.SceneManagement;
 //     灌木 3 样式均分；草 2 样式（芦苇 15%）。密度：草 5m 格×2 / 灌 8m 格×2 / 树 5m 格
 //   · 草坪：OUT_Veg_Lawn 1m 网格 + 噪声有机边缘（±34 名义 ±噪声≈5m），路带开槽露沙色弯土路（M_Lawn）
 //   · 草材质 enableInstancing；树/灌木标 BatchingStatic；yaw 随机、缩放 0.8-1.3；固定种子=可复现
+//   · v5（2026-10-13 用户反馈"坡上树换巨石"）：巨石岗域 z90-132 且 |x|<16 不撒树/灌木、草坪退让
+//   · v6（2026-10-14 用户反馈"树有颗挡住路了"）：树冠水平半径（localBounds 水平两轴×实例缩放，
+//     避开随机 yaw 后世界 AABB 膨胀 ~1.4×）距路心 < 1.8 的不留（= 冠缘悬入路面 ≥ 0.4m）；超限即销毁
 public static class VegetationScatter
 {
     const string FbxDir      = "Assets/Art/Static/outdoor";
@@ -102,6 +105,7 @@ public static class VegetationScatter
                     if (!Sample(x, z, out p, out n)) continue;
                     if (n.y < BushSlope) continue;
                     if (Mathf.Abs(p.x - PathX(p.z)) < PathHalfTree) continue;
+                    if (p.z > 90f && p.z < 132f && Mathf.Abs(p.x) < 16f) continue;   // v5 巨石岗域：坡上树/灌换巨石
                     Place(prefabs[2 + Random.Range(0, 3)], p, gBush, true); nB++;
                 }
 
@@ -113,16 +117,33 @@ public static class VegetationScatter
                 if (!Sample(x, z, out p, out n)) continue;
                 if (n.y < TreeSlope) continue;
                 if (Mathf.Abs(p.x - PathX(p.z)) < PathHalfTree) continue;
+                if (p.z > 90f && p.z < 132f && Mathf.Abs(p.x) < 16f) continue;   // v5 巨石岗域：坡上树/灌换巨石
                 if (z > TreeThinZ && Random.value < 0.5f) continue;
                 if (Random.value < 0.12f) continue;
                 float r = Random.value;
-                GameObject pf = r < 0.30f ? prefabs[7]      // C 主乔木
-                              : r < 0.45f ? prefabs[5]      // A 圆锥层冠
-                              : r < 0.60f ? prefabs[6]      // B 高瘦
-                              : r < 0.78f ? prefabs[8]      // D 阔叶圆冠
-                              : r < 0.90f ? prefabs[9]      // E 针叶杉
-                              : prefabs[10];                // F 枯树
-                Place(pf, p, gTree, true);
+                int pi = r < 0.30f ? 2          // C 主乔木
+                       : r < 0.45f ? 0          // A 圆锥层冠
+                       : r < 0.60f ? 1          // B 高瘦
+                       : r < 0.78f ? 3          // D 阔叶圆冠
+                       : r < 0.90f ? 4          // E 针叶杉
+                       : 5;                     // F 枯树
+                GameObject pf = prefabs[pi + 5];
+                var go = Place(pf, p, gTree, true);
+                // v6 树冠压路剔除：树冠水平半径 = max(localBounds.x/y) × 实例缩放（同管线树资产 local z=高轴）；
+                // 不用世界 bounds：随机 yaw 会把水平 AABB 膨胀至 (a+b)/√2（≈1.4×）导致误剔。
+                // 判定：冠缘悬入开槽路面 ≥0.4m（dPath − cr < 2.2 − 0.4）即销毁
+                float cr = 0f;
+                foreach (var rd in go.GetComponentsInChildren<Renderer>(true))
+                {
+                    var e = rd.localBounds.extents;
+                    cr = Mathf.Max(cr, Mathf.Max(e.x, e.y));
+                }
+                cr *= go.transform.localScale.x;
+                if (cr > Mathf.Abs(p.x - PathX(p.z)) - 1.8f)
+                {
+                    UnityEngine.Object.DestroyImmediate(go);
+                    continue;
+                }
                 if (pf == prefabs[7]) nC++;
                 else if (pf == prefabs[5]) nA++;
                 else if (pf == prefabs[6]) nB2++;
@@ -160,7 +181,7 @@ public static class VegetationScatter
         return true;
     }
 
-    static void Place(GameObject prefab, Vector3 pos, Transform parent, bool markStatic)
+    static GameObject Place(GameObject prefab, Vector3 pos, Transform parent, bool markStatic)
     {
         var go = (GameObject)PrefabUtility.InstantiatePrefab(prefab);
         go.name = $"Veg_{prefab.name}_{seq++:D4}";
@@ -169,6 +190,7 @@ public static class VegetationScatter
         go.transform.rotation = Quaternion.Euler(0, Random.Range(0f, 360f), 0) * prefab.transform.rotation;
         go.transform.SetParent(parent, true);
         if (markStatic) GameObjectUtility.SetStaticEditorFlags(go, StaticEditorFlags.BatchingStatic);
+        return go;
     }
 
     // 草坪（v4）：1m 网格贴地形（+0.03 防 z-fighting）；左右边界 ±34 + 噪声摆动（有机毛边，
@@ -214,6 +236,7 @@ public static class VegetationScatter
                 float xc = -XLimit + (ix + 0.5f) * step, zc = z0 + (iz + 0.5f) * step;
                 float en = EdgeNoise(xc, zc);
                 if (Mathf.Abs(xc) > 34f + en) continue;                               // 左右有机边界（±34 名义 ± 噪声）
+                if (zc > 88f && zc < 134f && Mathf.Abs(xc) < 16f + en * 0.5f) continue; // v5 巨石岗域：草坪退让露岩土
                 if (zc > 118f + en * 0.8f && Random.value < (zc - 118f - en * 0.8f) / 8f * 0.85f) continue; // 谷口渐变收边
                 if (Mathf.Abs(xc - PathX(zc)) < PathHalfLawn) continue;              // 路带开槽
                 int a = idx[ix, iz], b = idx[ix + 1, iz], c = idx[ix, iz + 1], d = idx[ix + 1, iz + 1];
