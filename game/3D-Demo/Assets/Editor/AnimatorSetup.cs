@@ -26,6 +26,7 @@ public static class AnimatorSetup
         ctrl.AddParameter("toppingOut", AnimatorControllerParameterType.Bool);   // M4-8: 爬顶翻越段
         ctrl.AddParameter("jump", AnimatorControllerParameterType.Trigger);
         ctrl.AddParameter("crouch", AnimatorControllerParameterType.Bool);   // M6-2: 蹲行
+        ctrl.AddParameter("slash", AnimatorControllerParameterType.Trigger);  // M6-3: 挥刀
 
         var sm = ctrl.layers[0].stateMachine;
         var clips = LoadClips();
@@ -38,6 +39,7 @@ public static class AnimatorSetup
         var mantle = sm.AddState("Mantle"); mantle.motion = clips["A_Mantle"];   // M4-8: 爬顶翻上（一次性）
         var crouchIdle = sm.AddState("CrouchIdle"); crouchIdle.motion = clips["A_CrouchIdle"];   // M6-2: 蹲姿
         var crouchWalk = sm.AddState("CrouchWalk"); crouchWalk.motion = clips["A_CrouchWalk"];   // M6-2: 蹲行
+        var slash = sm.AddState("Slash"); slash.motion = clips["A_Slash"];   // M6-3: 挥刀（一次性 0.83s）
         sm.defaultState = idle;
 
         walk.speed = 0.9f;                                           // M4-9: 走路降速 2.5→1.5m/s 散步档（零滑步 0.9，原速以下悠闲步伐）
@@ -54,6 +56,18 @@ public static class AnimatorSetup
         T(crouchWalk, walk, "crouch", AnimatorConditionMode.IfNot, 0f);
         T(crouchIdle, climb, "climbing", AnimatorConditionMode.If, 0f);
         T(crouchWalk, climb, "climbing", AnimatorConditionMode.If, 0f);
+        // M6-3: 挥刀（先于 speed 转换添加 = 优先级更高；站立/走动/蹲姿均可触发）
+        T(idle, slash, "slash", AnimatorConditionMode.If, 0f);
+        T(walk, slash, "slash", AnimatorConditionMode.If, 0f);
+        T(run, slash, "slash", AnimatorConditionMode.If, 0f);
+        T(crouchIdle, slash, "slash", AnimatorConditionMode.If, 0f);
+        T(crouchWalk, slash, "slash", AnimatorConditionMode.If, 0f);
+        var sBack1 = slash.AddTransition(idle);                      // 播完回（exit 0.8×0.83s≈0.67s，与 cooldown 0.7s 同步）
+        sBack1.hasExitTime = true; sBack1.exitTime = 0.8f; sBack1.duration = 0.1f;
+        sBack1.AddCondition(AnimatorConditionMode.IfNot, 0f, "crouch");
+        var sBack2 = slash.AddTransition(crouchIdle);
+        sBack2.hasExitTime = true; sBack2.exitTime = 0.8f; sBack2.duration = 0.1f;
+        sBack2.AddCondition(AnimatorConditionMode.If, 0f, "crouch");
         T(idle, walk, "speed", AnimatorConditionMode.Greater, 0.1f);
         T(walk, idle, "speed", AnimatorConditionMode.Less, 0.1f);
         T(walk, run, "speed", AnimatorConditionMode.Greater, 2.5f);  // M4-9: 1.5/3.5 的中点（速度分层后重算）
@@ -121,6 +135,11 @@ public static class AnimatorSetup
         }
         anim.runtimeAnimatorController = ctrl;
         anim.applyRootMotion = false;                                // 位移由 CharacterController 驱动
+
+        var atk = player.GetComponent<Attack>();                     // M6-3: 挥刀——挂刀到 RightHand 骨骼 + 左键判定
+        if (atk == null) atk = player.AddComponent<Attack>();
+        atk.knifePrefab = AssetDatabase.LoadAssetAtPath<GameObject>("Assets/Art/Static/hero_props/SM_Knife.fbx");
+        atk.knifeEuler = new Vector3(0f, 180f, 0f);                  // 握持校准（与 Attack 默认一致，重跑本菜单可重同步）
 
         EditorSceneManager.MarkSceneDirty(SceneManager.GetActiveScene());
         EditorSceneManager.SaveScene(SceneManager.GetActiveScene());
