@@ -29,6 +29,7 @@ public static class AudioWiring
         am.plateClick = Load("plate_click.wav");
         am.doorRumble = Load("door_rumble.wav");
         am.goalChime = Load("goal_chime.wav");
+        am.chop = Load("chop.wav");                   // M6-3: 藤帘斩断音
 
         // 火盆噼啪：3D 空间源——线性衰减（二轮试听：只有贴近才听清）
         // 迭代 2（用户定）：壁挂火把不需要声音——噼啪只留给火盆（检查点）：火盆灯名 Torch_Hall/Torch_Court（无后缀）

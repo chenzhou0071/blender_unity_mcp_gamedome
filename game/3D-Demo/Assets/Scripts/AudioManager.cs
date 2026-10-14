@@ -7,7 +7,7 @@ public class AudioManager : MonoBehaviour
 {
     public static AudioManager Instance;
     public AudioClip[] footsteps;
-    public AudioClip land, plateClick, doorRumble, goalChime, blockGrind, ambient;
+    public AudioClip land, plateClick, doorRumble, goalChime, blockGrind, ambient, chop;
 
     AudioSource oneShot, grind;
     float lastDoor;
@@ -36,6 +36,7 @@ public class AudioManager : MonoBehaviour
         OneShot(doorRumble);
     }
     public void Goal() => OneShot(goalChime);
+    public void Chop() => OneShot(chop);        // M6-3: 藤帘斩断（刀切入茎干闷响）
     public void Grind(bool on)
     {
         if (!grind.clip) return;

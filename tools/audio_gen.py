@@ -1,4 +1,5 @@
 """M5-1 音效合成（纯标准库）：按计划参数表生成 11 个 WAV 到 Unity 工程（起跳音效经用户试听移除）。
+M6-3 追加 chop.wav（藤帘斩断“刀切入茎干”闷响，追加于队尾不扰动既有随机流）。
 输出: game/3D-Demo/Assets/Audio/*.wav （44.1kHz / 16bit / mono）
 可选: python audio_gen.py --preview
       另生成 docs/milestones/M5/audio_preview_all.wav（试听拼合文件，长音效节选）
@@ -192,6 +193,17 @@ def gen_goal_chime(dur=2.5):
             out[start + i] += s * e * 0.5
     return out
 
+def gen_chop(dur=0.15):
+    """0.15s：刀切入茎干闷响（M6-3 藤帘斩断）——低频闷击（120-600Hz）+ 切裂噪声（800-4000Hz 快衰）+ 木芯阻尼声（140Hz）。"""
+    n = int(dur * SR)
+    thud = band_noise(white(n), 120, 600)
+    slit = band_noise(white(n), 800, 4000)
+    e1 = env(n, int(0.002 * SR), 0.025 * SR)
+    e2 = env(n, int(0.001 * SR), 0.008 * SR)
+    return [thud[i] * e1[i] * 0.85 + slit[i] * e2[i] * 0.55
+            + math.sin(2 * math.pi * 140 * i / SR) * math.exp(-i / (0.03 * SR)) * 0.35
+            for i in range(n)]
+
 # ---------- 试听拼合（--preview） ----------
 NAMES = ["ambient_temple.wav", "fire_crackle.wav",
          "footstep_stone_1.wav", "footstep_stone_2.wav", "footstep_stone_3.wav", "footstep_stone_4.wav",
@@ -219,6 +231,7 @@ def main():
         # 不经本脚本合成，避免重跑时覆盖（对应 gen_* 函数保留便于回退）
         ("plate_click.wav", gen_plate_click(), 0.92),
         ("goal_chime.wav", gen_goal_chime(), 0.88),
+        ("chop.wav", gen_chop(), 0.9),                            # M6-3：追加于队尾（不扰动既有随机流）
     ]
     for name, samples, norm in jobs:
         write_wav(os.path.join(OUT, name), samples, normalize=norm)

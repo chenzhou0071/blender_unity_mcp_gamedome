@@ -5,6 +5,7 @@ headless 用法: blender.exe --background --factory-startup --python outdoor_pro
   SM_GorgeRock_B  5m 扁石（顶盖压顶/横石）
   SM_GorgeRock_C  9m 级超大扁圆巨石（2026-10-13 巨石岗重做：基座巨岩/顶盖）
   SM_GorgeRock_D  7m 级高楔形石（斜靠层：成对相向斜倚，垒出低矮 V 形夹缝）
+  SM_Vine_Curtain M6-3 Task 12 藤帘（宽 5m×垂长 2.6m，9 条垂藤+菱形叶片；原点=帘顶中点）
 约定：几何中心=对象原点（Unity 按中心摆位，缩放与碰撞一致）；导出 axis_up='Y' → Unity (x, 高度, z)。
 """
 import bpy, bmesh, random, os, sys, math
@@ -20,10 +21,13 @@ DO_RENDER = "--render" in sys.argv
 MATERIALS = {
     "M_Cliff":         dict(color=(0.35, 0.30, 0.24, 1), rough=0.90),   # 岩缝巨石（峡谷岩壁同族）
     "M_Ground_Render": dict(color=(0.22, 0.19, 0.15, 1), rough=0.95),   # 仅渲染地面衬托（不导出）
+    "M_Vine":          dict(color=(0.10, 0.22, 0.08, 1), rough=0.85),   # 藤条（M6-3 藤帘）
+    "M_Leaf_Dark":     dict(color=(0.07, 0.15, 0.05, 1), rough=0.80),   # 暗叶层（M6-3 藤帘）
 }
 # 面数预算（计划上限）：A ≤1600 / B ≤2200 / C ≤3200 / D ≤2400
 TRIS_BUDGET = {"SM_GorgeRock_A": 1600, "SM_GorgeRock_B": 2200,
-               "SM_GorgeRock_C": 3200, "SM_GorgeRock_D": 2400}
+               "SM_GorgeRock_C": 3200, "SM_GorgeRock_D": 2400,
+               "SM_Vine_Curtain": 2600}
 
 
 # ---------- 场景与落地 ----------
@@ -209,6 +213,63 @@ def build_rock(name, size, ry, rz, amp_xy, amp_z, bump_amp, soften=None,
     return o, dims
 
 
+def build_vine_curtain(name="SM_Vine_Curtain"):
+    """藤帘（M6-3 Task 12）：9 条垂藤（锥形管 r0.05→0.02、S 弯 ±0.08m）+ 沿藤每 0.4m 菱形叶
+    （长 0.15m、双面）。原点=帘顶中点：X 居中、Z=0 顶、垂向 -Z 2.6m。独立种子 41 幂等。
+    预算：管 9×18 段×6 边=1944 tris + 顶底盖 72 + 叶 9×6×4=216 → 2232 tris ≤2600。"""
+    import bmesh
+    random.seed(41)
+    span, vlen, segs, sides = 0.55, 2.6, 18, 6
+    n_leaf = int(vlen // 0.4)                          # 每根 6 片
+
+    def center_at(t, x0, ph, ph2):
+        return (x0 + 0.08 * math.sin(2 * math.pi * t + ph) + 0.015 * math.sin(5 * math.pi * t + ph2),
+                0.04 * math.sin(3 * math.pi * t + ph2),
+                -vlen * t)
+
+    bm = bmesh.new()
+    for i in range(9):
+        x0 = (i - 4) * span                            # -2.2 … +2.2（9 条居中）
+        ph, ph2 = random.uniform(0, 2 * math.pi), random.uniform(0, 2 * math.pi)
+        rings = []
+        for s in range(segs + 1):
+            t = s / segs
+            cx, cy, cz = center_at(t, x0, ph, ph2)
+            r = 0.05 - 0.03 * t                        # 锥形管：顶 0.05 → 底 0.02
+            ring = []
+            for k in range(sides):
+                a = 2 * math.pi * k / sides + ph
+                ring.append(bm.verts.new((cx + r * math.cos(a), cy + r * math.sin(a), cz)))
+            rings.append(ring)
+        for s in range(segs):
+            for k in range(sides):
+                bm.faces.new((rings[s][k], rings[s][(k + 1) % sides],
+                              rings[s + 1][(k + 1) % sides], rings[s + 1][k]))
+        bm.faces.new(rings[0])                         # 顶口盖
+        bm.faces.new(list(reversed(rings[-1])))        # 底口盖
+        for j in range(n_leaf):                        # 菱形叶片（双面 = 正反各一个四边面）
+            t = (j + 0.5) / n_leaf
+            cx, cy, cz = center_at(t, x0, ph, ph2)
+            a = random.uniform(0, 2 * math.pi)
+            dx, dy = math.cos(a), math.sin(a)
+            nx, ny = -dy, dx
+            pts = (
+                (cx + dx * 0.075, cy + dy * 0.075, cz - 0.025),   # 叶尖（下垂）
+                (cx + nx * 0.035, cy + ny * 0.035, cz),           # 侧 1
+                (cx - dx * 0.01, cy - dy * 0.01, cz + 0.015),     # 叶根（贴藤）
+                (cx - nx * 0.035, cy - ny * 0.035, cz))           # 侧 2
+            vs = [bm.verts.new(p) for p in pts]
+            f1 = bm.faces.new(vs); f1.material_index = 1
+            vs2 = [bm.verts.new(p) for p in pts]                  # 同位置复制（bmesh 不允许同顶点组反向建面）
+            f2 = bm.faces.new(list(reversed(vs2))); f2.material_index = 1
+    me = bpy.data.meshes.new(name)
+    bm.to_mesh(me)
+    bm.free()
+    o = bpy.data.objects.new(name, me)
+    bpy.context.collection.objects.link(o)
+    return o
+
+
 def render_rocks(rocks):
     """两件并排总览（仅内存操作，不影响已保存的 blend 与已导出 FBX）。"""
     import mathutils
@@ -306,6 +367,57 @@ def render_portal(rocks):
     print(f"RENDER ok gorge_rocks_portal.png {size}B")
 
 
+def render_vine():
+    """藤帘特写（仅内存操作）：正前微侧视角、落地摆放（帘底贴地）。"""
+    import mathutils
+    scene = bpy.context.scene
+    if scene.world is None:
+        scene.world = bpy.data.worlds.new("World")
+    scene.world.use_nodes = True
+    bg = next(n for n in scene.world.node_tree.nodes if n.type == 'BACKGROUND')
+    bg.inputs[0].default_value = (0.05, 0.06, 0.08, 1)
+    bg.inputs[1].default_value = 1.0
+    bpy.data.objects["SM_Vine_Curtain"].location = (0, 0, 2.6)   # 帘底贴地（渲染摆位，不入库）
+    for o in bpy.data.objects:                                     # 隐藏石件（render_rocks/portal 摆位仍留在场景内会遮镜）
+        if o.name.startswith("SM_GorgeRock"):
+            o.hide_render = True
+    if "Plane" not in bpy.data.objects:                            # 承影地面（render_rocks 已建则复用）
+        bpy.ops.mesh.primitive_plane_add(size=30, location=(0, 0, -0.02))
+        set_material(bpy.context.object, "M_Ground_Render")
+    cam_data = bpy.data.cameras.new("VineCam")
+    cam_data.lens = 35
+    cam = bpy.data.objects.new("VineCam", cam_data)
+    scene.collection.objects.link(cam)
+    cam.location = (2.2, -7.6, 1.9)
+    direction = mathutils.Vector((0.0, 0.0, 1.25)) - cam.location
+    cam.rotation_euler = direction.to_track_quat('-Z', 'Y').to_euler()
+    scene.camera = cam
+    sun_data = bpy.data.lights.new("VineSun", type='SUN')
+    sun_data.energy = 2.2
+    sun = bpy.data.objects.new("VineSun", sun_data)
+    scene.collection.objects.link(sun)
+    sun.rotation_euler = (0.95, 0.25, 0.45)
+    fill_data = bpy.data.lights.new("VineFill", type='SUN')
+    fill_data.energy = 0.8
+    fill = bpy.data.objects.new("VineFill", fill_data)
+    scene.collection.objects.link(fill)
+    fill.rotation_euler = (1.25, -0.3, -2.0)
+    engines = list(bpy.types.RenderSettings.bl_rna.properties['engine'].enum_items.keys())
+    for cand in ('BLENDER_EEVEE_NEXT', 'BLENDER_EEVEE', 'CYCLES'):
+        if cand in engines:
+            scene.render.engine = cand
+            break
+    scene.render.resolution_x = 1280
+    scene.render.resolution_y = 960
+    os.makedirs(RENDER_DIR, exist_ok=True)
+    out = os.path.join(RENDER_DIR, "vine.png")
+    scene.render.filepath = out
+    bpy.ops.render.render(write_still=True)
+    size = os.path.getsize(out) if os.path.exists(out) else 0
+    assert size > 20000, f"渲染图过小: {size}B"
+    print(f"RENDER ok vine.png {size}B engine={scene.render.engine}")
+
+
 def main():
     clear_scene()
     os.makedirs(EXPORT_DIR, exist_ok=True)
@@ -340,11 +452,26 @@ def main():
         assert fsz > 5000, f"{o.name} FBX 过小: {fsz}B"
         print(f"  {o.name}: dims=({dims.x:.2f}, {dims.y:.2f}, {dims.z:.2f}) "
               f"tris={tris} fbx={fsz}B")
+    # ---- M6-3 Task 12: 藤帘（原点=帘顶中点；双材质 M_Vine/M_Leaf_Dark）----
+    vine = build_vine_curtain()
+    triangulate(vine)
+    vine.data.materials.clear()
+    vine.data.materials.append(get_material("M_Vine"))
+    vine.data.materials.append(get_material("M_Leaf_Dark"))
+    for p in vine.data.polygons:
+        p.use_smooth = (p.material_index == 0)                    # 管平滑 / 叶平面
+    vtris = tris_of(vine)
+    assert 1500 <= vtris <= TRIS_BUDGET["SM_Vine_Curtain"], f"SM_Vine_Curtain 面数超预算: {vtris}"
+    vpath = export_obj(vine)
+    vsz = os.path.getsize(vpath)
+    assert vsz > 5000, f"SM_Vine_Curtain FBX 过小: {vsz}B"
+    print(f"  SM_Vine_Curtain: tris={vtris} fbx={vsz}B")
     bpy.ops.wm.save_as_mainfile(filepath=os.path.join(SCENES_DIR, "M6_outdoor_props.blend"))
-    print(f"OK rocks={len(rocks)} total_tris={total}")
+    print(f"OK rocks={len(rocks)} total_tris={total} vine_tris={vtris}")
     if DO_RENDER:
         render_rocks(rocks)
         render_portal(rocks)
+        render_vine()
 
 
 main()

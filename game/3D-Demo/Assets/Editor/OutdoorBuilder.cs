@@ -16,6 +16,7 @@ public static class OutdoorBuilder
         CleanupOUT();
         PlaceTerrain();
         BuildGorge();               // M6-2 Task 9: 岩缝段巨石阵（蹲行通过/站立被挡）
+        BuildVines();               // M6-3 Task 12: 藤帘（斩断通过）
         EnsureGroundOutside();      // 收编灰盒遗留大地坪：材质对齐峡谷地形色（用户：灰板与地面色不一致）
         EditorSceneManager.MarkSceneDirty(EditorSceneManager.GetActiveScene());
         EditorSceneManager.SaveScene(EditorSceneManager.GetActiveScene());
@@ -224,5 +225,22 @@ public static class OutdoorBuilder
         hint.transform.position = new Vector3(0, -1.5f, 92f);
         var hz = hint.AddComponent<HintZone>(); hz.text = "岩缝太窄——按 C 蹲下通过"; hz.radius = 6f;
         Debug.Log("[OutdoorBuilder] 巨石岗：斜靠门 3 + 压顶 3 + 南口 3 + 基座 6 + 顶冠 3 + 北口 2 + 侧翼 4 + 微光 2 + 提示区");
+    }
+
+    // M6-3 Task 12: 藤帘（z 68 岩缝北段）——挥刀斩断即塌落（CuttableVine）。
+    // 原点=帘顶中点：放 (0,-0.1,68) 后帘面从 y-0.1 垂到地面以下。碰撞盒在 prefab 本地空间
+    // （x=宽、y=进深、z=高——同 MakeRock 轴映射注释），竖直范围本地 z -2.6..0；会动，不标 BatchingStatic。
+    static void BuildVines()
+    {
+        var fbx = AssetDatabase.LoadAssetAtPath<GameObject>($"{FbxDir}/SM_Vine_Curtain.fbx");
+        var go = (GameObject)PrefabUtility.InstantiatePrefab(fbx);
+        go.name = "OUT_VineCurtain";
+        go.transform.position = new Vector3(0f, -0.1f, 68f);
+        go.transform.rotation = fbx.transform.rotation;      // 保留轴补偿（Blender Z-up→Unity Y-up）；帘宽 5m 沿世界 x
+        var box = go.AddComponent<BoxCollider>();
+        box.size = new Vector3(5f, 0.4f, 2.6f);               // 本地：x 宽 / y 进深 / z 高
+        box.center = new Vector3(0f, 0f, -1.3f);              // 本地 z -2.6..0 = 帘顶零点向下垂
+        go.AddComponent<CuttableVine>();
+        Debug.Log("[OutdoorBuilder] 藤帘：OUT_VineCurtain (0,-0.1,68) 盒 5×2.6×0.4 + CuttableVine");
     }
 }
