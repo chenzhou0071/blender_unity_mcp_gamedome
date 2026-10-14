@@ -18,6 +18,8 @@ public static class OutdoorBuilder
         BuildGorge();               // M6-2 Task 9: 岩缝段巨石阵（蹲行通过/站立被挡）
         BuildVines();               // M6-3 Task 12: 藤帘（斩断通过）
         BuildWater();               // M6-4 Task 13: 河谷水面 + WaterVolume 判定体
+        BuildRope();                // M6-5 Task 15: 斜绳横跨深渊 + 双锚桩
+        BuildAbyssMist();           // M6-5 Task 15: 深渊雾层（4 层渐没入黑暗）
         EnsureGroundOutside();      // 收编灰盒遗留大地坪：材质对齐峡谷地形色（用户：灰板与地面色不一致）
         EditorSceneManager.MarkSceneDirty(EditorSceneManager.GetActiveScene());
         EditorSceneManager.SaveScene(EditorSceneManager.GetActiveScene());
@@ -48,6 +50,17 @@ public static class OutdoorBuilder
     }
 
     static void PlaceTerrain() { InstantiateFbx("SM_CanyonTerrain", Vector3.zero, Quaternion.identity); }
+
+    // M6-5 Task 15: FBX 实体变体——去掉 MeshCollider 与静态标记（会动的对象：绳/桩/雾层由各自系统控制）。
+    static GameObject InstantiateFbxNoCollider(string name, Vector3 pos)
+    {
+        var fbx = AssetDatabase.LoadAssetAtPath<GameObject>($"{FbxDir}/{name}.fbx");
+        var go = (GameObject)PrefabUtility.InstantiatePrefab(fbx);
+        go.name = "OUT_" + name;
+        go.transform.position = pos;
+        go.transform.rotation = fbx.transform.rotation;    // 保留 prefab 轴补偿（Blender Z-up→Unity Y-up）
+        return go;
+    }
 
     // 灰盒遗留的 40×50 大地坪（GroundOutside，不属 OUT_ 前缀所以 CleanupOUT 清不到它）：
     // 默认材质是 URP 包内 Lit.mat（灰 0.5），与峡谷地形（M_Terrain 纯色沙 0.63/0.58/0.50）割裂。
@@ -275,5 +288,64 @@ public static class OutdoorBuilder
         var wv = new GameObject("OUT_WaterVolume").AddComponent<WaterVolume>();   // 判定体与水面同坐标
         wv.transform.position = new Vector3(0, -2.6f, 149.5f);
         Debug.Log("[OutdoorBuilder] 水面：OUT_Water 100×30 @ (0,-2.6,149.5) + OUT_WaterVolume 判定");
+    }
+
+    // M6-5 Task 15: 绳索与锚桩——斜绳横跨深渊（南岸崖边 → 对岸崖顶）。
+    // 锚点：南端 (0,-1.0,193.5)（南岸高台 -1.5，桩底着地、桩顶 -1.0 即绳南端）；
+    //      北端 (0,3.4,215.8)（崖顶 y=3 起于 z≈216，215.8 处地形 ≈2.94；北桩底 2.94、桩顶 3.44）。
+    // SM_Rope 原点=南底端、几何沿本地 +Y 长 22.7m（Blender 沿 +y 建模）——
+    // 故直接 rotation=FromToRotation(up, 北-南)（不乘 fbx 轴补偿：本地 +Y 数据即绳轴，RopeSystem.Axis=transform.up 自洽）。
+    static void BuildRope()
+    {
+        InstantiateFbxNoCollider("SM_Stake", new Vector3(0f, -1.5f, 193.5f)).name = "OUT_Stake_S";   // 南端桩（崖边）
+        InstantiateFbxNoCollider("SM_Stake", new Vector3(0f, 2.94f, 215.8f)).name = "OUT_Stake_N";   // 北端桩（崖顶）
+        var rope = InstantiateFbxNoCollider("SM_Rope", new Vector3(0f, -1.0f, 193.5f));
+        rope.name = "OUT_Rope_1";                // 绳本体不加碰撞（爬绳走 RopeSystem 状态判定）
+        Vector3 north = new Vector3(0f, 3.4f, 215.8f) - rope.transform.position;   // 南→北斜向
+        rope.transform.rotation = Quaternion.FromToRotation(Vector3.up, north.normalized);
+        Debug.Log("[OutdoorBuilder] 斜绳：OUT_Rope_1 22.7m 跨深渊 + 双桩（南 -1.5 / 北 2.94）");
+    }
+
+    // M6-5 Task 15: 深渊雾层——4 层水平薄雾板（Cube 薄板 36×0.06×14）从上到下渐浓没入黑暗——“看不见底”。
+    // 透明材质共享 M_Mist；雾板会动（MistDrift 浮动）→ 不标静态、关阴影（M5 静态批处理教训）。
+    static void BuildAbyssMist()
+    {
+        var mat = GetOrCreateMistMat();
+        float[] ys = { -3f, -10f, -17f, -24f };
+        float[] alphas = { 0.25f, 0.45f, 0.62f, 0.8f };
+        for (int i = 0; i < ys.Length; i++)
+        {
+            var go = GameObject.CreatePrimitive(PrimitiveType.Cube);
+            go.name = "OUT_Mist_" + (i + 1);
+            Object.DestroyImmediate(go.GetComponent<BoxCollider>());                 // 不参与碰撞
+            go.transform.position = new Vector3(0f, ys[i], 201f);                   // 深渊带 z 194-208 中心
+            go.transform.localScale = new Vector3(36f, 0.06f, 14f);
+            var r = go.GetComponent<MeshRenderer>();
+            r.sharedMaterial = mat;
+            r.shadowCastingMode = UnityEngine.Rendering.ShadowCastingMode.Off;
+            r.receiveShadows = false;
+            go.AddComponent<MistDrift>().alphaBase = alphas[i];
+        }
+        Debug.Log("[OutdoorBuilder] 深渊雾层：OUT_Mist_1~4（y -3/-10/-17/-24、alpha 0.25→0.8）");
+    }
+
+    // M6-5: 雾材质资产化（仿 M_Water 的幂等模式——只设 _Surface/_Blend 缺混合因子会渲染成不透明）。
+    static Material GetOrCreateMistMat()
+    {
+        const string path = "Assets/Art/Static/outdoor/M_Mist.mat";
+        var m = AssetDatabase.LoadAssetAtPath<Material>(path);
+        bool isNew = m == null;
+        if (isNew)
+            m = new Material(Shader.Find("Universal Render Pipeline/Unlit"));
+        m.SetFloat("_Surface", 1f); m.SetFloat("_Blend", 0f);                       // 透明/Alpha
+        m.SetFloat("_SrcBlend", (float)UnityEngine.Rendering.BlendMode.SrcAlpha);
+        m.SetFloat("_DstBlend", (float)UnityEngine.Rendering.BlendMode.OneMinusSrcAlpha);
+        m.SetFloat("_ZWrite", 0f);
+        m.SetColor("_BaseColor", new Color(0.16f, 0.18f, 0.23f, 0.5f));            // 灰蓝雾色（比谷底黑略亮→可辨；MPB 运行时覆写 alpha）
+        m.EnableKeyword("_SURFACE_TYPE_TRANSPARENT");
+        m.renderQueue = 3000;
+        if (isNew) AssetDatabase.CreateAsset(m, path);                                // 幂等：重跑仅刷新参数（GUID 稳定）
+        else { EditorUtility.SetDirty(m); AssetDatabase.SaveAssetIfDirty(m); }
+        return m;
     }
 }

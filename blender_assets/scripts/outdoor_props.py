@@ -6,7 +6,11 @@ headless 用法: blender.exe --background --factory-startup --python outdoor_pro
   SM_GorgeRock_C  9m 级超大扁圆巨石（2026-10-13 巨石岗重做：基座巨岩/顶盖）
   SM_GorgeRock_D  7m 级高楔形石（斜靠层：成对相向斜倚，垒出低矮 V 形夹缝）
   SM_Vine_Curtain M6-3 Task 12 藤帘（宽 5m×垂长 2.6m，9 条垂藤+菱形叶片；原点=帘顶中点）
+  SM_Rope         M6-5 Task 15 斜绳（长 22.7m 沿 +Y，6 边主体+三股辫纹；原点=绳南底端）
+  SM_Stake        M6-5 Task 15 锚桩（圆柱 r0.05 h0.5 + 顶环；原点=桩底）
 约定：几何中心=对象原点（Unity 按中心摆位，缩放与碰撞一致）；导出 axis_up='Y' → Unity (x, 高度, z)。
+     例外：SM_Rope 原点=底端（非中心）且沿 +Y 长出——Unity 摆位用 FromToRotation(up, 北-南)
+     直接覆盖轴补偿（实例旋转不复乘 fbx 根补偿），本地 +Y 数据即绳轴（RopeSystem.Axis=transform.up 自洽）。
 """
 import bpy, bmesh, random, os, sys, math
 from mathutils import Vector, Matrix
@@ -23,11 +27,13 @@ MATERIALS = {
     "M_Ground_Render": dict(color=(0.22, 0.19, 0.15, 1), rough=0.95),   # 仅渲染地面衬托（不导出）
     "M_Vine":          dict(color=(0.10, 0.22, 0.08, 1), rough=0.85),   # 藤条（M6-3 藤帘）
     "M_Leaf_Dark":     dict(color=(0.07, 0.15, 0.05, 1), rough=0.80),   # 暗叶层（M6-3 藤帘）
+    "M_Rope":          dict(color=(0.45, 0.36, 0.22, 1), rough=0.95),   # 麻绳（M6-5）
+    "M_Metal_Dark":    dict(color=(0.15, 0.15, 0.17, 1), rough=0.55, metal=0.8),  # 深色金属（M6-5 锚桩）
 }
 # 面数预算（计划上限）：A ≤1600 / B ≤2200 / C ≤3200 / D ≤2400
 TRIS_BUDGET = {"SM_GorgeRock_A": 1600, "SM_GorgeRock_B": 2200,
                "SM_GorgeRock_C": 3200, "SM_GorgeRock_D": 2400,
-               "SM_Vine_Curtain": 2600}
+               "SM_Vine_Curtain": 2600, "SM_Rope": 1300, "SM_Stake": 450}
 
 
 # ---------- 场景与落地 ----------
@@ -270,6 +276,82 @@ def build_vine_curtain(name="SM_Vine_Curtain"):
     return o
 
 
+def build_rope(name="SM_Rope"):
+    """斜绳（M6-5 Task 15）：主体圆柱 r0.03（6 边×40 段，沿 +Y 0→22.7m）+ 三股螺旋辫纹
+    （螺旋半径 0.036、股管 r0.011、每段半圈=20 圈全长）。原点=绳南底端（y=0）。
+    面数：主体 40×6×2+盖 8=488 + 辫纹 3×40×3×2=720 → 1208 ≤1300。"""
+    L, r, segs, sides = 22.7, 0.030, 40, 6
+    bm = bmesh.new()
+    rings = []
+    for s in range(segs + 1):
+        y = L * s / segs
+        rings.append([bm.verts.new((r * math.cos(2 * math.pi * k / sides), y,
+                                    r * math.sin(2 * math.pi * k / sides))) for k in range(sides)])
+    for s in range(segs):
+        for k in range(sides):
+            bm.faces.new((rings[s][k], rings[s][(k + 1) % sides],
+                          rings[s + 1][(k + 1) % sides], rings[s + 1][k]))
+    bm.faces.new(list(reversed(rings[0])))          # 南端盖
+    bm.faces.new(rings[-1])                         # 北端盖
+    for g in range(3):                              # 三股辫纹（相位各 120°）
+        ph = 2 * math.pi * g / 3
+        srings = []
+        for s in range(segs + 1):
+            y = L * s / segs
+            a = ph + math.pi * s                    # 每段半圈（40 段 = 20 圈）
+            cx, cz = 0.036 * math.cos(a), 0.036 * math.sin(a)
+            srings.append([bm.verts.new((cx + 0.011 * math.cos(a + 2 * math.pi * k / 3), y,
+                                         cz + 0.011 * math.sin(a + 2 * math.pi * k / 3)))
+                           for k in range(3)])
+        for s in range(segs):
+            for k in range(3):
+                bm.faces.new((srings[s][k], srings[s][(k + 1) % 3],
+                              srings[s + 1][(k + 1) % 3], srings[s + 1][k]))
+    me = bpy.data.meshes.new(name)
+    bm.to_mesh(me)
+    bm.free()
+    o = bpy.data.objects.new(name, me)
+    bpy.context.collection.objects.link(o)
+    return o
+
+
+def build_stake(name="SM_Stake"):
+    """锚桩（M6-5 Task 15）：圆柱 r0.05 h0.5（8 边×5 段，原点=桩底 z=0，常规 z-up 竖建）
+    + 顶部水平挂环（大环 r0.075、管 r0.012、10×5 扁环）。面数 92+100=192 ≤450。"""
+    r, h, sides, segs = 0.05, 0.5, 8, 5
+    bm = bmesh.new()
+    rings = []
+    for s in range(segs + 1):
+        z = h * s / segs
+        rings.append([bm.verts.new((r * math.cos(2 * math.pi * k / sides),
+                                    r * math.sin(2 * math.pi * k / sides), z)) for k in range(sides)])
+    for s in range(segs):
+        for k in range(sides):
+            bm.faces.new((rings[s][k], rings[s][(k + 1) % sides],
+                          rings[s + 1][(k + 1) % sides], rings[s + 1][k]))
+    bm.faces.new(list(reversed(rings[0])))          # 底盖
+    bm.faces.new(rings[-1])                         # 顶盖
+    rr, tr, rs, ts, zc = 0.075, 0.012, 10, 5, 0.44  # 顶环（水平环篍，绕桩顶）
+    ring_pts = []
+    for s in range(rs):
+        a = 2 * math.pi * s / rs
+        ca, sa = math.cos(a), math.sin(a)
+        ring_pts.append([bm.verts.new(((rr + tr * math.cos(2 * math.pi * k / ts)) * ca,
+                                       (rr + tr * math.cos(2 * math.pi * k / ts)) * sa,
+                                       zc + tr * math.sin(2 * math.pi * k / ts)))
+                         for k in range(ts)])
+    for s in range(rs):
+        for k in range(ts):
+            bm.faces.new((ring_pts[s][k], ring_pts[s][(k + 1) % ts],
+                          ring_pts[(s + 1) % rs][(k + 1) % ts], ring_pts[(s + 1) % rs][k]))
+    me = bpy.data.meshes.new(name)
+    bm.to_mesh(me)
+    bm.free()
+    o = bpy.data.objects.new(name, me)
+    bpy.context.collection.objects.link(o)
+    return o
+
+
 def render_rocks(rocks):
     """两件并排总览（仅内存操作，不影响已保存的 blend 与已导出 FBX）。"""
     import mathutils
@@ -418,6 +500,70 @@ def render_vine():
     print(f"RENDER ok vine.png {size}B engine={scene.render.engine}")
 
 
+def render_rope():
+    """斜绳全景剪影（仅内存操作）：按 Unity 最终形态摆位——南桩（崖边高台面 z=-1.5）/北桩（崖顶 z=2.94）、
+    绳自南端锚点 (0,-1.0,193.5) 沿斜向 Unity(0,4.4,22.3)→blender(0,-22.3,4.4) 伸至北桩顶；
+    正侧面相机：左（北）高台/高桩、右（南）低台/低桩、中段 22m 深渊空档。blender 坐标存法 (x, -z, 高)。"""
+    import mathutils
+    scene = bpy.context.scene
+    if scene.world is None:
+        scene.world = bpy.data.worlds.new("World")
+    scene.world.use_nodes = True
+    bg = next(n for n in scene.world.node_tree.nodes if n.type == 'BACKGROUND')
+    bg.inputs[0].default_value = (0.02, 0.025, 0.04, 1)
+    bg.inputs[1].default_value = 1.0
+    for o in bpy.data.objects:                                   # 隐藏石件/藤帘（前序渲染摆位仍留在场景内）
+        if o.name.startswith(("SM_GorgeRock", "SM_Vine")):
+            o.hide_render = True
+    stake = bpy.data.objects["SM_Stake"]
+    s_n = stake.copy()                                           # 北桩副本（共享 mesh）
+    scene.collection.objects.link(s_n)
+    stake.location = (0, -193.5, -1.5)                           # 南桩：崖边高台
+    s_n.location = (0, -215.8, 2.94)                             # 北桩：对岸崖顶
+    rope = bpy.data.objects["SM_Rope"]
+    rope.location = (0, -193.5, -1.0)                            # 南端锚点（南桩顶）
+    d = mathutils.Vector((0, -22.3, 4.4)).normalized()           # 南→北斜向
+    rope.rotation_euler = mathutils.Vector((0, 1, 0)).rotation_difference(d).to_euler()
+    bpy.ops.mesh.primitive_cube_add(size=1, location=(0, -185, -2.02))    # 南岸高台（实体带厚：顶面 -1.52）
+    bpy.context.object.scale = (86, 18, 1)
+    set_material(bpy.context.object, "M_Ground_Render")
+    bpy.ops.mesh.primitive_cube_add(size=1, location=(0, -234, 2.46))     # 北崖顶台（顶面 2.96）
+    bpy.context.object.scale = (86, 36, 1)
+    set_material(bpy.context.object, "M_Ground_Render")
+    cam_data = bpy.data.cameras.new("RopeCam")
+    cam_data.lens = 40
+    cam = bpy.data.objects.new("RopeCam", cam_data)
+    scene.collection.objects.link(cam)
+    cam.location = (33, -204.7, 7.5)                             # 正侧面全景：两桩两端、绳斜跨、中段深渊空档
+    direction = mathutils.Vector((0, -204.7, 1.0)) - cam.location
+    cam.rotation_euler = direction.to_track_quat('-Z', 'Y').to_euler()
+    scene.camera = cam
+    sun_data = bpy.data.lights.new("RopeSun", type='SUN')
+    sun_data.energy = 2.6
+    sun = bpy.data.objects.new("RopeSun", sun_data)
+    scene.collection.objects.link(sun)
+    sun.rotation_euler = (0.85, 0.3, 0.35)
+    fill_data = bpy.data.lights.new("RopeFill", type='SUN')
+    fill_data.energy = 0.6
+    fill = bpy.data.objects.new("RopeFill", fill_data)
+    scene.collection.objects.link(fill)
+    fill.rotation_euler = (1.15, -0.35, -2.4)
+    engines = list(bpy.types.RenderSettings.bl_rna.properties['engine'].enum_items.keys())
+    for cand in ('BLENDER_EEVEE_NEXT', 'BLENDER_EEVEE', 'CYCLES'):
+        if cand in engines:
+            scene.render.engine = cand
+            break
+    scene.render.resolution_x = 1280
+    scene.render.resolution_y = 960
+    os.makedirs(RENDER_DIR, exist_ok=True)
+    out = os.path.join(RENDER_DIR, "rope.png")
+    scene.render.filepath = out
+    bpy.ops.render.render(write_still=True)
+    size = os.path.getsize(out) if os.path.exists(out) else 0
+    assert size > 20000, f"渲染图过小: {size}B"
+    print(f"RENDER ok rope.png {size}B engine={scene.render.engine}")
+
+
 def main():
     clear_scene()
     os.makedirs(EXPORT_DIR, exist_ok=True)
@@ -466,12 +612,31 @@ def main():
     vsz = os.path.getsize(vpath)
     assert vsz > 5000, f"SM_Vine_Curtain FBX 过小: {vsz}B"
     print(f"  SM_Vine_Curtain: tris={vtris} fbx={vsz}B")
+    # ---- M6-5 Task 15: 斜绳 + 锚桩（绳沿 +Y 长出、原点=南底端；桩 z-up 竖建、原点=桩底）----
+    rope = build_rope()
+    stake = build_stake()
+    rtris = stris = 0
+    for o2, mat_name in ((rope, "M_Rope"), (stake, "M_Metal_Dark")):
+        triangulate(o2)
+        o2.data.materials.clear()
+        o2.data.materials.append(get_material(mat_name))
+        for p in o2.data.polygons:
+            p.use_smooth = True
+        t2 = tris_of(o2)
+        assert t2 <= TRIS_BUDGET[o2.name], f"{o2.name} 面数超预算: {t2}"
+        if o2 is rope: rtris = t2
+        else: stris = t2
+        path2 = export_obj(o2)
+        fsz2 = os.path.getsize(path2)
+        assert fsz2 > 3000, f"{o2.name} FBX 过小: {fsz2}B"
+        print(f"  {o2.name}: tris={t2} fbx={fsz2}B")
     bpy.ops.wm.save_as_mainfile(filepath=os.path.join(SCENES_DIR, "M6_outdoor_props.blend"))
-    print(f"OK rocks={len(rocks)} total_tris={total} vine_tris={vtris}")
+    print(f"OK rocks={len(rocks)} total_tris={total} vine_tris={vtris} rope_tris={rtris} stake_tris={stris}")
     if DO_RENDER:
         render_rocks(rocks)
         render_portal(rocks)
         render_vine()
+        render_rope()
 
 
 main()
