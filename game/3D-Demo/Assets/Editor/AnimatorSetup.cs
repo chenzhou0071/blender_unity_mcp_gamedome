@@ -27,6 +27,7 @@ public static class AnimatorSetup
         ctrl.AddParameter("jump", AnimatorControllerParameterType.Trigger);
         ctrl.AddParameter("crouch", AnimatorControllerParameterType.Bool);   // M6-2: 蹲行
         ctrl.AddParameter("slash", AnimatorControllerParameterType.Trigger);  // M6-3: 挥刀
+        ctrl.AddParameter("swimming", AnimatorControllerParameterType.Bool);   // M6-4: 游泳
 
         var sm = ctrl.layers[0].stateMachine;
         var clips = LoadClips();
@@ -40,6 +41,7 @@ public static class AnimatorSetup
         var crouchIdle = sm.AddState("CrouchIdle"); crouchIdle.motion = clips["A_CrouchIdle"];   // M6-2: 蹲姿
         var crouchWalk = sm.AddState("CrouchWalk"); crouchWalk.motion = clips["A_CrouchWalk"];   // M6-2: 蹲行
         var slash = sm.AddState("Slash"); slash.motion = clips["A_Slash"];   // M6-3: 挥刀（一次性 0.83s）
+        var swim = sm.AddState("Swim"); swim.motion = clips["A_Swim"];      // M6-4: 游泳（循环 1.0s）
         sm.defaultState = idle;
 
         walk.speed = 0.9f;                                           // M4-9: 走路降速 2.5→1.5m/s 散步档（零滑步 0.9，原速以下悠闲步伐）
@@ -68,6 +70,11 @@ public static class AnimatorSetup
         var sBack2 = slash.AddTransition(crouchIdle);
         sBack2.hasExitTime = true; sBack2.exitTime = 0.8f; sBack2.duration = 0.1f;
         sBack2.AddCondition(AnimatorConditionMode.If, 0f, "crouch");
+        // M6-4: 游泳（先于 speed 转换添加 = 入水即刻接管；蹲姿由控制器强制起立后再进）
+        T(idle, swim, "swimming", AnimatorConditionMode.If, 0f);
+        T(walk, swim, "swimming", AnimatorConditionMode.If, 0f);
+        T(run, swim, "swimming", AnimatorConditionMode.If, 0f);
+        T(swim, idle, "swimming", AnimatorConditionMode.IfNot, 0f);
         T(idle, walk, "speed", AnimatorConditionMode.Greater, 0.1f);
         T(walk, idle, "speed", AnimatorConditionMode.Less, 0.1f);
         T(walk, run, "speed", AnimatorConditionMode.Greater, 2.5f);  // M4-9: 1.5/3.5 的中点（速度分层后重算）

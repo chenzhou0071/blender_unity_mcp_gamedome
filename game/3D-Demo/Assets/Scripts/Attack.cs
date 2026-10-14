@@ -8,11 +8,12 @@ public class Attack : MonoBehaviour
                                                    // 进状态转场 0.1s 内 clip 同步推进，不叠加）
     public float range = 1.2f, radius = 0.85f, cooldown = 0.7f;
     public Vector3 knifeEuler = new Vector3(0f, 180f, 0f);   // 握持校准：绕刀轴转 180° 使刃口朝挥砍行进方向（Play 实测）
-    float next; Animator anim; Transform knife;
+    float next; Animator anim; Transform knife; ThirdPersonController tpc;
 
     void Start()
     {
         anim = GetComponentInChildren<Animator>();
+        tpc = GetComponent<ThirdPersonController>();
         var hand = anim ? anim.GetBoneTransform(HumanBodyBones.RightHand) : null;
         if (hand && knifePrefab)
         {
@@ -25,7 +26,9 @@ public class Attack : MonoBehaviour
 
     void Update()
     {
+        if (knife) knife.gameObject.SetActive(!(tpc && tpc.Swimming));   // M6-4: 游泳时收刀（上岸自动取回）
         if (Time.time < next || Time.timeScale == 0f) return;   // 覆盖暂停菜单期间（timeScale=0）不响应攻击
+        if (tpc && tpc.Swimming) return;                        // M6-4: 游泳中不可挥刀
         if (!Input.GetMouseButtonDown(0)) return;
         next = Time.time + cooldown;
         if (anim) anim.SetTrigger("slash");

@@ -7,18 +7,22 @@ public class ThirdPersonController : MonoBehaviour
     public float standOffsetY = 0.045f;                               // 站立位校准：原点距地面高（脚底贴地+5mm）
     public float crouchSpeed = 0.42f, crouchHeight = 1.15f;            // M6-2: 蹲行速度/胶囊高（站起需头顶净空）；v4 零滑步 0.42（极差 0.0922 换算）
     public bool Crouching { get; private set; }                       // M6-2: 蹲行状态（只读）
+    public float swimSpeed = 1.0f, swimDepth = 1.3f;                  // M6-4: 泳速 / 原点沉入水面深度（反馈 v5：水线到肩下沿、身体再抬高 5cm；同线兼作“水没肩才开游”的入水线）
+    public bool Swimming { get; private set; }                        // M6-4: 游泳状态（只读）
     public Transform cameraPivot;
 
     CharacterController cc;
     float velocityY;
     ClimbSystem climb;
+    WaterVolume water;                    // M6-4: 水域判定（Awake 可能先于它注册，UpdateSwim 兜底）
+    Vector3 swimVel;                      // M6-4: 游泳惯性速度（划水加速 / 松手缓衰减→滑行）
     Animator anim;
     bool jumpPending; float jumpDelayT; bool jumpIsRun;   // M4-9: 起跳前摇（蹲→蹬→离地时序对齐 A_Jump）；M4-11: 起跳档位（跑跳）
     bool airLocked; Vector3 airVel;       // M4-11: 跑跳空中惯性（离地时启用按下瞬间锁定的起跳冲量，松键不空中急停）
     const float runJumpDelay = 0.1f;      // M4-11: 跑跳前摇 0.1s（对齐 A_JumpRun f3 蹬伸；走/立定跳保持 0.26s）
     bool wasGrounded; float stepDist; float airPeakY;   // M5-2: 上帧着地状态（落地检测）/ 脚步位移累计；M6-1: 空中峰值高度（落地音落差判定用）
 
-    void Awake() { cc = GetComponent<CharacterController>(); climb = GetComponent<ClimbSystem>(); }
+    void Awake() { cc = GetComponent<CharacterController>(); climb = GetComponent<ClimbSystem>(); water = WaterVolume.Instance; }
 
     void Start() { anim = GetComponentInChildren<Animator>(); }   // M4-5: 主角模型上的 Animator
 
@@ -31,6 +35,8 @@ public class ThirdPersonController : MonoBehaviour
             else SetCrouch(true);
         }
         if (climb && climb.IsClimbing) { velocityY = 0f; airLocked = false; SyncAnimator(); return; }   // 攀爬期间交出控制权（跑跳扑墙则清除惯性锁）
+        UpdateSwim();                                                   // M6-4: 游泳接管（先于攀爬之后的常规移动）
+        if (Swimming) { if (Crouching) SetCrouch(false); TickSwim(); SyncAnimator(); return; }
         bool grounded = cc.isGrounded;
         if (wasGrounded && !grounded) airPeakY = transform.position.y;               // M6-1: 离地帧——记录起点高度
         else if (!grounded) airPeakY = Mathf.Max(airPeakY, transform.position.y);    // M6-1: 空中——追踪峰值高度
@@ -124,6 +130,47 @@ public class ThirdPersonController : MonoBehaviour
                                    ~0, QueryTriggerInteraction.Ignore);
     }
 
+    // M6-4: 游泳——入水检测（矩形水域判定；CC 不产生 Trigger 事件，沿用 GoalTrigger 经验）
+    void UpdateSwim()
+    {
+        if (water == null) water = WaterVolume.Instance;
+        if (water == null) { Swimming = false; return; }
+        if (climb && climb.IsClimbing) return;                       // 爬墙期间不判水
+        // M6-4 反馈 v4：水没到肩膀（脚底低于浮线）才切入游泳——浅水段保持涉水行走，避免“没完全下水就开始动画”。
+        // 出线带 0.4m 滞回：漂浮微波动不抖动；向南/北游到浅处脚被河床顶到出线即切回涉水行走，对称两岸。
+        Vector3 wpos = transform.position;
+        bool inZone = water.InZone(wpos);
+        float swimLine = water.waterLevel - swimDepth;               // 浮线即入水线
+        if (!Swimming && inZone && wpos.y < swimLine)
+        {
+            Swimming = true; velocityY = 0f; airLocked = false; swimVel = Vector3.zero;
+            AudioManager.Instance?.Splash();
+        }
+        else if (Swimming && (!inZone || wpos.y > swimLine + 0.4f))
+        { Swimming = false; swimVel = Vector3.zero; }                // 出区（上岸/离河）：重力接管
+    }
+
+    // M6-4: 游泳移动——固定浮水面（弹性逼近，受河床物理限制）+ 相机朝向划水
+    void TickSwim()
+    {
+        float h = Input.GetAxisRaw("Horizontal"), v = Input.GetAxisRaw("Vertical");
+        float yaw = cameraPivot ? cameraPivot.eulerAngles.y : 0f;
+        Vector3 dir = Quaternion.Euler(0, yaw, 0) * new Vector3(h, 0, v);
+        if (dir.sqrMagnitude > 1f) dir.Normalize();
+        if (dir.sqrMagnitude > 0.01f)
+        {
+            var look = Quaternion.LookRotation(dir);
+            transform.rotation = Quaternion.Slerp(transform.rotation, look, turnLerp * Time.deltaTime);
+        }
+        Vector3 target = dir * swimSpeed;
+        float accel = dir.sqrMagnitude > 0.01f ? 3.5f : 1.6f;   // M6-4 反馈：划水加速快 / 松手缓衰减 → 水面滑行感
+        swimVel = Vector3.Lerp(swimVel, target, Mathf.Clamp01(accel * Time.deltaTime));
+        Vector3 move = swimVel;
+        float targetY = water.waterLevel - swimDepth + 0.04f * Mathf.Sin(Time.time * 2.2f);   // 固定浮升+微浮沉
+        move.y = (targetY - transform.position.y) * 4f;                                       // 弹性逼近（受河床物理限制）
+        cc.Move(move * Time.deltaTime);
+    }
+
     // M4-5: 移动状态同步给 Animator（speed/grounded/climbing）
     void SyncAnimator()
     {
@@ -134,6 +181,7 @@ public class ThirdPersonController : MonoBehaviour
         anim.SetBool("climbing", climb && climb.IsClimbing);
         anim.SetBool("toppingOut", climb && climb.IsToppingOut);   // M4-8: 爬顶翻越段（Climb→Mantle）
         anim.SetBool("crouch", Crouching);                         // M6-2: 蹲行（CrouchIdle/CrouchWalk 两状态分流）
+        anim.SetBool("swimming", Swimming);                        // M6-4: 游泳
     }
 
     void OnControllerColliderHit(ControllerColliderHit hit)

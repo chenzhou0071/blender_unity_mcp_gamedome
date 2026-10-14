@@ -84,7 +84,7 @@ public static class VegetationScatter
 
         int nG = 0, nB = 0, nA = 0, nB2 = 0, nC = 0, nD = 0, nE = 0, nF = 0;
 
-        // ---- 草：5m 格×2 丛（z44-176；坡上限 53°；河谷洼地 z140-160 且 y<-2 跳过；芦苇 15%）----
+        // ---- 草：5m 格×2 丛（z44-176；坡上限 53°；河谷水域带 z138-161 且 y<-2 跳过；芦苇 15%）----
         for (float z = GrassZ0; z < GrassZ1 + 0.01f; z += GrassGrid)
             for (float x = -XLimit; x < XLimit + 0.01f; x += GrassGrid)
                 for (int k = 0; k < 2; k++)
@@ -92,7 +92,7 @@ public static class VegetationScatter
                     Vector3 p, n;
                     if (!Sample(x, z, out p, out n)) continue;
                     if (n.y < GrassSlope) continue;
-                    if (p.z >= 140f && p.z <= 160f && p.y < -2.0f) continue;
+                    if (p.z >= 138f && p.z <= 161f && p.y < -2.0f) continue;   // 水域带跳过（M6-4 河床加深后水线扩至 138-161）
                     Place(Random.value < 0.15f ? prefabs[1] : prefabs[0], p, gGrass, false); nG++;
                 }
 

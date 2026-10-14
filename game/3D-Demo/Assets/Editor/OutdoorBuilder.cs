@@ -17,6 +17,7 @@ public static class OutdoorBuilder
         PlaceTerrain();
         BuildGorge();               // M6-2 Task 9: 岩缝段巨石阵（蹲行通过/站立被挡）
         BuildVines();               // M6-3 Task 12: 藤帘（斩断通过）
+        BuildWater();               // M6-4 Task 13: 河谷水面 + WaterVolume 判定体
         EnsureGroundOutside();      // 收编灰盒遗留大地坪：材质对齐峡谷地形色（用户：灰板与地面色不一致）
         EditorSceneManager.MarkSceneDirty(EditorSceneManager.GetActiveScene());
         EditorSceneManager.SaveScene(EditorSceneManager.GetActiveScene());
@@ -242,5 +243,37 @@ public static class OutdoorBuilder
         box.center = new Vector3(0f, 0f, -1.3f);              // 本地 z -2.6..0 = 帘顶零点向下垂
         go.AddComponent<CuttableVine>();
         Debug.Log("[OutdoorBuilder] 藤帘：OUT_VineCurtain (0,-0.1,68) 盒 5×2.6×0.4 + CuttableVine");
+    }
+
+    // M6-4 Task 13: 河谷水面——100×30m 水平盘面（URP Lit 透明水色兜底方案；反馈加宽至与河谷同宽）。
+    // 水面不参与碰撞（游泳走 WaterVolume 状态判定）；透明材质参数补全 SrcBlend/DstBlend/ZWrite
+    // （同 GetOrCreateMistMat 模式——只设 _Surface/_Blend 缺混合因子会渲染成不透明）。
+    static void BuildWater()
+    {
+        var go = GameObject.CreatePrimitive(PrimitiveType.Plane);
+        go.name = "OUT_Water";
+        Object.DestroyImmediate(go.GetComponent<Collider>());          // 水面不参与碰撞（游泳走状态判定）
+        go.transform.position = new Vector3(0, -2.6f, 149.5f);
+        go.transform.localScale = new Vector3(10f, 1, 3f);           // 100m × 30m：横贯河谷全宽（贴合地图，两缘埋入崖壁/河岸下）
+
+        const string matPath = "Assets/Art/Static/outdoor/M_Water.mat";
+        var mat = AssetDatabase.LoadAssetAtPath<Material>(matPath);
+        bool isNew = mat == null;
+        if (isNew) mat = new Material(Shader.Find("Universal Render Pipeline/Lit"));
+        mat.SetFloat("_Surface", 1); mat.SetFloat("_Blend", 0);        // Transparent/Alpha
+        mat.SetFloat("_SrcBlend", (float)UnityEngine.Rendering.BlendMode.SrcAlpha);
+        mat.SetFloat("_DstBlend", (float)UnityEngine.Rendering.BlendMode.OneMinusSrcAlpha);
+        mat.SetFloat("_ZWrite", 0f);
+        mat.SetColor("_BaseColor", new Color(0.10f, 0.30f, 0.36f, 0.72f));
+        mat.SetFloat("_Smoothness", 0.88f); mat.SetFloat("_Metallic", 0.05f);
+        mat.EnableKeyword("_SURFACE_TYPE_TRANSPARENT");
+        mat.renderQueue = 3000;
+        if (isNew) AssetDatabase.CreateAsset(mat, matPath);            // 幂等：重跑仅刷新参数（GUID 稳定）
+        else { EditorUtility.SetDirty(mat); AssetDatabase.SaveAssetIfDirty(mat); }
+        go.GetComponent<MeshRenderer>().sharedMaterial = mat;
+
+        var wv = new GameObject("OUT_WaterVolume").AddComponent<WaterVolume>();   // 判定体与水面同坐标
+        wv.transform.position = new Vector3(0, -2.6f, 149.5f);
+        Debug.Log("[OutdoorBuilder] 水面：OUT_Water 100×30 @ (0,-2.6,149.5) + OUT_WaterVolume 判定");
     }
 }

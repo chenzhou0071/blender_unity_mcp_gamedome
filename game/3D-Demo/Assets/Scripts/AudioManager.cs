@@ -37,6 +37,7 @@ public class AudioManager : MonoBehaviour
     }
     public void Goal() => OneShot(goalChime);
     public void Chop() => OneShot(chop);        // M6-3: 藤帘斩断（刀切入茎干闷响）
+    public void Splash() => OneShot(land, 0.15f);   // M6-4: 入水（暂复用落地音，低音量 0.15）
     public void Grind(bool on)
     {
         if (!grind.clip) return;

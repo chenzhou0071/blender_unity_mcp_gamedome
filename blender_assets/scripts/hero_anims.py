@@ -1,6 +1,6 @@
-"""主角九段程序化动画：idle/walk/run/jump/jumprun/climb/mantle/crouchidle/crouchwalk → Action 推独立 NLA track + 4 帧条图。
+"""主角十一段程序化动画：idle/walk/run/jump/jumprun/climb/mantle/crouchidle/crouchwalk/slash/swim → Action 推独立 NLA track + 4 帧条图。
 用法: blender.exe --background --factory-startup --python hero_anims.py
-产出: hero_rigged.blend 增加 10 个 Action（A_Idle 60f / A_Walk 27f / A_Run 20f / A_Jump 27f / A_JumpRun 28f / A_Climb 36f / A_Mantle 30f / A_CrouchIdle 40f / A_CrouchWalk 36f / A_Slash 25f）
+产出: hero_rigged.blend 增加 11 个 Action（A_Idle 60f / A_Walk 27f / A_Run 20f / A_Jump 27f / A_JumpRun 28f / A_Climb 36f / A_Mantle 30f / A_CrouchIdle 40f / A_CrouchWalk 36f / A_Slash 25f / A_Swim 40f）
       + docs/milestones/M4/anim_sheet_*.png（每动作 1 行 × 4-5 帧）
 坐标系: 面朝 +X，左=+Y，上=+Z；前后摆=绕世界 Y 轴，侧向摆臂=绕世界 X 轴。
 参数幅度严格按实施计划 M4-3 参数表，不另设。
@@ -29,7 +29,7 @@ for pb in arm.pose.bones:
 ad = arm.animation_data if arm.animation_data else arm.animation_data_create()
 for tr in list(ad.nla_tracks):
     ad.nla_tracks.remove(tr)
-ANAMES = ["A_Idle", "A_Walk", "A_Run", "A_Jump", "A_JumpRun", "A_Climb", "A_Mantle", "A_CrouchIdle", "A_CrouchWalk", "A_Slash"]
+ANAMES = ["A_Idle", "A_Walk", "A_Run", "A_Jump", "A_JumpRun", "A_Climb", "A_Mantle", "A_CrouchIdle", "A_CrouchWalk", "A_Slash", "A_Swim"]
 for nm in ANAMES:
     if nm in bpy.data.actions:
         bpy.data.actions.remove(bpy.data.actions[nm])
@@ -380,6 +380,39 @@ def make_slash():
         key_all(f)
     return act
 
+def make_swim():
+    """40f 循环游泳（M6-4 v4 反馈：身姿挺拔不显矮）——躯干近直立（10-15° 微前倾，头肩露出水面，
+    不低头）+ 双臂保留泳式划水（前伸滑行 → 外扫下压 → 收手 → 前射）+ 腿伸直舒展（不再屈膝，
+    随浮沉轻微摆动）。手骨不 key（游泳收刀，手自然姿态，与 Idle 持刀姿态脱钩）。"""
+    act = begin("A_Swim")
+    A_FWD, AF_FWD = (0.95, 0.14, 0.12), (0.98, 0.10, 0.04)     # 前伸：双臂水中向前平伸
+    A_PULL, AF_PULL = (0.20, 0.72, -0.52), (0.12, 0.60, -0.76)  # 划水：外扫下压（掌外下压水）
+    A_IN, AF_IN = (0.35, 0.18, -0.88), (0.50, 0.12, -0.82)     # 收手：向腹下收（蓄力）
+    K = [
+        (0,  10, A_FWD,  AF_FWD,  0.00),   # 滑行：双臂前伸、身体直立漂浮
+        (8,  15, A_PULL, AF_PULL, 0.03),   # 划水：外扫下压（微前倾发力）
+        (16, 12, A_IN,   AF_IN,  -0.02),   # 收手（身体压缩蓄力）
+        (24, 10, A_FWD,  AF_FWD,  0.02),   # 前射滑行（发出推进感）
+        (32, 10, A_FWD,  AF_FWD,  0.00),   # 滑行保持（长滑行 dwell）
+        (40, 10, A_FWD,  AF_FWD,  0.00),   # 回滑行（=f0，循环闭合）
+    ]
+    for f, sp, ua, fa, bob in K:
+        clear_pose()
+        wrot("Spine", "Y", sp); wrot("Spine1", "Y", 0)
+        walign2("LeftArm", ua)
+        walign2("RightArm", mir(ua))
+        walign2("LeftForeArm", fa)
+        walign2("RightForeArm", mir(fa))
+        wrot2("LeftUpLeg", [("X", LEG_IN_L)])       # 腿伸直舒展（水下垂立微摆，不参与划水）
+        wrot2("RightUpLeg", [("X", LEG_IN_R)])
+        wrot("LeftLeg", "Y", 4)
+        wrot("RightLeg", "Y", 4)
+        wrot("LeftFoot", "Y", FOOT_FIX)                       # 脚部矫正：压平鞋底坡度
+        wrot("RightFoot", "Y", FOOT_FIX)
+        wloc("Hips", dz=bob)                                   # 随划水微浮沉
+        key_all(f)
+    return act
+
 # —— 制作 + 断言（fcurve 非空 / 帧范围 / 循环闭合）——
 def act_fcurves(act):
     """兼容新旧 Action 数据模型：4.3- legacy fcurves / 4.4+ layered(channelbag)"""
@@ -393,9 +426,9 @@ def act_fcurves(act):
     return out
 
 acts = [make_idle(), make_walk(), make_run(), make_jump(), make_jump_run(), make_climb(), make_mantle(),
-        make_crouch_idle(), make_crouch_walk(), make_slash()]
+        make_crouch_idle(), make_crouch_walk(), make_slash(), make_swim()]
 EXPECT = {"A_Idle": 60, "A_Walk": 27, "A_Run": 20, "A_Jump": 27, "A_JumpRun": 28, "A_Climb": 36, "A_Mantle": 30,
-          "A_CrouchIdle": 40, "A_CrouchWalk": 36, "A_Slash": 25}
+          "A_CrouchIdle": 40, "A_CrouchWalk": 36, "A_Slash": 25, "A_Swim": 40}
 for act in acts:
     fr = act.frame_range
     fcs = act_fcurves(act)
@@ -499,6 +532,7 @@ SHOTS = {
     "A_CrouchIdle": [0, 10, 20, 30],
     "A_CrouchWalk": [0, 9, 18, 27],
     "A_Slash": [0, 5, 10, 14, 19],
+    "A_Swim": [0, 8, 16, 24, 32],
 }
 CS = (2.3, 0.0, 0.85) if "--front" in sys.argv else (0.0, 2.3, 0.85)   # 默认侧视（前后摆）；--front 正视（腿侧向开合）
 TGT = (0.0, 0.0, 0.05)
