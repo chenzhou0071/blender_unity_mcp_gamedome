@@ -41,5 +41,11 @@ public class SimpleUI : MonoBehaviour
     }
 
     public void SetObjective(string s) { if (objective) objective.text = s; }
-    public void ShowComplete() { if (complete) complete.gameObject.SetActive(true); SetObjective(""); }
+    // M6-6: 终点文案参数化（崖顶遗迹“序章完成”与宝物“取得圣物”共用面板）
+    public void ShowComplete(string title)
+    {
+        if (complete) { complete.text = title; complete.gameObject.SetActive(true); }
+        SetObjective("");
+    }
+    public void ShowComplete() => ShowComplete("探索完成！\n你取得了圣物");   // 旧调用保留
 }

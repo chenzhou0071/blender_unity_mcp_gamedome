@@ -3,6 +3,7 @@ using UnityEngine;
 public class GoalTrigger : MonoBehaviour
 {
     public float radius = 1.5f;             // 世界半径（与构建器 SphereCollider 一致）
+    public string message = "探索完成！\n你取得了圣物";   // M6-6: 终点文案（默认=原宝物文案，向后兼容；崖顶遗迹用另一组）
 
     bool done;
     Transform player;
@@ -22,7 +23,7 @@ public class GoalTrigger : MonoBehaviour
         {
             done = true;
             AudioManager.Instance?.Goal();                       // M5-2: 取得圣物钟声
-            if (SimpleUI.Instance) SimpleUI.Instance.ShowComplete();
+            if (SimpleUI.Instance) SimpleUI.Instance.ShowComplete(message);
         }
     }
 }

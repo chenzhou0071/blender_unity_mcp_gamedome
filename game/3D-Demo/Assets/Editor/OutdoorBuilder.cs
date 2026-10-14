@@ -20,6 +20,7 @@ public static class OutdoorBuilder
         BuildWater();               // M6-4 Task 13: 河谷水面 + WaterVolume 判定体
         BuildRope();                // M6-5 Task 15: 斜绳横跨深渊 + 双锚桩
         BuildAbyssMist();           // M6-5 Task 15: 深渊雾层（4 层渐没入黑暗）
+        BuildRuins();               // M6-6 Task 17: 崖顶遗迹（残墙/断柱/拱门 + 终点触发）
         EnsureGroundOutside();      // 收编灰盒遗留大地坪：材质对齐峡谷地形色（用户：灰板与地面色不一致）
         EditorSceneManager.MarkSceneDirty(EditorSceneManager.GetActiveScene());
         EditorSceneManager.SaveScene(EditorSceneManager.GetActiveScene());
@@ -348,5 +349,40 @@ public static class OutdoorBuilder
         if (isNew) AssetDatabase.CreateAsset(m, path);                                // 幂等：重跑仅刷新参数（GUID 稳定）
         else { EditorUtility.SetDirty(m); AssetDatabase.SaveAssetIfDirty(m); }
         return m;
+    }
+
+    // M6-6 Task 17: 崖顶遗迹石件（复用神庙套件 FBX——在 temple 目录，与 FbxDir(outdoor) 不同需独立加载）。
+    // yaw=绕世界 Y 摆向；scale=等比缩放（残墙半高 0.42≈2.5m）。轴补偿：与 MakeRock 同法左乘。
+    static void MakeStone(string goName, string fbxName, Vector3 pos, float yaw, float scale)
+    {
+        var fbx = AssetDatabase.LoadAssetAtPath<GameObject>($"Assets/Art/Static/temple/{fbxName}.fbx");
+        var go = (GameObject)PrefabUtility.InstantiatePrefab(fbx);
+        go.name = goName;
+        go.transform.position = pos;
+        go.transform.rotation = Quaternion.Euler(0f, yaw, 0f) * fbx.transform.rotation;   // 不可用 SetPositionAndRotation：会重置轴补偿
+        go.transform.localScale = Vector3.one * scale;
+        go.AddComponent<MeshCollider>();                  // 静态残迹：convex=false 默认
+        UnityEditor.GameObjectUtility.SetStaticEditorFlags(go, StaticEditorFlags.BatchingStatic);
+    }
+
+    // M6-6 Task 17: 崖顶遗迹（地形平台 y=3、z 216-254）——残墙 4（0.83≈2.4m 沿边围合；0.42 实测仅 1.2m 过矮）/
+    // 断柱 3+整柱 1/拱门 1；终点空对象 (0,3,242) + GoalTrigger radius=2（文案=序章完成）。
+    static void BuildRuins()
+    {
+        MakeStone("OUT_Ruins_Wall1", "SM_Wall_C", new Vector3(-8f, 3f, 224f), 90f, 0.83f);
+        MakeStone("OUT_Ruins_Wall2", "SM_Wall_D", new Vector3(8f, 3f, 224f), -90f, 0.83f);
+        MakeStone("OUT_Ruins_Wall3", "SM_Wall_A", new Vector3(0f, 3f, 252f), 0f, 0.83f);
+        MakeStone("OUT_Ruins_Wall4", "SM_Wall_B", new Vector3(-10f, 3f, 240f), 90f, 0.83f);
+        MakeStone("OUT_Ruins_Pillar1", "SM_Pillar_Broken", new Vector3(-5f, 3f, 232f), 0f, 1f);
+        MakeStone("OUT_Ruins_Pillar2", "SM_Pillar_Broken", new Vector3(5f, 3f, 228f), 40f, 1f);
+        MakeStone("OUT_Ruins_Pillar3", "SM_Pillar_Broken", new Vector3(-4f, 3f, 246f), 80f, 1f);
+        MakeStone("OUT_Ruins_Pillar4", "SM_Pillar_Whole", new Vector3(4f, 3f, 248f), 0f, 1f);
+        MakeStone("OUT_Ruins_Arch", "SM_Arch", new Vector3(0f, 3f, 238f), 0f, 1f);
+        var goal = new GameObject("OUT_Goal");
+        goal.transform.position = new Vector3(0f, 3f, 242f);
+        var gt = goal.AddComponent<GoalTrigger>();
+        gt.radius = 2f;
+        gt.message = "序章完成\n你走出了峡谷";
+        Debug.Log("[OutdoorBuilder] 崖顶遗迹：残墙4 + 断柱3 + 整柱1 + 拱门1 + 终点触发(0,3,242)");
     }
 }
