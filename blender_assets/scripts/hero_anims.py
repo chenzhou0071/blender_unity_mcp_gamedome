@@ -1,7 +1,7 @@
 """主角九段程序化动画：idle/walk/run/jump/jumprun/climb/mantle/crouchidle/crouchwalk → Action 推独立 NLA track + 4 帧条图。
 用法: blender.exe --background --factory-startup --python hero_anims.py
-产出: hero_rigged.blend 增加 9 个 Action（A_Idle 60f / A_Walk 27f / A_Run 20f / A_Jump 27f / A_JumpRun 28f / A_Climb 36f / A_Mantle 30f / A_CrouchIdle 40f / A_CrouchWalk 36f）
-      + docs/milestones/M4/anim_sheet_*.png（每动作 1 行 × 4 帧）
+产出: hero_rigged.blend 增加 10 个 Action（A_Idle 60f / A_Walk 27f / A_Run 20f / A_Jump 27f / A_JumpRun 28f / A_Climb 36f / A_Mantle 30f / A_CrouchIdle 40f / A_CrouchWalk 36f / A_Slash 25f）
+      + docs/milestones/M4/anim_sheet_*.png（每动作 1 行 × 4-5 帧）
 坐标系: 面朝 +X，左=+Y，上=+Z；前后摆=绕世界 Y 轴，侧向摆臂=绕世界 X 轴。
 参数幅度严格按实施计划 M4-3 参数表，不另设。
 """
@@ -29,7 +29,7 @@ for pb in arm.pose.bones:
 ad = arm.animation_data if arm.animation_data else arm.animation_data_create()
 for tr in list(ad.nla_tracks):
     ad.nla_tracks.remove(tr)
-ANAMES = ["A_Idle", "A_Walk", "A_Run", "A_Jump", "A_JumpRun", "A_Climb", "A_Mantle", "A_CrouchIdle", "A_CrouchWalk"]
+ANAMES = ["A_Idle", "A_Walk", "A_Run", "A_Jump", "A_JumpRun", "A_Climb", "A_Mantle", "A_CrouchIdle", "A_CrouchWalk", "A_Slash"]
 for nm in ANAMES:
     if nm in bpy.data.actions:
         bpy.data.actions.remove(bpy.data.actions[nm])
@@ -338,6 +338,30 @@ def make_crouch_walk():
         key_all(f)
     return act
 
+def make_slash():
+    """25f 一次性挥刀（M6-3）：垂臂→右臂后引上抬（刀朝天蓄力）→挥至正上微过中线→
+    劈向左前上 45°→收势前下→回垂臂。右臂主导（左臂常量垂摆），躯干前倾随劈
+    （峰值 12° 在 f14 劈下段）。判定窗对齐 Attack.cs：f10-f14（劈下段）。"""
+    act = begin("A_Slash")
+    # (frame, spine前倾, 右大臂方向, 右前臂方向)；面朝 +X、左=+Y → 右臂 y 取负侧
+    K = [
+        (0,   0, (0.05, -0.10, -0.98), (0.30, -0.20, -0.92)),   # 持刀垂臂（微前伸预备）
+        (5,   4, (-0.35, -0.55, 0.75), (-0.15, -0.35, 0.90)),   # 后引上抬：右臂右后上举/肘屈
+        (10, 10, (0.15,  0.10, 0.98), (0.35,  0.25, 0.88)),     # 挥至正上微过中线（判定窗开始）
+        (14, 12, (0.35,  0.55, 0.72), (0.55,  0.60, 0.55)),     # 劈至左前上 45°（判定窗结束）
+        (19,  5, (0.20,  0.20, -0.90), (0.30,  0.10, -0.92)),   # 收势：前下偏左回摆
+        (25,  0, (0.00, -0.06, -1.00), (0.00, -0.06, -1.00)),   # 回垂臂
+    ]
+    for f, sp, uaR, faR in K:
+        clear_pose()
+        wrot("Spine", "Y", sp)
+        walign2("RightArm", uaR); walign2("RightForeArm", faR)
+        walign2("LeftArm", (0.05, 0.10, -0.98))                 # 左臂常量垂摆（镜像垂臂）
+        walign2("LeftForeArm", (0.00, 0.06, -1.00))
+        wrot("LeftFoot", "Y", FOOT_FIX); wrot("RightFoot", "Y", FOOT_FIX)
+        key_all(f)
+    return act
+
 # —— 制作 + 断言（fcurve 非空 / 帧范围 / 循环闭合）——
 def act_fcurves(act):
     """兼容新旧 Action 数据模型：4.3- legacy fcurves / 4.4+ layered(channelbag)"""
@@ -351,9 +375,9 @@ def act_fcurves(act):
     return out
 
 acts = [make_idle(), make_walk(), make_run(), make_jump(), make_jump_run(), make_climb(), make_mantle(),
-        make_crouch_idle(), make_crouch_walk()]
+        make_crouch_idle(), make_crouch_walk(), make_slash()]
 EXPECT = {"A_Idle": 60, "A_Walk": 27, "A_Run": 20, "A_Jump": 27, "A_JumpRun": 28, "A_Climb": 36, "A_Mantle": 30,
-          "A_CrouchIdle": 40, "A_CrouchWalk": 36}
+          "A_CrouchIdle": 40, "A_CrouchWalk": 36, "A_Slash": 25}
 for act in acts:
     fr = act.frame_range
     fcs = act_fcurves(act)
@@ -364,7 +388,7 @@ for act in acts:
     print(f"ACT {act.name:7s} fcurves={nfc:4d} range={tuple(round(v, 1) for v in fr)} loop_maxdiff={md:.6f}")
     assert nfc > 0, act.name
     assert abs(fr[1] - EXPECT[act.name]) < 0.01, act.name
-    if act.name not in ("A_Mantle", "A_JumpRun"):          # Mantle/JumpRun 为一次性动作，豁免循环闭合断言（首尾不闭合是设计：落地接 Run 融合）
+    if act.name not in ("A_Mantle", "A_JumpRun", "A_Slash"):   # Mantle/JumpRun/A_Slash 为一次性动作，豁免循环闭合断言（首尾不闭合是设计）
         assert md < 1e-4, f"{act.name} loop gap {md}"
 
 # —— push 独立 NLA track（供 M4-4 FBX 全量导出）——
@@ -456,6 +480,7 @@ SHOTS = {
     "A_Mantle": [0, 5, 12, 20],
     "A_CrouchIdle": [0, 10, 20, 30],
     "A_CrouchWalk": [0, 9, 18, 27],
+    "A_Slash": [0, 5, 10, 14, 19],
 }
 CS = (2.3, 0.0, 0.85) if "--front" in sys.argv else (0.0, 2.3, 0.85)   # 默认侧视（前后摆）；--front 正视（腿侧向开合）
 TGT = (0.0, 0.0, 0.05)
@@ -463,19 +488,21 @@ TGT = (0.0, 0.0, 0.05)
 for act in acts:
     for tr in ad.nla_tracks:                    # 单轨激活（NLA 混合隔离）
         tr.mute = (tr.name != act.name)
+    frames = SHOTS[act.name]
+    cols = len(frames)
     tiles = []
-    for f in SHOTS[act.name]:
+    for f in frames:
         bpy.context.scene.frame_set(f)
         p = os.path.join(OUTDIR, f"_tmp_{act.name}_{f}.png")
         shoot(CS, TGT, p)
         tiles.append(p)
     imgs = [bpy.data.images.load(p) for p in tiles]
     w, h = imgs[0].size
-    canvas = np.zeros((h, w * 4, 4), dtype=np.float32)
+    canvas = np.zeros((h, w * cols, 4), dtype=np.float32)
     for i, im in enumerate(imgs):
         px = np.array(im.pixels[:], dtype=np.float32).reshape(h, w, 4)
         canvas[:, i * w:(i + 1) * w] = px
-    out = bpy.data.images.new(f"sheet_{act.name}", width=w * 4, height=h, alpha=True)
+    out = bpy.data.images.new(f"sheet_{act.name}", width=w * cols, height=h, alpha=True)
     out.pixels.foreach_set(canvas.ravel())
     outp = os.path.join(OUTDIR, f"anim_sheet_{act.name[2:].lower()}{'_front' if '--front' in sys.argv else ''}.png")
     out.filepath_raw = outp
