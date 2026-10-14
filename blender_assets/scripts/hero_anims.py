@@ -145,6 +145,7 @@ def make_walk():
         wrot2("RightArm", [("X", ARM_DROP_R), ("Y", 20 * math.sin(ph + math.pi))])
         wrot("LeftForeArm", "Z", -15)
         wrot("RightForeArm", "Z", 15)
+        lrot3("RightHand", -90.73, -4.57, 90.53)               # 持刀握姿：刀尖垂直于小臂朝前（与 Idle 一致，随臂摆动；M6-3 走路/跑步刀横握修复）
         wrot("LeftFoot", "Y", FOOT_FIX)                        # 脚部矫正：压平鞋底坡度
         wrot("RightFoot", "Y", FOOT_FIX)
         wloc("Hips", dz=0.03 * math.sin(2 * ph))
@@ -171,6 +172,7 @@ def make_run():
         walign2("RightArm", nlerp(mir(ARM_B), mir(ARM_F), kR))
         walign2("LeftForeArm", nlerp(FA_B, FA_F, kL))
         walign2("RightForeArm", nlerp(mir(FA_B), mir(FA_F), kR))
+        lrot3("RightHand", -90.73, -4.57, 90.53)               # 持刀握姿：刀尖垂直于小臂朝前（与 Idle 一致，随臂摆动；M6-3 走路/跑步刀横握修复）
         wrot("LeftFoot", "Y", FOOT_FIX)                        # 脚部矫正：压平鞋底坡度
         wrot("RightFoot", "Y", FOOT_FIX)
         wloc("Hips", dz=0.08 * math.sin(2 * ph))               # M4-9: 0.05→0.08 弹跳浮空感
@@ -205,6 +207,7 @@ def make_jump():
         walign2("RightArm", mir(ua))
         walign2("LeftForeArm", fa)
         walign2("RightForeArm", mir(fa))
+        lrot3("RightHand", -90.73, -4.57, 90.53)               # 持刀握姿：刀尖垂直于小臂朝前（与 Idle 一致，随臂摆动；M6-3 走路/跑步刀横握修复）
         wrot("LeftFoot", "Y", FOOT_FIX)                        # 脚部矫正：压平鞋底坡度
         wrot("RightFoot", "Y", FOOT_FIX)
         key_all(f)
@@ -241,6 +244,7 @@ def make_jump_run():
         walign2("RightArm", uaR)
         walign2("LeftForeArm", faL)
         walign2("RightForeArm", faR)
+        lrot3("RightHand", -90.73, -4.57, 90.53)               # 持刀握姿：刀尖垂直于小臂朝前（与 Idle 一致，随臂摆动；M6-3 走路/跑步刀横握修复）
         wrot("LeftFoot", "Y", FOOT_FIX)                        # 脚部矫正：压平鞋底坡度
         wrot("RightFoot", "Y", FOOT_FIX)
         key_all(f)
@@ -260,6 +264,7 @@ def make_climb():
         walign2("RightArm", nlerp(mir(UP_L), mir(DN_L), kR))
         walign2("LeftForeArm", nlerp(UF_L, DF_L, kL))
         walign2("RightForeArm", nlerp(mir(UF_L), mir(DF_L), kR))
+        lrot3("RightHand", -90.73, -4.57, 90.53)               # 持刀握姿：刀尖垂直于小臂朝前（与 Idle 一致，随臂摆动；M6-3 走路/跑步刀横握修复）
         wrot2("LeftUpLeg", [("X", LEG_IN_L), ("Y", -30 * math.sin(ph + 0.5 * math.pi))])
         wrot2("RightUpLeg", [("X", LEG_IN_R), ("Y", -30 * math.sin(ph + 1.5 * math.pi))])
         wrot("LeftLeg", "Y", 45 + 20 * math.sin(ph + 0.5 * math.pi))    # 屈膝踩墙（交替加深）
@@ -298,6 +303,7 @@ def make_mantle():
         walign2("RightArm", mir(ua))
         walign2("LeftForeArm", fa)
         walign2("RightForeArm", mir(fa))
+        lrot3("RightHand", -90.73, -4.57, 90.53)               # 持刀握姿：刀尖垂直于小臂朝前（与 Idle 一致，随臂摆动；M6-3 走路/跑步刀横握修复）
         wrot("LeftFoot", "Y", FOOT_FIX)                        # 脚部矫正：压平鞋底坡度
         wrot("RightFoot", "Y", FOOT_FIX)
         key_all(f)
@@ -322,6 +328,7 @@ def make_crouch_idle():
         wrot2("LeftArm", [("X", ARM_DROP_L), ("Y", 6)])
         wrot2("RightArm", [("X", ARM_DROP_R), ("Y", 6)])
         wrot("LeftForeArm", "Z", -22); wrot("RightForeArm", "Z", 22)   # 肘收
+        lrot3("RightHand", -90.73, -4.57, 90.53)               # 持刀握姿：刀尖垂直于小臂朝前（与 Idle 一致，随臂摆动；M6-3 走路/跑步刀横握修复）
         wrot("LeftFoot", "Y", -60); wrot("RightFoot", "Y", -60)        # 贴地补偿（v4 重校：-68→-60，脚底 -0.512 贴站立）
         key_all(f)
     return act
@@ -342,6 +349,7 @@ def make_crouch_walk():
         wrot2("LeftArm", [("X", ARM_DROP_L), ("Y", 8 * math.sin(ph))])
         wrot2("RightArm", [("X", ARM_DROP_R), ("Y", 8 * math.sin(ph + math.pi))])
         wrot("LeftForeArm", "Z", -22); wrot("RightForeArm", "Z", 22)
+        lrot3("RightHand", -90.73, -4.57, 90.53)               # 持刀握姿：刀尖垂直于小臂朝前（与 Idle 一致，随臂摆动；M6-3 走路/跑步刀横握修复）
         wrot("LeftFoot", "Y", -78); wrot("RightFoot", "Y", -78)        # 贴地补偿（v4 独立重校：支撑相 -0.511 贴地，治旧版穿地 2.3cm）
         key_all(f)
     return act
