@@ -34,7 +34,7 @@ public class ThirdPersonController : MonoBehaviour
             if (Crouching) { if (CanStand()) SetCrouch(false); }
             else SetCrouch(true);
         }
-        if (climb && climb.IsClimbing) { velocityY = 0f; airLocked = false; SyncAnimator(); return; }   // 攀爬期间交出控制权（跑跳扑墙则清除惯性锁）
+        if ((climb && climb.IsClimbing) || (RopeSystem.Active && RopeSystem.Active.IsRoping)) { velocityY = 0f; airLocked = false; SyncAnimator(); return; }   // 攀爬/爬绳期间交出控制权（跑跳扑墙则清除惯性锁）
         UpdateSwim();                                                   // M6-4: 游泳接管（先于攀爬之后的常规移动）
         if (Swimming) { if (Crouching) SetCrouch(false); TickSwim(); SyncAnimator(); return; }
         bool grounded = cc.isGrounded;
@@ -178,7 +178,7 @@ public class ThirdPersonController : MonoBehaviour
         Vector3 hv = new Vector3(cc.velocity.x, 0f, cc.velocity.z);
         anim.SetFloat("speed", hv.magnitude);
         anim.SetBool("grounded", cc.isGrounded);
-        anim.SetBool("climbing", climb && climb.IsClimbing);
+        anim.SetBool("climbing", (climb && climb.IsClimbing) || (RopeSystem.Active && RopeSystem.Active.IsRoping));   // M6-5: 爬绳复用 A_Climb
         anim.SetBool("toppingOut", climb && climb.IsToppingOut);   // M4-8: 爬顶翻越段（Climb→Mantle）
         anim.SetBool("crouch", Crouching);                         // M6-2: 蹲行（CrouchIdle/CrouchWalk 两状态分流）
         anim.SetBool("swimming", Swimming);                        // M6-4: 游泳

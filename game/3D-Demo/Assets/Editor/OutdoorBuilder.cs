@@ -303,7 +303,8 @@ public static class OutdoorBuilder
         rope.name = "OUT_Rope_1";                // 绳本体不加碰撞（爬绳走 RopeSystem 状态判定）
         Vector3 north = new Vector3(0f, 3.4f, 215.8f) - rope.transform.position;   // 南→北斜向
         rope.transform.rotation = Quaternion.FromToRotation(Vector3.up, north.normalized);
-        Debug.Log("[OutdoorBuilder] 斜绳：OUT_Rope_1 22.7m 跨深渊 + 双桩（南 -1.5 / 北 2.94）");
+        rope.AddComponent<RopeSystem>();         // M6-5 Task 16: 爬绳系统（绳长/速度用组件默认值）
+        Debug.Log("[OutdoorBuilder] 斜绳：OUT_Rope_1 22.7m 跨深渊 + 双桩（南 -1.5 / 北 2.94）+ RopeSystem");
     }
 
     // M6-5 Task 15: 深渊雾层——4 层水平薄雾板（Cube 薄板 36×0.06×14）从上到下渐浓没入黑暗——“看不见底”。
