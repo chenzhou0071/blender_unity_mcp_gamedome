@@ -7,7 +7,7 @@
 """
 import bpy, os, math, sys
 import numpy as np
-from mathutils import Vector, Matrix
+from mathutils import Vector, Matrix, Euler
 
 BLEND = r"E:\pro\blender_mcp\blender_assets\export\hero\hero_rigged.blend"
 OUTDIR = r"E:\pro\blender_mcp\docs\milestones\M4"
@@ -59,6 +59,13 @@ def wrot2(bone, ops):
     for axis, deg in ops:
         R = Matrix.Rotation(D(deg), 4, axis) @ R
     pb.matrix_basis = pb.bone.matrix_local.inverted() @ R @ pb.bone.matrix_local
+
+def lrot3(bone, rx, ry, rz):
+    """局部欧拉 XYZ 三轴（覆盖式）。注意 wrot 的“世界轴”换算隐含父骨在 rest 的假设：
+    父链大幅姿态（如垂臂）时轴会被父链共轭扭曲、结果不符预期——手腕等局部姿态骨 应改用本函数。
+    数值由 Play/标定脚本按“刀尖世界朝向”反解（rotation_difference）得到。"""
+    pb = arm.pose.bones[bone]
+    pb.matrix_basis = Euler((D(rx), D(ry), D(rz)), 'XYZ').to_matrix().to_4x4()
 
 def walign2(bone, target_dir):
     """把骨的当前世界朝向转到 target_dir（基于当前姿态，考虑父链）"""
@@ -116,6 +123,7 @@ def make_idle():
         wrot2("RightArm", [("X", ARM_DROP_R), ("Y", s2)])
         wrot("LeftForeArm", "Z", -8)
         wrot("RightForeArm", "Z", 8)
+        lrot3("RightHand", -90.73, -4.57, 90.53)              # 待机持刀：刀尖（手骨-Z ⇔ 挂载后刀身长轴）垂直于小臂、水平朝前（用户确认「垂直于手臂」；数值由标定反解，实测夹角 89.5°；仅 Idle 生效，挥砍不 key 手骨不受影响）
         wrot("LeftFoot", "Y", FOOT_FIX)                        # 脚部矫正：压平鞋底坡度
         wrot("RightFoot", "Y", FOOT_FIX)
         wloc("Hips", dz=0.012 * math.sin(2 * ph))
@@ -339,18 +347,20 @@ def make_crouch_walk():
     return act
 
 def make_slash():
-    """25f 一次性挥刀（M6-3）：垂臂→右臂后引上抬（刀朝天蓄力）→挥至正上微过中线→
-    劈向左前上 45°→收势前下→回垂臂。右臂主导（左臂常量垂摆），躯干前倾随劈
-    （峰值 12° 在 f14 劈下段）。判定窗对齐 Attack.cs：f10-f14（劈下段）。"""
+    """25f 一次性挥刀（M6-3）：垂臂→右臂后引上抬至头顶后上方（矢状面蓄力）→挥至正上稍前→
+    劈向正前上 45°→收势身前下方→回垂臂。整条弧线在矢状面内（朝正前劈，不横越身体——
+    首版横抡侧劈按用户反馈重做）。右臂主导（左臂常量垂摆），躯干前倾随劈（峰值 12° 在 f14）。
+    判定窗对齐 Attack.cs：f10-f14（劈下段）。"""
     act = begin("A_Slash")
     # (frame, spine前倾, 右大臂方向, 右前臂方向)；面朝 +X、左=+Y → 右臂 y 取负侧
     K = [
-        (0,   0, (0.05, -0.10, -0.98), (0.30, -0.20, -0.92)),   # 持刀垂臂（微前伸预备）
-        (5,   4, (-0.35, -0.55, 0.75), (-0.15, -0.35, 0.90)),   # 后引上抬：右臂右后上举/肘屈
-        (10, 10, (0.15,  0.10, 0.98), (0.35,  0.25, 0.88)),     # 挥至正上微过中线（判定窗开始）
-        (14, 12, (0.35,  0.55, 0.72), (0.55,  0.60, 0.55)),     # 劈至左前上 45°（判定窗结束）
-        (19,  5, (0.20,  0.20, -0.90), (0.30,  0.10, -0.92)),   # 收势：前下偏左回摆
-        (25,  0, (0.00, -0.06, -1.00), (0.00, -0.06, -1.00)),   # 回垂臂
+        (0,   0, (0.05, -0.08, -0.99), (0.30, -0.15, -0.94)),   # 持刀垂臂（微前伸预备）
+        (5,   4, (-0.30, -0.10, 0.95), (-0.05, -0.08, 0.99)),   # 后引上抬：手举至头顶后上方（矢状面内蓄力）
+        (10, 10, (0.10,  0.02, 0.99), (0.18,  0.04, 0.98)),     # 挥至正上稍前（判定窗开始）
+        (14, 12, (0.75,  0.05, 0.66), (0.70,  0.05, 0.71)),     # 劈至正前上 45°（判定窗结束）
+        (16.5, 10, (0.99,  0.03, -0.10), (0.99,  0.03, -0.08)), # 中继键：收势经正前（防四元数插值向外侧偏摆）
+        (19,  8, (0.55,  0.02, -0.83), (0.60,  0.02, -0.80)),   # 收势：劈至身前下方（前下 45°）
+        (25,  0, (0.00, -0.05, -1.00), (0.00, -0.05, -1.00)),   # 回垂臂
     ]
     for f, sp, uaR, faR in K:
         clear_pose()
